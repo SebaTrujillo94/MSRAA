@@ -1,0 +1,10 @@
+static/videos/
+*.mp4
+*.mov
+*.avi
+*.webm
+media/
+db.sqlite3
+.env
+__pycache__/
+*.pyc
