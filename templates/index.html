@@ -6,6 +6,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ config.site_title }}</title>
+  <link rel="icon" type="image/png" href="{% static 'LOGO MSRAA ALTA CALIDAD.png' %}">
+  <link rel="shortcut icon" href="{% static 'LOGO MSRAA ALTA CALIDAD.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -1604,27 +1606,29 @@
 
       /* Hero Layout adjustments */
       .hero-wrap { flex-direction: column; }
-      
-      /* Always show float menu on mobile, unless overlay is open */
+      /* Always show hamburger on mobile (sidebars-hidden not set automatically on mobile) */
       .float-menu { opacity: 1 !important; pointer-events: all !important; transition-delay: 0s !important; }
       body.mobile-menu-open .float-menu { opacity: 0 !important; pointer-events: none !important; }
 
       /* Left Sidebar as Overlay Menu — glassmorphism blur */
+      body.mobile-menu-open { overflow: hidden; }
       .sb-left {
-        position: fixed;
-        top: 0;
-        left: -100vw;
-        width: 100vw;
-        height: 100vh;
-        z-index: 900;
+        position: fixed !important;
+        top: 0 !important;
+        left: -100vw !important;
+        width: 100vw !important;
+        min-width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        z-index: 900 !important;
         margin-left: 0 !important;
-        transition: left 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+        transition: left 0.5s cubic-bezier(0.76, 0, 0.24, 1) !important;
         background: var(--sb-bg) !important;
-        backdrop-filter: blur(45px) saturate(200%) brightness(var(--sb-brightness));
-        -webkit-backdrop-filter: blur(45px) saturate(200%) brightness(var(--sb-brightness));
-        border-right: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(45px) saturate(200%) brightness(var(--sb-brightness)) !important;
+        -webkit-backdrop-filter: blur(45px) saturate(200%) brightness(var(--sb-brightness)) !important;
+        border-right: none !important;
       }
-      body.mobile-menu-open .sb-left { left: 0; }
+      body.mobile-menu-open .sb-left { left: 0 !important; }
 
       /* Mobile Overlay Content Styling */
       .logo-box { padding: 80px 0 20px; }
@@ -1655,7 +1659,7 @@
         gap: 20px;
       }
       .nav-link {
-        font-size: 26px;
+        font-size: 38px;
         font-family: 'Calibri', sans-serif;
         font-weight: 300;
         letter-spacing: 1px;
@@ -2035,7 +2039,33 @@
       max-width: 480px;
     }
     @media (max-width: 992px) {
-      .trust-header { padding: 50px 6vw 30px; }
+      .trust-sec {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 50px;
+      }
+      .trust-header {
+        padding: 0 7vw;
+        min-height: unset;
+        border-top: none;
+        justify-content: flex-start;
+        gap: 30px;
+      }
+      .trust-title {
+        font-size: clamp(28px, 7vw, 42px);
+        max-width: 100%;
+      }
+      .trust-sub {
+        font-size: 14px;
+        line-height: 1.75;
+        max-width: 100%;
+      }
+      .trust-lbl { font-size: 9px; letter-spacing: 2.5px; }
+      .marquee-sec { min-height: 100px; padding: 28px 0; }
+      .marquee-card { height: 52px; }
+      .marquee-logo { height: 32px; }
     }
 
     /* CONTACT SECTION */
@@ -2257,8 +2287,26 @@
     }
      @media (max-width: 992px) {
       .contact-sec { grid-template-columns: 1fr; }
-      .contact-left, .contact-right { padding: 50px 6vw; }
-      .form-row { grid-template-columns: 1fr; }
+      .contact-left {
+        padding: 40px 7vw 30px;
+        justify-content: flex-start;
+        gap: 22px;
+        min-height: unset;
+      }
+      .contact-right { padding: 35px 7vw 45px; gap: 18px; }
+      .contact-title { font-size: clamp(26px, 8vw, 36px) !important; line-height: 1.08; }
+      .contact-lbl { margin-bottom: 8px; }
+      .contact-email-btn { margin-top: 4px; font-size: 10px; padding: 11px 16px; letter-spacing: 1px; }
+      .contact-dossier-btn { margin-top: 8px; font-size: 9.5px; padding: 10px 16px; }
+      .contact-socials { gap: 16px; }
+      .contact-socials svg { width: 18px; height: 18px; }
+      .contact-right h3 { font-size: 17px; line-height: 1.3; }
+      .form-row { grid-template-columns: 1fr; gap: 12px; }
+      .form-group { gap: 6px; }
+      .form-group label { font-size: 8px; letter-spacing: 1.5px; }
+      .form-group input, .form-group textarea { padding: 11px 12px; font-size: 13px; }
+      .form-group textarea { height: 85px; }
+      .form-submit { padding: 14px 20px; font-size: 13px; letter-spacing: 1.5px; }
 
       /* F&P Explore Mobile Overrides */
       .fp-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
@@ -2464,13 +2512,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s ease;
-      filter: brightness(0) invert(1);
-    }
-    body[data-logo="gold"] .pd-logo {
-      filter: brightness(0) invert(75%) sepia(55%) saturate(400%) hue-rotate(350deg);
-    }
-    body[data-logo="black"] .pd-logo {
-      filter: brightness(0) invert(1);
+      filter: none;
     }
 
     .pd-close {
@@ -2481,9 +2523,9 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: var(--op-05);
-      border: 1px solid var(--border);
-      color: var(--white);
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
       cursor: pointer;
       display: flex;
       justify-content: center;
@@ -2610,6 +2652,23 @@
     }
     .pd-panel-img.narrow { width: 52vw; }
     .pd-panel-img img { width: 100%; height: 100%; object-fit: cover; }
+    .pd-panel-video {
+      width: 80vw;
+      height: 100vh;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    .pd-panel-video iframe {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+    }
     .pd-img-caption {
       position: absolute;
       bottom: 28px;
@@ -2735,6 +2794,7 @@
       .pd-overlay:not(.pd-vert) .pd-panel-hero { width: 100vw; height: 100vh; }
       .pd-overlay:not(.pd-vert) .pd-panel-img { width: 100vw; height: 100vh; }
       .pd-overlay:not(.pd-vert) .pd-panel-img.narrow { width: 100vw; height: 100vh; }
+      .pd-overlay:not(.pd-vert) .pd-panel-video { width: 100vw; height: 100vh; }
       .pd-overlay:not(.pd-vert) .pd-panel-text { width: 100vw; height: 100vh; padding: 20vw 8vw; border-left: none; justify-content: center; }
       .pd-overlay:not(.pd-vert) .pd-panel-next { width: 100vw; height: 100vh; grid-template-columns: 1fr; }
       .pd-overlay:not(.pd-vert) .pd-next-img-wrap { display: none; }
@@ -2744,6 +2804,7 @@
       .pd-overlay.pd-vert .pd-panel-hero { width: 100%; height: 100svh; height: 100vh; min-height: 360px; }
       .pd-overlay.pd-vert .pd-panel-img,
       .pd-overlay.pd-vert .pd-panel-img.narrow { width: 100%; height: 70vw; min-height: 220px; }
+      .pd-overlay.pd-vert .pd-panel-video { width: 100%; height: 70vw; min-height: 220px; max-height: none; background: #000; }
       .pd-overlay.pd-vert .pd-panel-text { width: 100%; height: auto; padding: 14vw 7vw 10vw; border-left: none; border-top: 1px solid var(--border); justify-content: flex-start; }
       .pd-overlay.pd-vert .pd-panel-next { width: 100%; height: auto; min-height: 260px; }
       .pd-overlay.pd-vert .pd-next-img-wrap { display: none; }
@@ -2902,6 +2963,8 @@
     .pd-overlay.pd-vert .pd-panel-hero { width: 100%; height: 100vh; }
     .pd-overlay.pd-vert .pd-panel-img { width: 100%; height: 80vh; }
     .pd-overlay.pd-vert .pd-panel-img.narrow { width: 100%; height: 60vh; }
+    .pd-overlay.pd-vert .pd-panel-video { width: 100%; height: 80vh; background: #000; }
+    .pd-overlay.pd-vert .pd-panel-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
     .pd-overlay.pd-vert .pd-panel-text { width: 100%; max-width: 860px; margin: 0 auto; padding: 12vh 8vw; border-left: none; border-top: 1px solid rgba(255,255,255,0.06); height: auto; }
     .pd-overlay.pd-vert .pd-panel-next { width: 100%; }
     .pd-overlay.pd-vert .pd-nav-label { display: none; }
@@ -3000,6 +3063,14 @@
           <div class="nav-links">
             {% for item in menu_items_by_section.publicaciones %}
             <a href="{{ item.url }}" class="nav-link hov-t"{% if item.filter_value %} data-target="portfolioMain" data-filter="{{ item.filter_value }}"{% endif %}>{{ item.label }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="nav-grp">
+          <span class="nav-lbl">{{ nav_section_labels.curriculum }}</span>
+          <div class="nav-links">
+            {% for item in menu_items_by_section.curriculum %}
+            <a href="{{ item.url }}" class="nav-link hov-t" data-target="curriculum">{{ item.label }}</a>
             {% endfor %}
           </div>
         </div>
@@ -3111,7 +3182,7 @@
   <!-- RIGHT SIDEBAR (fuera del hero-wrap para no afectar flex layout) -->
   <aside class="sb-right">
     <div class="vert-wrap">
-      <a href="#" class="social-icon hov-t" aria-label="Instagram">
+      <a href="{{ config.instagram_url|default:'https://www.instagram.com/msraa__arquitectos/' }}" target="_blank" rel="noopener noreferrer" class="social-icon hov-t" aria-label="Instagram">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
       </a>
       <a href="#" class="social-icon hov-t" aria-label="LinkedIn">
@@ -3554,8 +3625,243 @@
       .por-item { flex-direction: column; }
       .por-item-img-wrap { width: 100%; }
       .por-item-info-wrap { width: 100%; padding: 30px; }
+
+      /* Portfolio header: título arriba, filtros abajo */
+      #portfolioMain > div:first-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
+        margin-bottom: 30px !important;
+      }
+      .por-filter-bar {
+        width: 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+        gap: 8px;
+      }
+      .por-filter-bar::-webkit-scrollbar { display: none; }
+      .por-filter-btn {
+        flex-shrink: 0;
+        font-size: 9px;
+        padding: 7px 14px;
+        letter-spacing: 1.2px;
+      }
     }
 
+
+    /* MEDIOS SECTION */
+    .medios-sec { border-top: 1px solid var(--border); }
+    .medios-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 60px;
+    }
+    .medio-item {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      background: var(--op-03, rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      transition: border-color .3s, transform .3s;
+      overflow: hidden;
+    }
+    .medio-item:hover { border-color: var(--gold); transform: translateY(-4px); }
+    .medio-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/2;
+      overflow: hidden;
+    }
+    .medio-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .5s cubic-bezier(0.76,0,0.24,1);
+      display: block;
+    }
+    .medio-item:hover .medio-img { transform: scale(1.05); }
+    .medio-img-placeholder {
+      width: 100%; height: 100%;
+      background: var(--op-06);
+    }
+    .medio-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,10,.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .medio-item:hover .medio-img-overlay { opacity: 1; }
+    .medio-ver {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,.5);
+      padding: 10px 20px;
+    }
+    .medio-body { padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .medio-meta { display: flex; align-items: center; gap: 14px; }
+    .medio-tipo {
+      font-family: 'Calibri', sans-serif;
+      font-size: 8px;
+      letter-spacing: 2.5px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .medio-year {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      color: var(--op-40);
+      letter-spacing: 1px;
+    }
+    .medio-title {
+      font-family: 'Calibri', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .pd-panel-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--gold);
+      text-decoration: none;
+      padding: 14px 26px;
+      margin-top: 36px;
+      align-self: flex-start;
+      transition: opacity .2s;
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    .pd-panel-link:hover { opacity: 0.85 !important; }
+    @media (max-width: 992px) {
+      .medios-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 35px; }
+    }
+
+    /* CURRICULUM SECTION */
+    .curriculum-sec { border-top: 1px solid var(--border); }
+    .curriculum-inner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 60px;
+      margin-top: 60px;
+    }
+    .curriculum-cat {
+      font-family: 'Calibri', sans-serif;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .curriculum-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .curriculum-item {
+      display: flex;
+      gap: 20px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+    .curriculum-year {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--op-40);
+      min-width: 52px;
+      padding-top: 3px;
+    }
+    .curriculum-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .curriculum-detail strong {
+      font-family: 'Calibri', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: 0.3px;
+    }
+    .curriculum-detail span {
+      font-family: 'Calibri', sans-serif;
+      font-size: 12px;
+      color: var(--op-40);
+      font-weight: 300;
+    }
+    .curriculum-link {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--gold);
+      text-decoration: none;
+      margin-top: 4px;
+      display: inline-block;
+      transition: opacity .2s;
+    }
+    .curriculum-link:hover { opacity: 0.7; }
+    .cv-media-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .cv-media-thumb {
+      width: 56px;
+      height: 42px;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--op-05);
+      cursor: pointer;
+      padding: 0;
+      transition: border-color 0.2s, opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .cv-media-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cv-media-thumb:hover { border-color: var(--gold); opacity: 0.85; }
+    .cv-video-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      width: auto;
+      padding: 0 10px;
+    }
+    @media (max-width: 992px) {
+      .curriculum-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        margin-top: 40px;
+      }
+    }
 
     /* TUNNEL OVERLAY */
     #tunnelOverlay {
@@ -3608,11 +3914,13 @@
         {% for project in projects %}
         <div class="por-item hov-t" onclick="openProjectOverlay({{ forloop.counter0 }})" data-cat="{{ project.get_category_name }}">
           <div class="por-item-img-wrap">
-            {% if project.hero_image %}
-            <img src="{{ project.hero_image.url }}" alt="{{ project.title }}" class="por-img">
+            {% with project.get_hero_image_src as hero_src %}
+            {% if hero_src %}
+            <img src="{{ hero_src }}" alt="{{ project.title }}" class="por-img">
             {% else %}
             <div class="por-img"></div>
             {% endif %}
+            {% endwith %}
             <div class="por-overlay-text">
               <h3 class="por-title">{{ project.title }}</h3>
             </div>
@@ -3648,7 +3956,39 @@
       </div>
     </div>
 
+    <!-- MEDIOS SECTION -->
+    <section class="sc medios-sec" id="medios">
+      <div class="sc-label rv"><span>MEDIOS</span></div>
+      <div class="medios-grid">
+        {% for item in media_items %}
+        <article class="medio-item hov-t" onclick="openMedioOverlay({{ forloop.counter0 }})">
+          <div class="medio-img-wrap">
+            {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="medio-img">
+            {% else %}
+            <div class="medio-img-placeholder"></div>
+            {% endif %}
+            <div class="medio-img-overlay">
+              <span class="medio-ver">VER MÁS +</span>
+            </div>
+          </div>
+          <div class="medio-body">
+            <div class="medio-meta">
+              <span class="medio-tipo">{{ item.get_tipo_display }}</span>
+              {% if item.year %}<span class="medio-year">{{ item.year }}</span>{% endif %}
+            </div>
+            <h3 class="medio-title">{{ item.title }}</h3>
+          </div>
+        </article>
+        {% empty %}
+        <p style="color:var(--op-40);font-size:13px;padding:40px;">Agrega ítems desde el admin → Ítems de Medios.</p>
+        {% endfor %}
+      </div>
+
+    </section>
+
     <!-- TRUST + MARQUEE -->
+    <div class="trust-sec">
     <div class="trust-header" id="trustSection">
       <div class="trust-lbl" data-i18n="trust_lbl">QUIENES NOS HAN CONFIADO SU VISIÓN</div>
       <div class="trust-title" data-i18n="trust_title">ORGULLOSOS DE CADA COLABORACIÓN</div>
@@ -3713,6 +4053,7 @@
         {% endif %}
       </div>
     </div>
+    </div><!-- /.trust-sec -->
 
 
 <style>
@@ -4488,6 +4829,57 @@
       </div>
     </section>
 
+    <!-- CURRICULUM SECTION -->
+    <section class="sc curriculum-sec" id="curriculum">
+      <div class="sc-label rv"><span>CURRICULUM</span></div>
+      <div class="curriculum-inner">
+        {% for cat_label, items in curriculum_groups %}
+        <div class="curriculum-block">
+          <div class="curriculum-cat">{{ cat_label }}</div>
+          <ul class="curriculum-list">
+            {% for item in items %}
+            <li class="curriculum-item">
+              <span class="curriculum-year">{{ item.year }}</span>
+              <div class="curriculum-detail">
+                <strong>{{ item.title }}</strong>
+                {% if item.subtitle %}<span>{{ item.subtitle }}</span>{% endif %}
+                {% if item.url %}
+                <a href="{{ item.url }}" class="curriculum-link hov-t" target="_blank" rel="noopener">
+                  {{ item.url_label|default:"Ver documento" }} →
+                </a>
+                {% endif %}
+                {% if item.video_url or item.images.all %}
+                <div class="cv-media-row">
+                  {% if item.video_url %}
+                  <button class="cv-media-thumb cv-video-btn hov-t" onclick="openCvLightbox('video','{{ item.get_video_embed_url }}','')" title="Ver video">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+                    VIDEO
+                  </button>
+                  {% endif %}
+                  {% for img in item.images.all %}
+                  {% with img.get_image_src as img_src %}
+                  {% if img_src %}
+                  <button class="cv-media-thumb hov-t" onclick="openCvLightbox('img','{{ img_src }}','{{ img.caption }}')" title="{{ img.caption }}">
+                    <img src="{{ img_src }}" alt="{{ img.caption }}">
+                  </button>
+                  {% endif %}
+                  {% endwith %}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+        {% if not curriculum_groups %}
+        <p style="color:var(--op-40);font-size:13px;">Agrega ítems desde el admin → Ítems de Curriculum.</p>
+        {% endif %}
+      </div>
+    </section>
+
+
     <!-- CONTACT SECTION -->
     <div class="contact-sec" id="contacto">
       <!-- LEFT -->
@@ -4501,7 +4893,7 @@
           </a>
         </div>
         <div class="contact-socials">
-          <a href="#" class="hov-t" aria-label="Instagram">
+          <a href="{{ config.instagram_url|default:'https://www.instagram.com/msraa__arquitectos/' }}" target="_blank" rel="noopener noreferrer" class="hov-t" aria-label="Instagram">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
           </a>
           <a href="#" class="hov-t" aria-label="LinkedIn">
@@ -4546,7 +4938,7 @@
     <footer class="foot">
       <span class="foot-c" data-i18n="footer_copy">© 2026 MSRAA ESTUDIO DE ARQUITECTURA</span>
       <div class="foot-l">
-        <a href="#" class="hov-t">Instagram</a>
+        <a href="{{ config.instagram_url|default:'https://www.instagram.com/msraa__arquitectos/' }}" target="_blank" rel="noopener noreferrer" class="hov-t">Instagram</a>
         <a href="#" class="hov-t">LinkedIn</a>
         <a href="#" class="hov-t" data-i18n="footer_contact">Contacto</a>
       </div>
@@ -4574,6 +4966,30 @@
         CONTACTO
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
+    </div>
+
+    <!-- CV MEDIA LIGHTBOX — body level to avoid scroll-content stacking context -->
+    <div id="cvLightbox" style="display:none;position:fixed;inset:0;z-index:19000;background:rgba(0,0,0,0.93);align-items:center;justify-content:center;">
+      <button id="cvLightboxClose" style="position:fixed;top:22px;right:22px;z-index:19001;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div id="cvLightboxContent" style="max-width:90vw;max-height:86vh;display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <img id="cvLightboxImg" src="" alt="" style="max-width:90vw;max-height:80vh;object-fit:contain;display:none;border-radius:4px;">
+        <iframe id="cvLightboxIframe" src="" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="width:min(860px,90vw);height:min(480px,50vw);display:none;border-radius:4px;"></iframe>
+        <p id="cvLightboxCaption" style="color:rgba(255,255,255,0.55);font-size:12px;letter-spacing:1px;text-align:center;margin:0;"></p>
+      </div>
+    </div>
+
+    <!-- MEDIO DETAIL OVERLAY — at body level to avoid fixed-position containment bugs -->
+    <div class="pd-overlay" id="medioDetailOverlay">
+      <button class="pd-close" id="medioDetailClose" aria-label="Cerrar">✕</button>
+      <button class="pd-nav-label pd-nav-left" id="medioNavMenu">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        MENÚ
+      </button>
+      <div class="pd-scroll-container" id="medioDetailScroll">
+        <div class="pd-sticky">
+          <div class="pd-panels" id="medioDetailPanels"></div>
+        </div>
+      </div>
     </div>
 
   <script>
@@ -4788,6 +5204,13 @@
       const img0 = p.images[0] ? `<div class="pd-panel-img"><img src="${p.images[0].url}" alt="${p.title}"><div class="pd-img-caption">01 / ${p.images.length}</div></div>` : '';
       const img1 = p.images[1] ? `<div class="pd-panel-img narrow"><img src="${p.images[1].url}" alt="${p.title}"><div class="pd-img-caption">02 / ${p.images.length}</div></div>` : '';
       const img2 = p.images[2] ? `<div class="pd-panel-img"><img src="${p.images[2].url}" alt="${p.title}"><div class="pd-img-caption">03 / ${p.images.length}</div></div>` : '';
+      const videoPanel = p.videoUrl ? `
+        <div class="pd-panel-video">
+          <iframe src="${p.videoUrl}?autoplay=0&rel=0&modestbranding=1" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen title="${p.title}"></iframe>
+          <div class="pd-img-caption">VIDEO</div>
+        </div>` : '';
 
       document.getElementById('pdScrollContainer').innerHTML = `
         <div class="pd-sticky">
@@ -4819,6 +5242,7 @@
             </div>
 
             ${img1}
+            ${videoPanel}
             ${img2}
 
             <div class="pd-panel-next hov-t" onclick="openProjectOverlay(${nextIdx})">
@@ -4849,25 +5273,25 @@
         gsap.set([pdCloseBtn, pdOrientBtn, '#pdProgress', '.pd-nav-label', '#pdLogo'], { clearProps: 'opacity' });
         // Lock start states so GSAP doesn't flash
         gsap.set('#pdHeroBg', { scale: 1.08 });
-        gsap.set('.pd-title-line span', { y: '105%' });
-        gsap.set('.pd-meta-list li', { opacity: 0, y: 8 });
-        gsap.set('.pd-panel-label', { opacity: 0, y: 10 });
-        gsap.set('.pd-panel-body', { opacity: 0, y: 15 });
+        gsap.set('#pdScrollContainer .pd-title-line span', { y: '105%' });
+        gsap.set('#pdScrollContainer .pd-meta-list li', { opacity: 0, y: 8 });
+        gsap.set('#pdScrollContainer .pd-panel-label', { opacity: 0, y: 10 });
+        gsap.set('#pdScrollContainer .pd-panel-body', { opacity: 0, y: 15 });
         pdOverlay.classList.add('pd-visible');
         const isMobile = window.innerWidth <= 992;
         const tl = gsap.timeline({ delay: 0.08 });
         tl.to('#pdHeroBg', { scale: 1, duration: isMobile ? 1.4 : 2.2, ease: "power3.out" })
-          .to('.pd-title-line span', { y: '0%', duration: 0.95, stagger: 0.13, ease: "power4.out" }, "-=1.8");
+          .to('#pdScrollContainer .pd-title-line span', { y: '0%', duration: 0.95, stagger: 0.13, ease: "power4.out" }, "-=1.8");
         if (!isMobile) {
-          tl.to('.pd-meta-list li', { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power3.out" }, "-=1.1")
+          tl.to('#pdScrollContainer .pd-meta-list li', { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power3.out" }, "-=1.1")
             .to([pdCloseBtn, pdOrientBtn, '#pdProgress', '.pd-nav-label', '#pdLogo'], { opacity: 1, duration: 0.45 }, "-=0.9")
-            .to('.pd-panel-label', { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, "-=0.4")
-            .to('.pd-panel-body', { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, "-=0.5");
+            .to('#pdScrollContainer .pd-panel-label', { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, "-=0.4")
+            .to('#pdScrollContainer .pd-panel-body', { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, "-=0.5");
         } else {
           tl.to([pdCloseBtn, pdOrientBtn, '#pdProgress', '#pdLogo'], { opacity: 1, duration: 0.4, stagger: 0.05 }, "-=0.9")
-            .to('.pd-meta-list li', { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: "power3.out" }, "-=0.6")
-            .to('.pd-panel-label', { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, "-=0.3")
-            .to('.pd-panel-body', { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, "-=0.4");
+            .to('#pdScrollContainer .pd-meta-list li', { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: "power3.out" }, "-=0.6")
+            .to('#pdScrollContainer .pd-panel-label', { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, "-=0.3")
+            .to('#pdScrollContainer .pd-panel-body', { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, "-=0.4");
         }
         if (isMobile) {
           pdIsVert = true;
@@ -4912,11 +5336,34 @@
       sc.addEventListener('scroll', onScroll, { passive: true });
       pdOverlay.addEventListener('wheel', onWheel, { passive: false });
 
+      // Pause video when panel scrolls out of view
+      const videoPanel = sc.querySelector('.pd-panel-video');
+      let videoObs = null;
+      if (videoPanel) {
+        const vIframe = videoPanel.querySelector('iframe');
+        let savedSrc = '';
+        let hasBeenVisible = false;
+        videoObs = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              hasBeenVisible = true;
+              if (savedSrc && vIframe) { vIframe.src = savedSrc; savedSrc = ''; }
+            } else if (hasBeenVisible && vIframe && !savedSrc) {
+              try { vIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch(_) {}
+              savedSrc = vIframe.src;
+              vIframe.src = '';
+            }
+          });
+        }, { threshold: 0.1, root: sc });
+        videoObs.observe(videoPanel);
+      }
+
       const sc2 = sc;
       sc2._pdCleanup = () => {
         sc2.removeEventListener('scroll', onScroll);
         pdOverlay.removeEventListener('wheel', onWheel);
         gsap.killTweensOf(sc2);
+        if (videoObs) videoObs.disconnect();
       };
 
       onScroll();
@@ -4928,7 +5375,8 @@
       setTimeout(() => {
         // Kill all overlay tweens before clearing DOM
         gsap.killTweensOf([pdCloseBtn, pdOrientBtn, '#pdProgress', '.pd-nav-label', '#pdLogo',
-          '.pd-title-line span', '.pd-meta-list li', '.pd-panel-label', '.pd-panel-body', '#pdHeroBg']);
+          '#pdScrollContainer .pd-title-line span', '#pdScrollContainer .pd-meta-list li',
+          '#pdScrollContainer .pd-panel-label', '#pdScrollContainer .pd-panel-body', '#pdHeroBg']);
         pdOverlay.style.display = 'none';
         pdOverlay.classList.remove('pd-vert');
         pdOrientBtn.classList.remove('is-vert');
@@ -5703,6 +6151,204 @@
       contactSec.scrollIntoView({ behavior: 'smooth' });
     }
   }
+
+  // ── MEDIOS OVERLAY ──────────────────────────────────────────────────────────
+  const mediosData = {{ media_data_json|safe }};
+  const medioDetailOverlay = document.getElementById('medioDetailOverlay');
+  const medioDetailScroll  = document.getElementById('medioDetailScroll');
+  const medioDetailPanels  = document.getElementById('medioDetailPanels');
+  const medioDetailClose   = document.getElementById('medioDetailClose');
+  const isMobile = () => window.innerWidth <= 992;
+
+  function buildMedioPanels(d, idx) {
+    const imgSrc = d.image || '';
+    const linkHTML = d.url
+      ? `<a href="${d.url}" class="pd-panel-link hov-t" target="_blank" rel="noopener">${d.url_label} →</a>`
+      : '';
+    const refImgs = (d.images || []).map(src =>
+      `<div class="pd-panel-img"><img src="${src}" alt=""><div class="pd-img-caption">IMAGEN REFERENCIAL</div></div>`
+    ).join('');
+    const videoPanel = d.videoUrl
+      ? `<div class="pd-panel-video"><iframe src="${d.videoUrl}" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe><div class="pd-img-caption">VIDEO</div></div>`
+      : '';
+    const nextIdx = (idx + 1) % mediosData.length;
+    const nd = mediosData[nextIdx];
+    const nextPanel = `
+      <div class="pd-panel-next hov-t" onclick="openMedioOverlay(${nextIdx})">
+        <div class="pd-next-info">
+          <div class="pd-next-lbl">SIGUIENTE</div>
+          <div class="pd-next-name">${nd.title}</div>
+          <div class="pd-next-type">${nd.tipo}${nd.year ? ' · ' + nd.year : ''}</div>
+          <div class="pd-next-arrow">→</div>
+        </div>
+        <div class="pd-next-img-wrap">
+          ${nd.image ? `<img src="${nd.image}" class="pd-next-img" alt="${nd.title}">` : ''}
+        </div>
+      </div>`;
+    return `
+      <div class="pd-panel-hero">
+        ${imgSrc ? `<img class="pd-hero-bg" src="${imgSrc}" alt="${d.title}">` : '<div class="pd-hero-bg" style="background:#111"></div>'}
+        <div class="pd-hero-fig">
+          <div class="pd-hero-meta-row">
+            <h2 class="pd-hero-title-big">
+              <span class="pd-title-line"><span>${d.title}</span></span>
+            </h2>
+            <ul class="pd-meta-list">
+              <li><strong>TIPO</strong>${d.tipo}</li>
+              ${d.year ? `<li><strong>AÑO</strong>${d.year}</li>` : ''}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="pd-panel-text">
+        <div class="pd-panel-label">${d.tipo}${d.year ? ' — ' + d.year : ''}</div>
+        <div class="pd-panel-body">${d.description || ''}</div>
+        ${linkHTML}
+      </div>
+      ${videoPanel}
+      ${refImgs}
+      ${nextPanel}`;
+  }
+
+  function initMedioHoriz() {
+    if (medioDetailScroll._medioCleanup) { medioDetailScroll._medioCleanup(); }
+    function onWheel(e) {
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (delta === 0) return;
+      const maxScroll = medioDetailScroll.scrollWidth - medioDetailScroll.clientWidth;
+      if ((delta > 0 && medioDetailScroll.scrollLeft >= maxScroll) || (delta < 0 && medioDetailScroll.scrollLeft <= 0)) return;
+      e.preventDefault();
+      medioDetailScroll.scrollLeft += delta;
+    }
+    medioDetailOverlay.addEventListener('wheel', onWheel, { passive: false });
+
+    // Pause video when panel scrolls out of view
+    const mVideoPanel = medioDetailScroll.querySelector('.pd-panel-video');
+    let mVideoObs = null;
+    if (mVideoPanel) {
+      const mIframe = mVideoPanel.querySelector('iframe');
+      let mSavedSrc = '';
+      let mHasBeenVisible = false;
+      mVideoObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            mHasBeenVisible = true;
+            if (mSavedSrc && mIframe) { mIframe.src = mSavedSrc; mSavedSrc = ''; }
+          } else if (mHasBeenVisible && mIframe && !mSavedSrc) {
+            try { mIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch(_) {}
+            mSavedSrc = mIframe.src;
+            mIframe.src = '';
+          }
+        });
+      }, { threshold: 0.1, root: medioDetailScroll });
+      mVideoObs.observe(mVideoPanel);
+    }
+
+    medioDetailScroll._medioCleanup = () => {
+      medioDetailOverlay.removeEventListener('wheel', onWheel);
+      if (mVideoObs) mVideoObs.disconnect();
+    };
+  }
+
+  function openMedioOverlay(idx) {
+    const d = mediosData[idx];
+    if (!d) return;
+    document.body.classList.remove('mobile-menu-open');
+    medioDetailPanels.innerHTML = buildMedioPanels(d, idx);
+    const wasOpen = medioDetailOverlay.style.display === 'block';
+    medioDetailOverlay.style.display = 'block';
+    medioDetailScroll.scrollLeft = 0;
+    if (wasOpen) history.replaceState({ medioOverlay: idx }, '');
+    else history.pushState({ medioOverlay: idx }, '');
+    requestAnimationFrame(() => {
+      medioDetailOverlay.classList.add('pd-visible');
+      document.body.style.overflow = 'hidden';
+      // Show chrome buttons
+      [medioDetailClose, medioNavMenu].forEach(btn => {
+        if (btn) { btn.style.transition = 'opacity 0.4s ease'; btn.style.opacity = '1'; }
+      });
+      medioDetailOverlay.querySelectorAll('.pd-title-line span').forEach((el, i) => {
+        setTimeout(() => { el.style.transition = 'transform 0.7s cubic-bezier(0.16,1,0.3,1)'; el.style.transform = 'translateY(0)'; }, 120 + i * 80);
+      });
+      medioDetailOverlay.querySelectorAll('.pd-panel-label, .pd-panel-body, .pd-panel-link').forEach((el, i) => {
+        setTimeout(() => { el.style.transition = 'opacity 0.6s ease, transform 0.6s ease'; el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }, 300 + i * 100);
+      });
+      if (isMobile()) {
+        medioDetailOverlay.classList.add('pd-vert');
+      } else {
+        medioDetailOverlay.classList.remove('pd-vert');
+        initMedioHoriz();
+      }
+    });
+  }
+
+  function closeMedioOverlay() {
+    medioDetailOverlay.classList.remove('pd-visible');
+    document.body.style.overflow = '';
+    [medioDetailClose, medioNavMenu].forEach(btn => { if (btn) btn.style.opacity = '0'; });
+    if (medioDetailScroll._medioCleanup) { medioDetailScroll._medioCleanup(); medioDetailScroll._medioCleanup = null; }
+    setTimeout(() => { medioDetailOverlay.style.display = 'none'; }, 560);
+  }
+
+  if (medioDetailClose) medioDetailClose.addEventListener('click', () => {
+    closeMedioOverlay();
+    if (history.state && history.state.medioOverlay != null) history.back();
+  });
+
+  const medioNavMenu = document.getElementById('medioNavMenu');
+  if (medioNavMenu) {
+    medioNavMenu.addEventListener('click', () => {
+      closeMedioOverlay();
+      if (history.state && history.state.medioOverlay != null) history.back();
+      setTimeout(() => {
+        document.body.classList.remove('sidebars-hidden');
+        document.body.classList.add('mobile-menu-open');
+      }, 300);
+    });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && medioDetailOverlay.classList.contains('pd-visible')) {
+      closeMedioOverlay();
+      if (history.state && history.state.medioOverlay != null) history.back();
+    }
+  });
+
+  window.addEventListener('popstate', e => {
+    if (medioDetailOverlay.classList.contains('pd-visible')) closeMedioOverlay();
+  });
+
+  // ── CV LIGHTBOX ──────────────────────────────────────────────────────────────
+  const cvLightbox = document.getElementById('cvLightbox');
+  const cvLightboxClose = document.getElementById('cvLightboxClose');
+  const cvLightboxImg = document.getElementById('cvLightboxImg');
+  const cvLightboxIframe = document.getElementById('cvLightboxIframe');
+  const cvLightboxCaption = document.getElementById('cvLightboxCaption');
+
+  function openCvLightbox(type, src, caption) {
+    cvLightboxImg.style.display = 'none';
+    cvLightboxIframe.style.display = 'none';
+    if (type === 'video') {
+      cvLightboxIframe.src = src;
+      cvLightboxIframe.style.display = 'block';
+    } else {
+      cvLightboxImg.src = src;
+      cvLightboxImg.style.display = 'block';
+    }
+    cvLightboxCaption.textContent = caption || '';
+    cvLightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCvLightbox() {
+    cvLightbox.style.display = 'none';
+    cvLightboxIframe.src = '';
+    document.body.style.overflow = '';
+  }
+
+  if (cvLightboxClose) cvLightboxClose.addEventListener('click', closeCvLightbox);
+  cvLightbox.addEventListener('click', e => { if (e.target === cvLightbox) closeCvLightbox(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && cvLightbox.style.display === 'flex') closeCvLightbox(); });
 
 </script>
 </body>

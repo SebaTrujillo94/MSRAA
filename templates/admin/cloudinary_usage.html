@@ -1,0 +1,102 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Estado Cloudinary — Admin{% endblock %}
+
+{% block content %}
+<h1>Estado de Cloudinary</h1>
+
+<style>
+  .cloud-card { background:#fff; border:1px solid #ddd; border-radius:6px; padding:24px 28px; margin-bottom:20px; max-width:680px; }
+  .cloud-card h2 { font-size:14px; font-weight:600; color:#333; margin:0 0 18px; text-transform:uppercase; letter-spacing:1px; }
+  .cloud-metric { margin-bottom:22px; }
+  .cloud-metric-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .cloud-metric-label { font-size:13px; color:#555; }
+  .cloud-metric-value { font-size:13px; font-weight:600; color:#222; }
+  .cloud-bar-bg { height:10px; background:#eee; border-radius:5px; overflow:hidden; }
+  .cloud-bar-fill { height:100%; border-radius:5px; transition:width .4s ease; }
+  .bar-ok   { background:#22c55e; }
+  .bar-warn { background:#f59e0b; }
+  .bar-crit { background:#ef4444; }
+  .cloud-pct { font-size:11px; color:#888; margin-top:5px; }
+  .cloud-alert { background:#fef3c7; border:1px solid #f59e0b; border-radius:5px; padding:12px 16px; margin-bottom:20px; max-width:680px; font-size:13px; color:#92400e; }
+  .cloud-error { background:#fee2e2; border:1px solid #ef4444; border-radius:5px; padding:12px 16px; margin-bottom:20px; max-width:680px; font-size:13px; color:#7f1d1d; }
+  .cloud-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; max-width:680px; margin-bottom:20px; }
+  .cloud-stat { background:#f9f9f9; border:1px solid #e5e5e5; border-radius:5px; padding:16px; text-align:center; }
+  .cloud-stat-n { font-size:22px; font-weight:700; color:#222; }
+  .cloud-stat-l { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+  .cloud-actions { display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+  .btn-upgrade { background:#0073aa; color:#fff; padding:10px 20px; border-radius:4px; text-decoration:none; font-size:13px; font-weight:600; }
+  .btn-upgrade:hover { background:#005a87; color:#fff; }
+  .btn-refresh { background:#eee; color:#333; padding:10px 20px; border-radius:4px; text-decoration:none; font-size:13px; border:1px solid #ccc; }
+  .cloud-ts { font-size:11px; color:#aaa; margin-top:20px; }
+</style>
+
+{% if error %}
+<div class="cloud-error">
+  <strong>No se pudo conectar a Cloudinary:</strong> {{ error }}
+  <br><small>Verifica que <code>CLOUDINARY_URL</code> esté configurado en las variables de entorno.</small>
+</div>
+{% else %}
+
+{% if storage_pct >= 80 or bandwidth_pct >= 80 %}
+<div class="cloud-alert">
+  ⚠️ <strong>Uso alto detectado.</strong> Considera actualizar al plan de pago antes de alcanzar el límite (25 GB).
+  <br><a href="https://cloudinary.com/pricing" target="_blank" rel="noopener" style="color:#92400e;font-weight:600;">Ver planes →</a>
+</div>
+{% endif %}
+
+<div class="cloud-card">
+  <h2>Almacenamiento</h2>
+  <div class="cloud-metric">
+    <div class="cloud-metric-header">
+      <span class="cloud-metric-label">Usado / Límite Free (25 GB)</span>
+      <span class="cloud-metric-value">{{ storage_gb|floatformat:2 }} GB / 25 GB</span>
+    </div>
+    <div class="cloud-bar-bg">
+      <div class="cloud-bar-fill {% if storage_pct >= 80 %}bar-crit{% elif storage_pct >= 60 %}bar-warn{% else %}bar-ok{% endif %}"
+           style="width:{{ storage_pct|floatformat:1 }}%"></div>
+    </div>
+    <div class="cloud-pct">{{ storage_pct|floatformat:1 }}% usado</div>
+  </div>
+
+  <h2>Bandwidth este mes</h2>
+  <div class="cloud-metric">
+    <div class="cloud-metric-header">
+      <span class="cloud-metric-label">Transferido / Límite Free (25 GB)</span>
+      <span class="cloud-metric-value">{{ bandwidth_gb|floatformat:2 }} GB / 25 GB</span>
+    </div>
+    <div class="cloud-bar-bg">
+      <div class="cloud-bar-fill {% if bandwidth_pct >= 80 %}bar-crit{% elif bandwidth_pct >= 60 %}bar-warn{% else %}bar-ok{% endif %}"
+           style="width:{{ bandwidth_pct|floatformat:1 }}%"></div>
+    </div>
+    <div class="cloud-pct">{{ bandwidth_pct|floatformat:1 }}% usado</div>
+  </div>
+</div>
+
+<div class="cloud-stats">
+  <div class="cloud-stat">
+    <div class="cloud-stat-n">{{ transformations }}</div>
+    <div class="cloud-stat-l">Transformaciones</div>
+  </div>
+  <div class="cloud-stat">
+    <div class="cloud-stat-n">{{ requests }}</div>
+    <div class="cloud-stat-l">Solicitudes</div>
+  </div>
+  <div class="cloud-stat">
+    <div class="cloud-stat-n">{{ resources }}</div>
+    <div class="cloud-stat-l">Archivos</div>
+  </div>
+</div>
+
+<div class="cloud-actions">
+  <a href="https://cloudinary.com/pricing" target="_blank" rel="noopener" class="btn-upgrade">Actualizar plan →</a>
+  <a href="?" class="btn-refresh">↻ Actualizar datos</a>
+  <a href="https://cloudinary.com/console" target="_blank" rel="noopener" class="btn-refresh">Ir a consola Cloudinary</a>
+</div>
+
+<p class="cloud-ts">Datos obtenidos: {{ now }}</p>
+
+{% endif %}
+
+<br>
+<a href="../">← Volver a Configuración del Sitio</a>
+{% endblock %}
