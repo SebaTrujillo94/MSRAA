@@ -53,9 +53,9 @@
   <style>
     :root {
       --gold: {{ config.color_gold }};
-      --black: #2B2B2C;
-      --bg: #2B2B2C;
-      --sb-bg: rgba(20, 20, 21, 0.95);
+      --black: #1e1e1f;
+      --bg: #1e1e1f;
+      --sb-bg: #1e1e1f;
       font-size: {{ config.font_size_base }}px;
     }
     /* Unificar fondos negros al PANTONE Black C */
@@ -66,8 +66,8 @@
     .por-img {
       background: var(--black) !important;
     }
-    /* Sidebar izquierdo — fondo sólido Pantone Black C */
-    .sb-left {
+    /* Sidebars — fondo sólido igual color */
+    .sb-left, .sb-right {
       background: var(--black) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
