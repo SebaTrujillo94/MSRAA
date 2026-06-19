@@ -63,6 +63,7 @@ class SiteConfiguration(SingletonModel):
 
     # About section
     about_label = models.CharField(max_length=100, default="SOBRE EL PROYECTO", verbose_name="Etiqueta sección Sobre")
+    about_label_en = models.CharField(max_length=100, blank=True, verbose_name="Etiqueta sección Sobre (EN)")
     about_p1 = models.TextField(
         verbose_name="Párrafo 1 (Sobre)",
         default="Cuatro volúmenes dibujan su órbita en torno a un vacío central "
@@ -70,36 +71,48 @@ class SiteConfiguration(SingletonModel):
                 "múltiples ángulos, creando una danza de sombras que transforma el "
                 "espacio a lo largo del día."
     )
+    about_p1_en = models.TextField(blank=True, verbose_name="Párrafo 1 (Sobre) (EN)")
     about_p2 = models.TextField(
         verbose_name="Párrafo 2 (Sobre)",
         default="Las fachadas están marcadas por una rigurosa modulación que refleja "
                 "la precisión técnica del proceso constructivo. Cada detalle ha sido "
                 "pensado para que la obra dialogue con su entorno y perdure en el tiempo."
     )
+    about_p2_en = models.TextField(blank=True, verbose_name="Párrafo 2 (Sobre) (EN)")
 
     # Stats bar
     stat1_number = models.PositiveIntegerField(default=50, verbose_name="Estadística 1 — número")
     stat1_prefix = models.CharField(max_length=50, default="Proyectos", verbose_name="Estadística 1 — prefijo")
+    stat1_prefix_en = models.CharField(max_length=50, blank=True, verbose_name="Estadística 1 — prefijo (EN)")
     stat1_label = models.CharField(max_length=100, default="Instalaciones completadas", verbose_name="Estadística 1 — etiqueta")
+    stat1_label_en = models.CharField(max_length=100, blank=True, verbose_name="Estadística 1 — etiqueta (EN)")
     stat2_number = models.PositiveIntegerField(default=10, verbose_name="Estadística 2 — número")
     stat2_prefix = models.CharField(max_length=50, default="Difusión", verbose_name="Estadística 2 — prefijo")
+    stat2_prefix_en = models.CharField(max_length=50, blank=True, verbose_name="Estadística 2 — prefijo (EN)")
     stat2_label = models.CharField(max_length=100, default="Publicaciones especializadas", verbose_name="Estadística 2 — etiqueta")
+    stat2_label_en = models.CharField(max_length=100, blank=True, verbose_name="Estadística 2 — etiqueta (EN)")
     stat3_number = models.PositiveIntegerField(default=300, verbose_name="Estadística 3 — número")
     stat3_prefix = models.CharField(max_length=50, default="Superficie construida", verbose_name="Estadística 3 — prefijo")
+    stat3_prefix_en = models.CharField(max_length=50, blank=True, verbose_name="Estadística 3 — prefijo (EN)")
     stat3_label = models.CharField(max_length=100, default="M² construidos en todo Chile", verbose_name="Estadística 3 — etiqueta")
+    stat3_label_en = models.CharField(max_length=100, blank=True, verbose_name="Estadística 3 — etiqueta (EN)")
 
     # Trust/clients section
     trust_lbl = models.CharField(max_length=200, default="QUIENES NOS HAN CONFIADO SU VISIÓN", verbose_name="Colaboradores — etiqueta")
+    trust_lbl_en = models.CharField(max_length=200, blank=True, verbose_name="Colaboradores — etiqueta (EN)")
     trust_title = models.CharField(max_length=200, default="ORGULLOSOS DE CADA COLABORACIÓN", verbose_name="Colaboradores — título")
+    trust_title_en = models.CharField(max_length=200, blank=True, verbose_name="Colaboradores — título (EN)")
     trust_sub = models.TextField(
         verbose_name="Colaboradores — subtítulo",
         default="Agradecemos profundamente la confianza de nuestros clientes, "
                 "cuya visión y colaboración han sido fundamentales para crear "
                 "proyectos que transforman espacios y comunidades."
     )
+    trust_sub_en = models.TextField(blank=True, verbose_name="Colaboradores — subtítulo (EN)")
 
     # Footer
     footer_copy = models.CharField(max_length=200, default="© 2026 MSRAA ESTUDIO DE ARQUITECTURA", verbose_name="Texto pie de página")
+    footer_copy_en = models.CharField(max_length=200, blank=True, verbose_name="Texto pie de página (EN)")
 
     class Meta:
         verbose_name = "Configuración del Sitio"
@@ -155,11 +168,14 @@ class MediaItem(models.Model):
     tipo = models.CharField(max_length=20, choices=TYPE_CHOICES, default='noticia', verbose_name='Tipo')
     year = models.CharField(max_length=10, blank=True, verbose_name='Año', help_text='Ej: 2024')
     title = models.CharField(max_length=200, verbose_name='Título')
+    title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     description = models.TextField(blank=True, verbose_name='Descripción')
+    description_en = models.TextField(blank=True, verbose_name='Descripción (EN)')
     image = models.ImageField(upload_to='medios/', blank=True, null=True, max_length=500, verbose_name='Imagen', help_text='Foto portada subida al servidor')
     image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa o Dropbox/Drive para la imagen portada (tiene prioridad sobre la imagen subida)')
     url = models.URLField(blank=True, verbose_name='Enlace', help_text='Dropbox, artículo, web, etc.')
     url_label = models.CharField(max_length=60, blank=True, default='Ver más', verbose_name='Texto del enlace')
+    url_label_en = models.CharField(max_length=60, blank=True, verbose_name='Texto del enlace (EN)')
     video_url = models.URLField(
         blank=True, verbose_name='URL de video',
         help_text='YouTube, Vimeo o Cloudinary player. Ej: https://player.cloudinary.com/embed/?cloud_name=xxx&public_id=yyy'
@@ -234,9 +250,12 @@ class CurriculumItem(models.Model):
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='experiencia', verbose_name='Categoría')
     year = models.CharField(max_length=20, blank=True, help_text="Ej: 2020, 2015 — 2020, 2010 —")
     title = models.CharField(max_length=200, verbose_name='Título')
+    title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     subtitle = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución')
+    subtitle_en = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución (EN)')
     url = models.URLField(blank=True, help_text="Enlace externo (Dropbox, Drive, web). Dejar vacío si no aplica.")
     url_label = models.CharField(max_length=60, blank=True, default='Ver documento', help_text="Texto del enlace")
+    url_label_en = models.CharField(max_length=60, blank=True, help_text="Texto del enlace (EN)")
     video_url = models.URLField(blank=True, verbose_name='URL de video', help_text="YouTube o Vimeo. Ej: https://youtu.be/xxxx")
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -291,7 +310,9 @@ class HeroVideo(models.Model):
         max_length=200, blank=True,
         help_text="Primera línea del título sobre el video (dejar en blanco para ocultar)"
     )
+    title_line1_en = models.CharField(max_length=200, blank=True, help_text="Primera línea del título (EN)")
     title_line2 = models.CharField(max_length=200, blank=True, help_text="Segunda línea del título")
+    title_line2_en = models.CharField(max_length=200, blank=True, help_text="Segunda línea del título (EN)")
     video_file = models.FileField(
         upload_to='videos/', blank=True,
         help_text="Subir MP4 aquí (Cloudinary en producción). Tiene prioridad sobre la URL."
@@ -360,13 +381,16 @@ class PortfolioCategory(models.Model):
 
 class PortfolioProject(models.Model):
     title = models.CharField(max_length=200, verbose_name='Título')
+    title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     category = models.ForeignKey(
         PortfolioCategory, on_delete=models.SET_NULL, null=True, related_name='projects',
         verbose_name='Categoría'
     )
     description = models.TextField(verbose_name='Descripción')
+    description_en = models.TextField(blank=True, verbose_name='Descripción (EN)')
     year = models.CharField(max_length=10, verbose_name='Año')
     location = models.CharField(max_length=200, blank=True, verbose_name='Ubicación')
+    location_en = models.CharField(max_length=200, blank=True, verbose_name='Ubicación (EN)')
     hero_image = models.ImageField(
         upload_to='portfolio/heroes/', blank=True, max_length=500,
         verbose_name='Imagen principal',
