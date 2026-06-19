@@ -3,7 +3,10 @@ import dj_database_url
 from decouple import config
 
 DEBUG = False
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+_hosts_env = [h.strip() for h in config('ALLOWED_HOSTS', default='').split(',') if h.strip()]
+ALLOWED_HOSTS = _hosts_env or ['msraaproject.vercel.app', 'msraa.cl', 'www.msraa.cl']
+ALLOWED_HOSTS += ['msraa.cl', 'www.msraa.cl', 'msraaproject.vercel.app']
+ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -27,3 +30,9 @@ SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://msraa.cl',
+    'https://www.msraa.cl',
+    'https://msraaproject.vercel.app',
+]
