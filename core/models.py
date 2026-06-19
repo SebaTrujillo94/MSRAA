@@ -439,6 +439,24 @@ class PortfolioProject(models.Model):
         return url
 
 
+class ContactSubmission(models.Model):
+    name = models.CharField(max_length=200, verbose_name='Nombre')
+    phone = models.CharField(max_length=50, blank=True, verbose_name='Teléfono')
+    email = models.EmailField(verbose_name='Correo')
+    project_type = models.CharField(max_length=200, blank=True, verbose_name='Tipo de proyecto')
+    message = models.TextField(verbose_name='Mensaje')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de envío')
+    is_read = models.BooleanField(default=False, verbose_name='Leído')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Consulta de Contacto'
+        verbose_name_plural = 'Consultas de Contacto'
+
+    def __str__(self):
+        return f"{self.name} <{self.email}> — {self.created_at.strftime('%d/%m/%Y %H:%M')}"
+
+
 class PortfolioProjectImage(models.Model):
     SIZE_CHOICES = [('large', 'Grande'), ('small', 'Pequeña')]
 

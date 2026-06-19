@@ -7,7 +7,8 @@ from solo.admin import SingletonModelAdmin
 from .models import (
     SiteConfiguration, MenuItem, HeroVideo,
     ClientLogo, PortfolioCategory, PortfolioProject, PortfolioProjectImage,
-    CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage
+    CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage,
+    ContactSubmission,
 )
 
 
@@ -201,3 +202,28 @@ class MediaItemAdmin(admin.ModelAdmin):
         if obj.image:
             return format_html('<img src="{}" style="max-height:200px;max-width:400px;object-fit:cover;border-radius:4px;margin-top:8px">', obj.image.url)
         return '—'
+
+
+@admin.register(ContactSubmission)
+class ContactSubmissionAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'name', 'email', 'phone', 'project_type', 'short_message', 'is_read']
+    list_display_links = ['created_at', 'name']
+    list_filter = ['is_read', 'created_at']
+    list_editable = ['is_read']
+    search_fields = ['name', 'email', 'phone', 'message']
+    readonly_fields = ['name', 'phone', 'email', 'project_type', 'message', 'created_at']
+    ordering = ['-created_at']
+    date_hierarchy = 'created_at'
+    actions = ['mark_read', 'mark_unread']
+
+    @admin.display(description='Mensaje')
+    def short_message(self, obj):
+        return obj.message[:80] + '…' if len(obj.message) > 80 else obj.message
+
+    @admin.action(description='Marcar como leído')
+    def mark_read(self, request, queryset):
+        queryset.update(is_read=True)
+
+    @admin.action(description='Marcar como no leído')
+    def mark_unread(self, request, queryset):
+        queryset.update(is_read=False)

@@ -7,7 +7,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import (
     SiteConfiguration, MenuItem, HeroVideo,
-    ClientLogo, PortfolioCategory, PortfolioProject, CurriculumItem, MediaItem
+    ClientLogo, PortfolioCategory, PortfolioProject, CurriculumItem, MediaItem,
+    ContactSubmission,
 )
 
 
@@ -213,19 +214,37 @@ def _group_menu_items(menu_items):
 def contact_submit(request):
     try:
         data = json.loads(request.body)
-        config = SiteConfiguration.get_solo()
-        send_mail(
-            subject=f"Contacto MSRAA: {data.get('name', '')}",
-            message=(
-                f"Nombre: {data.get('name', '')}\n"
-                f"Teléfono: {data.get('phone', '')}\n"
-                f"Email: {data.get('email', '')}\n"
-                f"Tipo de proyecto: {data.get('project_type', '')}\n\n"
-                f"{data.get('message', '')}"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[config.contact_email],
+        name = data.get('name', '').strip()
+        phone = data.get('phone', '').strip()
+        email = data.get('email', '').strip()
+        project_type = data.get('project_type', '').strip()
+        message = data.get('message', '').strip()
+
+        submission = ContactSubmission.objects.create(
+            name=name,
+            phone=phone,
+            email=email,
+            project_type=project_type,
+            message=message,
         )
-        return JsonResponse({'status': 'ok'})
+
+        config = SiteConfiguration.get_solo()
+        try:
+            send_mail(
+                subject=f"Contacto MSRAA: {name}",
+                message=(
+                    f"Nombre: {name}\n"
+                    f"Teléfono: {phone}\n"
+                    f"Email: {email}\n"
+                    f"Tipo de proyecto: {project_type}\n\n"
+                    f"{message}"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[config.contact_email],
+            )
+        except Exception:
+            pass
+
+        return JsonResponse({'status': 'ok', 'id': submission.pk})
     except Exception as e:
         return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
