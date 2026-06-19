@@ -29,6 +29,8 @@ media/
 .env
 .env.local
 .env.production
+.env.*.local
+.env.prod.local
 
 # Videos (too large for git — serve from Cloudinary in production)
 static/videos/
