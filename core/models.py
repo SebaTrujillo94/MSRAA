@@ -56,7 +56,7 @@ class SiteConfiguration(SingletonModel):
 
     # Logo — if blank, template falls back to static PNG
     logo_main = models.ImageField(
-        upload_to='logos/', blank=True,
+        upload_to='logos/', blank=True, max_length=500,
         verbose_name="Logo principal",
         help_text="Logo principal MSRAA (PNG con transparencia). Dejar en blanco para usar el logo estático por defecto."
     )
@@ -156,7 +156,7 @@ class MediaItem(models.Model):
     year = models.CharField(max_length=10, blank=True, verbose_name='Año', help_text='Ej: 2024')
     title = models.CharField(max_length=200, verbose_name='Título')
     description = models.TextField(blank=True, verbose_name='Descripción')
-    image = models.ImageField(upload_to='medios/', blank=True, null=True, verbose_name='Imagen', help_text='Foto portada subida al servidor')
+    image = models.ImageField(upload_to='medios/', blank=True, null=True, max_length=500, verbose_name='Imagen', help_text='Foto portada subida al servidor')
     image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa o Dropbox/Drive para la imagen portada (tiene prioridad sobre la imagen subida)')
     url = models.URLField(blank=True, verbose_name='Enlace', help_text='Dropbox, artículo, web, etc.')
     url_label = models.CharField(max_length=60, blank=True, default='Ver más', verbose_name='Texto del enlace')
@@ -203,7 +203,7 @@ class MediaItem(models.Model):
 
 class MediaItemImage(models.Model):
     media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='medios/gallery/', blank=True, null=True)
+    image = models.ImageField(upload_to='medios/gallery/', blank=True, null=True, max_length=500)
     image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
     caption = models.CharField(max_length=200, blank=True)
     order = models.PositiveIntegerField(default=0)
@@ -267,7 +267,7 @@ class CurriculumItem(models.Model):
 
 class CurriculumItemImage(models.Model):
     curriculum_item = models.ForeignKey(CurriculumItem, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='curriculum/', blank=True, null=True, verbose_name='Imagen')
+    image = models.ImageField(upload_to='curriculum/', blank=True, null=True, max_length=500, verbose_name='Imagen')
     image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
     caption = models.CharField(max_length=200, blank=True, verbose_name='Pie de foto')
     order = models.PositiveIntegerField(default=0)
@@ -319,7 +319,7 @@ class HeroVideo(models.Model):
 
 class ClientLogo(models.Model):
     name = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='client_logos/')
+    image = models.ImageField(upload_to='client_logos/', max_length=500)
     website_url = models.URLField(blank=True)
     display_scale = models.PositiveIntegerField(
         default=100,
@@ -368,7 +368,7 @@ class PortfolioProject(models.Model):
     year = models.CharField(max_length=10, verbose_name='Año')
     location = models.CharField(max_length=200, blank=True, verbose_name='Ubicación')
     hero_image = models.ImageField(
-        upload_to='portfolio/heroes/', blank=True,
+        upload_to='portfolio/heroes/', blank=True, max_length=500,
         verbose_name='Imagen principal',
         help_text="Imagen portada subida al servidor"
     )
@@ -419,7 +419,7 @@ class PortfolioProjectImage(models.Model):
     SIZE_CHOICES = [('large', 'Grande'), ('small', 'Pequeña')]
 
     project = models.ForeignKey(PortfolioProject, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='portfolio/images/', blank=True, null=True)
+    image = models.ImageField(upload_to='portfolio/images/', blank=True, null=True, max_length=500)
     image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
     size = models.CharField(max_length=10, choices=SIZE_CHOICES, default='large')
     order = models.PositiveIntegerField(default=0)

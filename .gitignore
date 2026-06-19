@@ -49,3 +49,5 @@ static/videos/
 # OS
 .DS_Store
 Thumbs.db
+
+.vercel
