@@ -77,14 +77,16 @@ class Command(BaseCommand):
 
     def _menu_items(self):
         if MenuItem.objects.exists():
-            self.stdout.write('  MenuItems already exist — skip')
-            return
+            if not self.force:
+                self.stdout.write('  MenuItems already exist — skip')
+                return
+            MenuItem.objects.all().delete()
         items = [
             ('Casas', 'proyectos', '#proyectos', 'CASAS', 1),
             ('Edificios', 'proyectos', '#proyectos', 'EDIFICIOS', 2),
             ('Educación', 'proyectos', '#proyectos', 'EDUCACIÓN', 3),
-            ('Artículos', 'publicaciones', '#publicaciones', '', 1),
-            ('Premios', 'publicaciones', '#publicaciones', '', 2),
+            ('Artículos', 'publicaciones', '#medios', '', 1),
+            ('Premios', 'publicaciones', '#medios', '', 2),
             ('Formación', 'curriculum', '#curriculum', '', 1),
             ('Experiencia', 'curriculum', '#curriculum', '', 2),
             ('Calculadora M²', 'herramientas', '#herramientas', '', 1),
