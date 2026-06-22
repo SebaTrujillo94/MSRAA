@@ -5,7 +5,7 @@ from decouple import config
 DEBUG = False
 _hosts_env = [h.strip() for h in config('ALLOWED_HOSTS', default='').split(',') if h.strip()]
 ALLOWED_HOSTS = _hosts_env or ['msraaproject.vercel.app', 'msraa.cl', 'www.msraa.cl']
-ALLOWED_HOSTS += ['msraa.cl', 'www.msraa.cl', 'msraaproject.vercel.app']
+ALLOWED_HOSTS += ['msraa.cl', 'www.msraa.cl', 'msraaproject.vercel.app', 'msraa.vercel.app', '.vercel.app']
 ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
 
 DATABASES = {
@@ -35,4 +35,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://msraa.cl',
     'https://www.msraa.cl',
     'https://msraaproject.vercel.app',
+    'https://msraa.vercel.app',
+    'https://*.vercel.app',
 ]
