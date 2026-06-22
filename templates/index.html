@@ -5197,6 +5197,7 @@
       }
     }
     function startAuto() {
+      if (!slides.length) return;
       const activeProg = document.querySelector('.dot-btn.active .dot-spinner-fill');
       if (activeProg) gsap.fromTo(activeProg, { strokeDashoffset: 63 }, { strokeDashoffset: 0, duration: 8, ease: "linear" });
       autoTimer = setTimeout(() => changeSlide((cur + 1) % slides.length), 8000);
