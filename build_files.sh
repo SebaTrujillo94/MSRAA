@@ -5,3 +5,4 @@ pip install groq --break-system-packages
 python manage.py collectstatic --noinput
 python manage.py migrate --noinput
 python manage.py auto_translate || echo "auto_translate skipped (no GROQ_API_KEY or already done)"
+python manage.py createsuperuser --noinput || echo "superuser already exists"
