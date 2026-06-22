@@ -22,8 +22,8 @@ CLOUDINARY_STORAGE = {
     'CLOUDINARY_URL': config('CLOUDINARY_URL'),
 }
 
-# WhiteNoise — don't crash on missing static files (videos excluded from git)
-WHITENOISE_MANIFEST_STRICT = False
+# Use compressed (no manifest) storage — videos excluded from git break manifest
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Security
 SECURE_SSL_REDIRECT = True
