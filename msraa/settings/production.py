@@ -22,6 +22,9 @@ CLOUDINARY_STORAGE = {
     'CLOUDINARY_URL': config('CLOUDINARY_URL'),
 }
 
+# WhiteNoise — don't crash on missing static files (videos excluded from git)
+WHITENOISE_MANIFEST_STRICT = False
+
 # Security
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
