@@ -335,7 +335,7 @@ class HeroVideo(models.Model):
     def get_video_url(self):
         if self.video_file:
             return self.video_file.url
-        return self.video_url
+        return _resolve_media_url(self.video_url)
 
 
 class ClientLogo(models.Model):
