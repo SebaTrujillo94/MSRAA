@@ -5163,6 +5163,16 @@
       });
     }
 
+    function isDirectVideo(url) {
+      return url && (url.includes('dropbox.com') || url.includes('dropboxusercontent.com') || /\.(mp4|webm|mov)(\?|$)/i.test(url));
+    }
+    function videoTag(url, title) {
+      if (isDirectVideo(url)) {
+        return `<video src="${url}" controls playsinline style="width:100%;height:100%;border-radius:4px;background:#000;" title="${title||''}"></video>`;
+      }
+      return `<iframe src="${url}" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="${title||''}"></iframe>`;
+    }
+
     /* SLIDE DATA */
     const slides = {{ slides_json|safe }};
     let cur = 0, anim = false, autoTimer;
@@ -5313,9 +5323,7 @@
       const img2 = p.images[2] ? `<div class="pd-panel-img"><img src="${p.images[2].url}" alt="${p.title}"><div class="pd-img-caption">03 / ${p.images.length}</div></div>` : '';
       const videoPanel = p.videoUrl ? `
         <div class="pd-panel-video">
-          <iframe src="${p.videoUrl}?autoplay=0&rel=0&modestbranding=1" frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen title="${p.title}"></iframe>
+          ${videoTag(isDirectVideo(p.videoUrl) ? p.videoUrl : p.videoUrl+'?autoplay=0&rel=0&modestbranding=1', p.title)}
           <div class="pd-img-caption">VIDEO</div>
         </div>` : '';
 
@@ -6322,7 +6330,7 @@
       `<div class="pd-panel-img"><img src="${src}" alt=""><div class="pd-img-caption">IMAGEN REFERENCIAL</div></div>`
     ).join('');
     const videoPanel = d.videoUrl
-      ? `<div class="pd-panel-video"><iframe src="${d.videoUrl}" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe><div class="pd-img-caption">VIDEO</div></div>`
+      ? `<div class="pd-panel-video">${videoTag(d.videoUrl, d.title)}<div class="pd-img-caption">VIDEO</div></div>`
       : '';
     const nextIdx = (idx + 1) % mediosData.length;
     const nd = mediosData[nextIdx];
@@ -6481,9 +6489,19 @@
   function openCvLightbox(type, src, caption) {
     cvLightboxImg.style.display = 'none';
     cvLightboxIframe.style.display = 'none';
+    const existingVideo = document.getElementById('cvLightboxVideo');
+    if (existingVideo) existingVideo.remove();
     if (type === 'video') {
-      cvLightboxIframe.src = src;
-      cvLightboxIframe.style.display = 'block';
+      if (isDirectVideo(src)) {
+        const vid = document.createElement('video');
+        vid.id = 'cvLightboxVideo';
+        vid.src = src; vid.controls = true; vid.playsinline = true;
+        vid.style.cssText = 'width:min(860px,90vw);height:min(480px,50vw);border-radius:4px;background:#000;';
+        cvLightboxIframe.parentNode.insertBefore(vid, cvLightboxIframe);
+      } else {
+        cvLightboxIframe.src = src;
+        cvLightboxIframe.style.display = 'block';
+      }
     } else {
       cvLightboxImg.src = src;
       cvLightboxImg.style.display = 'block';

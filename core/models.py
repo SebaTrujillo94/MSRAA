@@ -171,14 +171,14 @@ class MediaItem(models.Model):
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     description = models.TextField(blank=True, verbose_name='Descripción')
     description_en = models.TextField(blank=True, verbose_name='Descripción (EN)')
-    image = models.ImageField(upload_to='medios/', blank=True, null=True, max_length=500, verbose_name='Imagen', help_text='Foto portada subida al servidor')
-    image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa o Dropbox/Drive para la imagen portada (tiene prioridad sobre la imagen subida)')
+    image = models.ImageField(upload_to='medios/', blank=True, null=True, max_length=500, verbose_name='Imagen', help_text='Foto portada. Resolución recomendada: 800×533px (3:2).')
+    image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='Dropbox o Drive (prioridad sobre imagen subida). Recomendado: 800×533px (3:2).')
     url = models.URLField(blank=True, verbose_name='Enlace', help_text='Dropbox, artículo, web, etc.')
     url_label = models.CharField(max_length=60, blank=True, default='Ver más', verbose_name='Texto del enlace')
     url_label_en = models.CharField(max_length=60, blank=True, verbose_name='Texto del enlace (EN)')
     video_url = models.URLField(
         blank=True, verbose_name='URL de video',
-        help_text='YouTube, Vimeo o Cloudinary player. Ej: https://player.cloudinary.com/embed/?cloud_name=xxx&public_id=yyy'
+        help_text='YouTube, Vimeo, Cloudinary o Dropbox (MP4 directo). Ej: https://youtu.be/xxx o enlace Dropbox .mp4'
     )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -202,6 +202,8 @@ class MediaItem(models.Model):
         url = self.video_url
         if not url:
             return ''
+        if 'dropbox.com' in url:
+            return _resolve_media_url(url)
         if 'player.cloudinary.com/embed' in url:
             parsed = urlparse(url)
             params = parse_qs(parsed.query, keep_blank_values=True)
@@ -273,6 +275,8 @@ class CurriculumItem(models.Model):
         url = self.video_url
         if not url:
             return ''
+        if 'dropbox.com' in url:
+            return _resolve_media_url(url)
         if 'player.cloudinary.com/embed' in url:
             return url
         yt = re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/))([A-Za-z0-9_-]{11})', url)
@@ -315,11 +319,11 @@ class HeroVideo(models.Model):
     title_line2_en = models.CharField(max_length=200, blank=True, help_text="Segunda línea del título (EN)")
     video_file = models.FileField(
         upload_to='videos/', blank=True,
-        help_text="Subir MP4 aquí (Cloudinary en producción). Tiene prioridad sobre la URL."
+        help_text="Subir MP4 (Cloudinary en producción). Prioridad sobre URL. Recomendado: 1920×1080px, H.264, máx 100MB."
     )
     video_url = models.URLField(
         blank=True,
-        help_text="URL externa de CDN para el video. Usar si no se sube el archivo directamente."
+        help_text="URL Dropbox, Cloudinary CDN o enlace directo MP4. Recomendado: 1920×1080px. Dropbox: copiar enlace compartido del archivo .mp4."
     )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -394,15 +398,15 @@ class PortfolioProject(models.Model):
     hero_image = models.ImageField(
         upload_to='portfolio/heroes/', blank=True, max_length=500,
         verbose_name='Imagen principal',
-        help_text="Imagen portada subida al servidor"
+        help_text="Imagen portada del proyecto. Recomendado: 1600×1067px (3:2) o 1920×1080px."
     )
     hero_image_url = models.URLField(
         blank=True, verbose_name='URL imagen principal',
-        help_text="URL directa, Dropbox o Drive para la imagen portada (tiene prioridad sobre la imagen subida)"
+        help_text="Dropbox o Drive (prioridad sobre imagen subida). Recomendado: 1600×1067px (3:2)."
     )
     video_url = models.URLField(
         blank=True, verbose_name='URL de video',
-        help_text="YouTube o Vimeo. Ej: https://youtu.be/xxxx — se muestra como panel en el overlay"
+        help_text="YouTube, Vimeo o Dropbox MP4. Ej: https://youtu.be/xxxx — se muestra como panel en el overlay."
     )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -428,6 +432,8 @@ class PortfolioProject(models.Model):
         url = self.video_url
         if not url:
             return ''
+        if 'dropbox.com' in url:
+            return _resolve_media_url(url)
         if 'player.cloudinary.com/embed' in url:
             return url
         yt = re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/))([A-Za-z0-9_-]{11})', url)
