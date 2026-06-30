@@ -710,31 +710,38 @@
       filter: drop-shadow(0 0 3px var(--dot-logo-color, var(--gold)));
     }
 
-    /* NARROW SIDEBAR (Persists when main sidebar is closed) */
-    .sb-narrow {
+    /* NARROW SIDEBAR — hidden, replaced by float-logo */
+    .sb-narrow { display: none !important; }
+
+    /* Floating logo below burger button */
+    .float-logo {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 80px;
-      height: 100vh;
-      background: #0b0b0b;
-      z-index: 150;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
-      padding-bottom: 40px;
-      border-right: 1px solid rgba(255,255,255,0.05);
-      transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+      left: 25px;
+      bottom: 36px;
+      z-index: 300;
+      width: 32px;
+      height: 32px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s 0.6s;
+    }
+    body.sidebars-hidden .float-logo {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .float-logo .sb-narrow-logo {
+      width: 32px;
+      height: 32px;
+      display: block;
+    }
+    @media (max-width: 992px) {
+      .float-logo { display: none !important; }
     }
     .sb-narrow-logo {
       width: 40px;
       height: auto;
       object-fit: contain;
       filter: brightness(0) invert(1);
-    }
-    @media (max-width: 992px) {
-      .sb-narrow { display: none !important; }
     }
 
     /* SIDEBAR COLLAPSE LOGIC */
@@ -782,7 +789,7 @@
         transition: margin-left 0.8s cubic-bezier(0.76, 0, 0.24, 1);
       }
       body.sidebars-hidden .hero-wrap {
-        margin-left: 80px;
+        margin-left: 0;
       }
 
       /* Scroll content: shift right when sidebar is open */
@@ -791,7 +798,7 @@
         transition: margin-left 0.8s cubic-bezier(0.76, 0, 0.24, 1);
       }
       body.sidebars-hidden .scroll-content {
-        margin-left: 80px;
+        margin-left: 0;
       }
     }
 
@@ -3101,7 +3108,7 @@
 </style>
 </head>
 
-<body>
+<body class="sidebars-hidden">
 
   <!-- PAGE CURTAIN — must be first in DOM so GSAP finds it at script eval time -->
   <div class="page-curtain" id="pageCurtain">
@@ -3131,14 +3138,17 @@
       <span></span><span></span><span></span>
     </div>
 
-    <!-- NARROW PERSISTENT SIDEBAR -->
-    <aside class="sb-narrow">
+    <!-- FLOATING LOGO (below burger, visible when sidebar closed) -->
+    <div class="float-logo">
       {% if config.logo_main %}
-      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{{ config.logo_main.url }}');mask-image:url('{{ config.logo_main.url }}')"></div>
+      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{{ config.logo_main.url }}');mask-image:url('{{ config.logo_main.url }}');background-color:#fff;"></div>
       {% else %}
-      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}')"></div>
+      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');background-color:#fff;"></div>
       {% endif %}
-    </aside>
+    </div>
+
+    <!-- NARROW PERSISTENT SIDEBAR (hidden) -->
+    <aside class="sb-narrow"></aside>
 
     <!-- LEFT SIDEBAR -->
     <aside class="sb-left">
