@@ -15,26 +15,36 @@ from .models import (
 
 
 def _safe_save(admin_instance, request, obj, form, change):
-    """Save model, skipping file field re-upload if no file fields changed."""
+    """Save model using queryset.update() to bypass pre_save on FileFields."""
     file_field_names = [
         f.name for f in obj._meta.fields
         if isinstance(f, (db_models.FileField, db_models.ImageField))
     ]
     file_fields_changed = any(f in form.changed_data for f in file_field_names)
+
     if change and not file_fields_changed and file_field_names:
-        non_file = [f.name for f in obj._meta.fields
-                    if not isinstance(f, (db_models.FileField, db_models.ImageField))]
-        obj.save(update_fields=non_file)
+        # queryset.update() bypasses pre_save entirely — no Cloudinary trigger
+        update_vals = {
+            f.attname: getattr(obj, f.attname)
+            for f in obj._meta.fields
+            if not isinstance(f, (db_models.FileField, db_models.ImageField))
+            and f.name != 'id'
+        }
+        obj.__class__.objects.filter(pk=obj.pk).update(**update_vals)
     else:
         try:
             obj.save()
         except Exception as e:
             if 'cloudinary' in str(e).lower() or 'forbidden' in str(e).lower():
-                non_file = [f.name for f in obj._meta.fields
-                            if not isinstance(f, (db_models.FileField, db_models.ImageField))]
                 if change:
-                    obj.save(update_fields=non_file)
-                    messages.warning(request, 'Guardado sin imagen — error Cloudinary. Actualiza CLOUDINARY_URL en Vercel.')
+                    update_vals = {
+                        f.attname: getattr(obj, f.attname)
+                        for f in obj._meta.fields
+                        if not isinstance(f, (db_models.FileField, db_models.ImageField))
+                        and f.name != 'id'
+                    }
+                    obj.__class__.objects.filter(pk=obj.pk).update(**update_vals)
+                    messages.warning(request, 'Guardado sin imagen — actualiza CLOUDINARY_URL en Vercel env vars.')
                 else:
                     raise
             else:
