@@ -1,8 +1,10 @@
 from django.contrib import admin
+from django.contrib import messages
 from django.urls import path
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
 from django.utils import timezone
+from django.db import models as db_models
 from solo.admin import SingletonModelAdmin
 from .models import (
     SiteConfiguration, MenuItem, HeroVideo,
@@ -10,6 +12,33 @@ from .models import (
     CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage,
     ContactSubmission,
 )
+
+
+def _safe_save(admin_instance, request, obj, form, change):
+    """Save model, skipping file field re-upload if no file fields changed."""
+    file_field_names = [
+        f.name for f in obj._meta.fields
+        if isinstance(f, (db_models.FileField, db_models.ImageField))
+    ]
+    file_fields_changed = any(f in form.changed_data for f in file_field_names)
+    if change and not file_fields_changed and file_field_names:
+        non_file = [f.name for f in obj._meta.fields
+                    if not isinstance(f, (db_models.FileField, db_models.ImageField))]
+        obj.save(update_fields=non_file)
+    else:
+        try:
+            obj.save()
+        except Exception as e:
+            if 'cloudinary' in str(e).lower() or 'forbidden' in str(e).lower():
+                non_file = [f.name for f in obj._meta.fields
+                            if not isinstance(f, (db_models.FileField, db_models.ImageField))]
+                if change:
+                    obj.save(update_fields=non_file)
+                    messages.warning(request, 'Guardado sin imagen — error Cloudinary. Actualiza CLOUDINARY_URL en Vercel.')
+                else:
+                    raise
+            else:
+                raise
 
 
 class PortfolioProjectImageInline(admin.TabularInline):
@@ -110,6 +139,18 @@ class MenuItemAdmin(admin.ModelAdmin):
 class HeroVideoAdmin(admin.ModelAdmin):
     list_display = ['title_line1', 'title_line2', 'order', 'is_active']
     list_editable = ['order', 'is_active']
+    actions = ['make_active', 'make_inactive']
+
+    def save_model(self, request, obj, form, change):
+        _safe_save(self, request, obj, form, change)
+
+    @admin.action(description='✅ Activar seleccionados')
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='🚫 Desactivar seleccionados')
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
 
 
 @admin.register(ClientLogo)
@@ -154,6 +195,18 @@ class PortfolioProjectAdmin(admin.ModelAdmin):
     list_filter = ['category', 'is_active']
     inlines = [PortfolioProjectImageInline]
     fields = ['title', 'category', 'year', 'location', 'description', 'hero_image', 'hero_image_url', 'video_url', 'order', 'is_active']
+    actions = ['make_active', 'make_inactive']
+
+    def save_model(self, request, obj, form, change):
+        _safe_save(self, request, obj, form, change)
+
+    @admin.action(description='✅ Activar seleccionados')
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='🚫 Desactivar seleccionados')
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
 
 
 class CurriculumItemImageInline(admin.TabularInline):
@@ -170,6 +223,15 @@ class CurriculumItemAdmin(admin.ModelAdmin):
     list_filter = ['category', 'is_active']
     ordering = ['category', 'order']
     fields = ['category', 'year', 'title', 'subtitle', 'url', 'url_label', 'video_url', 'order', 'is_active']
+    actions = ['make_active', 'make_inactive']
+
+    @admin.action(description='✅ Activar seleccionados')
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='🚫 Desactivar seleccionados')
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
 
 
 class MediaItemImageInline(admin.TabularInline):
@@ -188,6 +250,18 @@ class MediaItemAdmin(admin.ModelAdmin):
     ordering = ['-year', 'order']
     readonly_fields = ['img_preview_large']
     fields = ['tipo', 'year', 'title', 'description', 'image', 'image_url', 'img_preview_large', 'url', 'url_label', 'video_url', 'order', 'is_active']
+    actions = ['make_active', 'make_inactive']
+
+    def save_model(self, request, obj, form, change):
+        _safe_save(self, request, obj, form, change)
+
+    @admin.action(description='✅ Activar seleccionados')
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='🚫 Desactivar seleccionados')
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
 
     @admin.display(description='Imagen')
     def img_preview(self, obj):
