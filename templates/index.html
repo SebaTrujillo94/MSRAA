@@ -4067,11 +4067,13 @@
         {% for item in media_items %}
         <article class="medio-item hov-t" onclick="openMedioOverlay({{ forloop.counter0 }})">
           <div class="medio-img-wrap">
-            {% if item.image %}
-            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="medio-img">
+            {% with src=item.get_image_src %}
+            {% if src %}
+            <img src="{{ src }}" alt="{{ item.title }}" class="medio-img">
             {% else %}
             <div class="medio-img-placeholder"></div>
             {% endif %}
+            {% endwith %}
             <div class="medio-img-overlay">
               <span class="medio-ver">VER MÁS +</span>
             </div>
