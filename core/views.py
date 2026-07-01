@@ -110,7 +110,7 @@ def index(request):
         .order_by('order')
     )
     menu_items = MenuItem.objects.filter(is_active=True)
-    media_items = list(MediaItem.objects.filter(is_active=True).prefetch_related('images'))
+    media_items = list(MediaItem.objects.filter(is_active=True).prefetch_related('images', 'sections', 'videos'))
     media_data_json = json.dumps([{
         'tipo': m.get_tipo_display(),
         'year': m.year,
@@ -121,6 +121,14 @@ def index(request):
         'url': m.url,
         'url_label': _tf(m, 'url_label', is_en) or _UI[lang_key]['see_more'],
         'videoUrl': m.get_video_embed_url(),
+        'sections': [
+            {'title': s.title, 'body': s.body}
+            for s in m.sections.all()
+        ],
+        'videos': [
+            {'url': v.get_video_url(), 'caption': v.caption}
+            for v in m.videos.all()
+        ],
     } for m in media_items], ensure_ascii=False)
 
     CURRICULUM_CATEGORY_ORDER = ['formacion', 'experiencia', 'reconocimientos', 'publicaciones', 'otros']

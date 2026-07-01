@@ -248,6 +248,54 @@ class MediaItemImage(models.Model):
         return f"{self.media_item.title} — img {self.order}"
 
 
+class MediaItemSection(models.Model):
+    media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE, related_name='sections')
+    title = models.CharField(max_length=200, blank=True, verbose_name='Título de sección')
+    body = models.TextField(blank=True, verbose_name='Contenido')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Sección adicional'
+        verbose_name_plural = 'Secciones adicionales'
+
+    def __str__(self):
+        return f"{self.media_item.title} — sección {self.order}"
+
+
+class MediaItemVideo(models.Model):
+    media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE, related_name='videos')
+    video_url = models.URLField(
+        max_length=500, verbose_name='URL de video',
+        help_text='YouTube, Vimeo, Dropbox (.mp4 con ?raw=1), etc.'
+    )
+    caption = models.CharField(max_length=200, blank=True, verbose_name='Pie de video')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Video'
+        verbose_name_plural = 'Videos'
+
+    def get_video_url(self):
+        import re
+        url = self.video_url
+        if not url:
+            return ''
+        if 'dropbox.com' in url:
+            return _resolve_media_url(url)
+        yt = re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/))([A-Za-z0-9_-]{11})', url)
+        if yt:
+            return f'https://www.youtube.com/embed/{yt.group(1)}'
+        vimeo = re.search(r'vimeo\.com/(\d+)', url)
+        if vimeo:
+            return f'https://player.vimeo.com/video/{vimeo.group(1)}'
+        return url
+
+    def __str__(self):
+        return f"{self.media_item.title} — video {self.order}"
+
+
 class CurriculumItem(models.Model):
     CATEGORY_CHOICES = [
         ('formacion', 'FORMACIÓN'),

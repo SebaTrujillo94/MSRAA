@@ -6365,6 +6365,15 @@
     const videoPanel = d.videoUrl
       ? `<div class="pd-panel-video">${videoTag(d.videoUrl, d.title)}<div class="pd-img-caption">VIDEO</div></div>`
       : '';
+    const extraSections = (d.sections || []).map(s =>
+      `<div class="pd-panel-text">
+        ${s.title ? `<div class="pd-panel-label">${s.title}</div>` : ''}
+        <div class="pd-panel-body">${s.body || ''}</div>
+      </div>`
+    ).join('');
+    const extraVideos = (d.videos || []).map(v =>
+      `<div class="pd-panel-video">${videoTag(v.url, v.caption || d.title)}${v.caption ? `<div class="pd-img-caption">${v.caption}</div>` : ''}</div>`
+    ).join('');
     const nextIdx = (idx + 1) % mediosData.length;
     const nd = mediosData[nextIdx];
     const nextPanel = `
@@ -6399,7 +6408,9 @@
         <div class="pd-panel-body">${d.description || ''}</div>
         ${linkHTML}
       </div>
+      ${extraSections}
       ${videoPanel}
+      ${extraVideos}
       ${refImgs}
       ${nextPanel}`;
   }

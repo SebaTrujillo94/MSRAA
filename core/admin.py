@@ -10,6 +10,7 @@ from .models import (
     SiteConfiguration, MenuItem, HeroVideo,
     ClientLogo, PortfolioCategory, PortfolioProject, PortfolioProjectImage,
     CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage,
+    MediaItemSection, MediaItemVideo,
     ContactSubmission,
 )
 
@@ -254,9 +255,21 @@ class MediaItemImageInline(admin.TabularInline):
     fields = ['image', 'image_url', 'caption', 'order']
 
 
+class MediaItemSectionInline(admin.TabularInline):
+    model = MediaItemSection
+    extra = 1
+    fields = ['title', 'body', 'order']
+
+
+class MediaItemVideoInline(admin.TabularInline):
+    model = MediaItemVideo
+    extra = 1
+    fields = ['video_url', 'caption', 'order']
+
+
 @admin.register(MediaItem)
 class MediaItemAdmin(admin.ModelAdmin):
-    inlines = [MediaItemImageInline]
+    inlines = [MediaItemSectionInline, MediaItemVideoInline, MediaItemImageInline]
     list_display = ['img_preview', 'title', 'tipo', 'year', 'url', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['tipo', 'is_active']
