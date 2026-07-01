@@ -172,12 +172,12 @@ class MediaItem(models.Model):
     description = models.TextField(blank=True, verbose_name='Descripción')
     description_en = models.TextField(blank=True, verbose_name='Descripción (EN)')
     image = models.ImageField(upload_to='medios/', blank=True, null=True, max_length=500, verbose_name='Imagen', help_text='Foto portada. Resolución recomendada: 800×533px (3:2).')
-    image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='Dropbox o Drive (prioridad sobre imagen subida). Recomendado: 800×533px (3:2).')
-    url = models.URLField(blank=True, verbose_name='Enlace', help_text='Dropbox, artículo, web, etc.')
+    image_url = models.URLField(blank=True, max_length=500, verbose_name='URL de imagen', help_text='Dropbox o Drive (prioridad sobre imagen subida). Recomendado: 800×533px (3:2).')
+    url = models.URLField(blank=True, max_length=500, verbose_name='Enlace', help_text='Dropbox, artículo, web, etc.')
     url_label = models.CharField(max_length=60, blank=True, default='Ver más', verbose_name='Texto del enlace')
     url_label_en = models.CharField(max_length=60, blank=True, verbose_name='Texto del enlace (EN)')
     video_url = models.URLField(
-        blank=True, verbose_name='URL de video',
+        blank=True, max_length=500, verbose_name='URL de video',
         help_text='YouTube, Vimeo, Cloudinary o Dropbox (MP4 directo). Ej: https://youtu.be/xxx o enlace Dropbox .mp4'
     )
     order = models.PositiveIntegerField(default=0)
@@ -222,7 +222,7 @@ class MediaItem(models.Model):
 class MediaItemImage(models.Model):
     media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='medios/gallery/', blank=True, null=True, max_length=500)
-    image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
+    image_url = models.URLField(blank=True, max_length=500, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
     caption = models.CharField(max_length=200, blank=True)
     order = models.PositiveIntegerField(default=0)
 
@@ -255,10 +255,10 @@ class CurriculumItem(models.Model):
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     subtitle = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución')
     subtitle_en = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución (EN)')
-    url = models.URLField(blank=True, help_text="Enlace externo (Dropbox, Drive, web). Dejar vacío si no aplica.")
+    url = models.URLField(blank=True, max_length=500, help_text="Enlace externo (Dropbox, Drive, web). Dejar vacío si no aplica.")
     url_label = models.CharField(max_length=60, blank=True, default='Ver documento', help_text="Texto del enlace")
     url_label_en = models.CharField(max_length=60, blank=True, help_text="Texto del enlace (EN)")
-    video_url = models.URLField(blank=True, verbose_name='URL de video', help_text="YouTube o Vimeo. Ej: https://youtu.be/xxxx")
+    video_url = models.URLField(blank=True, max_length=500, verbose_name='URL de video', help_text="YouTube o Vimeo. Ej: https://youtu.be/xxxx")
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -291,7 +291,7 @@ class CurriculumItem(models.Model):
 class CurriculumItemImage(models.Model):
     curriculum_item = models.ForeignKey(CurriculumItem, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='curriculum/', blank=True, null=True, max_length=500, verbose_name='Imagen')
-    image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
+    image_url = models.URLField(blank=True, max_length=500, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
     caption = models.CharField(max_length=200, blank=True, verbose_name='Pie de foto')
     order = models.PositiveIntegerField(default=0)
 
@@ -322,7 +322,7 @@ class HeroVideo(models.Model):
         help_text="Subir MP4 (Cloudinary en producción). Prioridad sobre URL. Recomendado: 1920×1080px, H.264, máx 100MB."
     )
     video_url = models.URLField(
-        blank=True,
+        blank=True, max_length=500,
         help_text="URL Dropbox, Cloudinary CDN o enlace directo MP4. Recomendado: 1920×1080px. Dropbox: copiar enlace compartido del archivo .mp4."
     )
     order = models.PositiveIntegerField(default=0)
@@ -401,11 +401,11 @@ class PortfolioProject(models.Model):
         help_text="Imagen portada del proyecto. Recomendado: 1600×1067px (3:2) o 1920×1080px."
     )
     hero_image_url = models.URLField(
-        blank=True, verbose_name='URL imagen principal',
+        blank=True, max_length=500, verbose_name='URL imagen principal',
         help_text="Dropbox o Drive (prioridad sobre imagen subida). Recomendado: 1600×1067px (3:2)."
     )
     video_url = models.URLField(
-        blank=True, verbose_name='URL de video',
+        blank=True, max_length=500, verbose_name='URL de video',
         help_text="YouTube, Vimeo o Dropbox MP4. Ej: https://youtu.be/xxxx — se muestra como panel en el overlay."
     )
     order = models.PositiveIntegerField(default=0)
@@ -468,7 +468,7 @@ class PortfolioProjectImage(models.Model):
 
     project = models.ForeignKey(PortfolioProject, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='portfolio/images/', blank=True, null=True, max_length=500)
-    image_url = models.URLField(blank=True, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
+    image_url = models.URLField(blank=True, max_length=500, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
     size = models.CharField(max_length=10, choices=SIZE_CHOICES, default='large')
     order = models.PositiveIntegerField(default=0)
 
