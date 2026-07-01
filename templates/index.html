@@ -3282,8 +3282,9 @@
 
     <!-- CENTER IMAGE -->
     <main class="main-hero">
-      <video class="hero-img" id="heroVideo" autoplay muted playsinline loop
+      <video class="hero-img" id="heroVideoA" autoplay muted playsinline loop
         src="{% if hero_videos %}{{ hero_videos.0.get_video_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}"></video>
+      <video class="hero-img" id="heroVideoB" muted playsinline loop style="opacity:0"></video>
       <div class="hero-overlay"></div>
       <div class="hero-title-wrap" id="heroTitleWrap">
         <div class="hero-title"><span>MSRAA ARQUITECTOS</span></div>
@@ -5187,37 +5188,43 @@
     const slides = {{ slides_json|safe }};
     const SLIDE_DURATION = {{ hero_slide_duration|default:15 }} * 1000;
     let cur = 0, anim = false, autoTimer;
-    const heroVideo = document.getElementById('heroVideo'),
+    const heroVideoA = document.getElementById('heroVideoA'),
+      heroVideoB = document.getElementById('heroVideoB'),
       titles = document.querySelectorAll('.hero-title span'),
       heroTitleWrap = document.getElementById('heroTitleWrap'),
       dots = document.querySelectorAll('.dot-btn');
+    let activeVid = heroVideoA, inactiveVid = heroVideoB;
+
+    function crossfadeVideo(src, onDone) {
+      inactiveVid.src = src;
+      inactiveVid.load();
+      inactiveVid.play().catch(() => {});
+      gsap.killTweensOf([activeVid, inactiveVid]);
+      gsap.fromTo(inactiveVid, { scale: 1.18, opacity: 0 }, { scale: 1.05, opacity: 1, duration: 1.4, ease: "power2.inOut" });
+      gsap.to(activeVid, { opacity: 0, duration: 1.4, ease: "power2.inOut", onComplete: () => {
+        [activeVid, inactiveVid] = [inactiveVid, activeVid];
+        if (onDone) onDone();
+      }});
+    }
 
     function changeSlide(i) {
       if (anim || i === cur) return; anim = true; stopAuto();
       if (dots.length) { dots.forEach(d => d.classList.remove('active')); if (dots[i]) dots[i].classList.add('active'); }
       const hasTitle = !!slides[i].t1;
-      if (hasTitle) {
-        gsap.to(titles, {
-          y: "100%", duration: .4, ease: "power3.in", onComplete: () => {
-            heroVideo.src = slides[i].vid; heroVideo.load();
-            const p = heroVideo.play(); if (p) p.catch(() => {});
-            titles[0].textContent = slides[i].t1; titles[1].textContent = slides[i].t2;
-            heroTitleWrap.style.visibility = 'visible';
-            gsap.fromTo(heroVideo, { scale: 1.15 }, { scale: 1.05, duration: 2, ease: "power3.out" });
-            gsap.to(titles, { y: "0%", duration: .8, stagger: .1, ease: "power4.out", onComplete: () => { cur = i; anim = false; startAuto(); } });
-          }
-        });
-      } else {
-        gsap.to(titles, {
-          y: "100%", duration: .4, ease: "power3.in", onComplete: () => {
-            heroVideo.src = slides[i].vid; heroVideo.load();
-            const p = heroVideo.play(); if (p) p.catch(() => {});
-            heroTitleWrap.style.visibility = 'hidden';
-            gsap.fromTo(heroVideo, { scale: 1.15 }, { scale: 1.05, duration: 2, ease: "power3.out" });
-            cur = i; anim = false; startAuto();
-          }
-        });
-      }
+      gsap.to(titles, { y: "100%", duration: .4, ease: "power3.in", onComplete: () => {
+        if (hasTitle) {
+          titles[0].textContent = slides[i].t1; titles[1].textContent = slides[i].t2;
+          heroTitleWrap.style.visibility = 'visible';
+          gsap.to(titles, { y: "0%", duration: .8, stagger: .1, ease: "power4.out" });
+        } else {
+          heroTitleWrap.style.visibility = 'hidden';
+        }
+        if (slides[i].vid) {
+          crossfadeVideo(slides[i].vid, () => { cur = i; anim = false; startAuto(); });
+        } else {
+          cur = i; anim = false; startAuto();
+        }
+      }});
     }
     function startAuto() {
       if (!slides.length) return;
