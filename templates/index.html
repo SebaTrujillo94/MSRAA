@@ -511,7 +511,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      transform: scale(1.1)
+      transform: scale(1.1);
+      background: #0a0a0a
     }
 
     .hero-overlay {
@@ -5198,13 +5199,20 @@
     function crossfadeVideo(src, onDone) {
       inactiveVid.src = src;
       inactiveVid.load();
-      inactiveVid.play().catch(() => {});
-      gsap.killTweensOf([activeVid, inactiveVid]);
-      gsap.fromTo(inactiveVid, { scale: 1.18, opacity: 0 }, { scale: 1.05, opacity: 1, duration: 1.4, ease: "power2.inOut" });
-      gsap.to(activeVid, { opacity: 0, duration: 1.4, ease: "power2.inOut", onComplete: () => {
-        [activeVid, inactiveVid] = [inactiveVid, activeVid];
-        if (onDone) onDone();
-      }});
+      const doFade = () => {
+        inactiveVid.play().catch(() => {});
+        gsap.killTweensOf([activeVid, inactiveVid]);
+        gsap.fromTo(inactiveVid, { scale: 1.18, opacity: 0 }, { scale: 1.05, opacity: 1, duration: 1.4, ease: "power2.inOut" });
+        gsap.to(activeVid, { opacity: 0, duration: 1.4, ease: "power2.inOut", onComplete: () => {
+          [activeVid, inactiveVid] = [inactiveVid, activeVid];
+          if (onDone) onDone();
+        }});
+      };
+      if (inactiveVid.readyState >= 2) { doFade(); return; }
+      let fired = false;
+      const fire = () => { if (!fired) { fired = true; doFade(); } };
+      inactiveVid.addEventListener('canplay', fire, { once: true });
+      setTimeout(fire, 800);
     }
 
     function changeSlide(i) {
