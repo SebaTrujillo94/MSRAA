@@ -5185,6 +5185,7 @@
 
     /* SLIDE DATA */
     const slides = {{ slides_json|safe }};
+    const SLIDE_DURATION = {{ hero_slide_duration|default:15 }} * 1000;
     let cur = 0, anim = false, autoTimer;
     const heroVideo = document.getElementById('heroVideo'),
       titles = document.querySelectorAll('.hero-title span'),
@@ -5221,8 +5222,8 @@
     function startAuto() {
       if (!slides.length) return;
       const activeProg = document.querySelector('.dot-btn.active .dot-spinner-fill');
-      if (activeProg) gsap.fromTo(activeProg, { strokeDashoffset: 63 }, { strokeDashoffset: 0, duration: 8, ease: "linear" });
-      autoTimer = setTimeout(() => changeSlide((cur + 1) % slides.length), 8000);
+      if (activeProg) gsap.fromTo(activeProg, { strokeDashoffset: 63 }, { strokeDashoffset: 0, duration: SLIDE_DURATION / 1000, ease: "linear" });
+      autoTimer = setTimeout(() => changeSlide((cur + 1) % slides.length), SLIDE_DURATION);
     }
     function stopAuto() {
       clearTimeout(autoTimer);

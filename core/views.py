@@ -192,6 +192,7 @@ def index(request):
         'projects': projects,
         'project_data_json': project_data_json,
         'slides_json': slides_json,
+        'hero_slide_duration': config.hero_slide_duration,
         'menu_items_by_section': _group_menu_items(menu_items),
         'curriculum_groups': curriculum_groups,
         'media_items': media_items,

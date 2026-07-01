@@ -110,6 +110,14 @@ class SiteConfiguration(SingletonModel):
     )
     trust_sub_en = models.TextField(blank=True, verbose_name="Colaboradores — subtítulo (EN)")
 
+    # Hero slides
+    hero_slide_duration = models.PositiveIntegerField(
+        default=15,
+        validators=[MinValueValidator(5), MaxValueValidator(60)],
+        verbose_name="Duración slide hero (seg)",
+        help_text="Segundos que se muestra cada slide del hero antes de pasar al siguiente (5–60s)."
+    )
+
     # Footer
     footer_copy = models.CharField(max_length=200, default="© 2026 MSRAA ESTUDIO DE ARQUITECTURA", verbose_name="Texto pie de página")
     footer_copy_en = models.CharField(max_length=200, blank=True, verbose_name="Texto pie de página (EN)")

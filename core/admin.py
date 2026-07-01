@@ -71,6 +71,10 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
         ('Contacto y Redes', {
             'fields': ('contact_email', 'contact_phone', 'instagram_url', 'linkedin_url'),
         }),
+        ('Hero Slides', {
+            'fields': ('hero_slide_duration',),
+            'description': 'Duración de cada slide en el video hero principal.',
+        }),
         ('Sección About', {
             'fields': ('about_label', 'about_p1', 'about_p2'),
             'classes': ('collapse',),
