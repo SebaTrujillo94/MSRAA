@@ -173,8 +173,9 @@ class HeroVideoAdmin(admin.ModelAdmin):
         return custom + urls
 
     def _upload_cloudinary_view(self, request, pk):
-        import json
+        import json, os, re
         from django.http import JsonResponse
+        from django.conf import settings
         from .models import _resolve_media_url
         if request.method != 'POST':
             return JsonResponse({'error': 'POST only'}, status=405)
@@ -184,9 +185,20 @@ class HeroVideoAdmin(admin.ModelAdmin):
             return JsonResponse({'error': 'JSON inválido'}, status=400)
         if not source_url:
             return JsonResponse({'error': 'URL requerida'}, status=400)
+        # Initialise Cloudinary SDK explicitly (cloudinary_storage only
+        # configures the Django storage backend, not the uploader API)
+        import cloudinary, cloudinary.uploader
+        cld_env = (
+            os.environ.get('CLOUDINARY_URL') or
+            getattr(settings, 'CLOUDINARY_STORAGE', {}).get('CLOUDINARY_URL', '')
+        )
+        m = re.match(r'cloudinary://([^:]+):([^@]+)@(.+)', cld_env or '')
+        if m:
+            cloudinary.config(api_key=m.group(1), api_secret=m.group(2), cloud_name=m.group(3))
+        else:
+            return JsonResponse({'error': 'CLOUDINARY_URL no configurada en Vercel env vars'}, status=500)
         resolved = _resolve_media_url(source_url)
         try:
-            import cloudinary.uploader
             result = cloudinary.uploader.upload(
                 resolved,
                 resource_type='video',
