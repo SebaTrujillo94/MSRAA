@@ -177,7 +177,20 @@ _CROP_PREVIEW_TMPL = """
       });
     }
   }
-  function strip(url){return url.replace(/\/upload\/(?:[^\/]+\/)?(v\d+\/)?/,'/upload/$1');}
+  // Strip any existing transforms/version from Cloudinary URL, return clean /upload/path
+  function strip(url){
+    var idx=url.indexOf('/upload/');
+    if(idx<0)return url;
+    var segs=url.slice(idx+8).split('/');
+    var ver='',i=0;
+    while(i<segs.length){
+      var s=segs[i];
+      if(/^v\d+$/.test(s)){ver=s;i++;break;}
+      if(/[,]/.test(s)||/^[a-z]{1,3}_/.test(s)){i++;continue;}
+      break;
+    }
+    return url.slice(0,idx+8)+(ver?ver+'/':'')+segs.slice(i).join('/');
+  }
   function buildUrl(url,g,r){
     var parts=['f_auto','q_auto:good','c_fill','g_'+(g||'auto'),'w_600'];
     if(r)parts.push('ar_'+r);
@@ -186,6 +199,39 @@ _CROP_PREVIEW_TMPL = """
   function buildThumb(url,g){
     var parts=['f_auto','q_auto:good','c_fill','g_'+(g||'auto'),'w_300','ar_3:2'];
     return strip(url).replace('/upload/','/upload/'+parts.join(',')+'/');
+  }
+  // Read transforms already embedded in URL and sync dropdowns (only if still at default)
+  function detectFromUrl(url){
+    if(!url||url.indexOf('res.cloudinary.com')<0)return;
+    var idx=url.indexOf('/upload/');
+    if(idx<0)return;
+    var segs=url.slice(idx+8).split('/');
+    var tSegs=[];
+    for(var i=0;i<segs.length;i++){
+      var s=segs[i];
+      if(/^v\d+$/.test(s))break;
+      if(/[,]/.test(s)||/^[a-z]{1,3}_/.test(s))tSegs.push(s);
+      else break;
+    }
+    if(!tSegs.length)return;
+    var allT=tSegs.join(',');
+    var gf=$i('__GRAV_FID__'),rf=$i('__RAT_FID__');
+    // Sync gravity if dropdown is at default 'auto'
+    if(gf&&gf.value==='auto'){
+      var gm=allT.match(/(?:^|,)g_([a-z]+)/);
+      if(gm){
+        var gopts=[].slice.call(gf.options).map(function(o){return o.value;});
+        if(gopts.indexOf(gm[1])>=0)gf.value=gm[1];
+      }
+    }
+    // Sync ratio if dropdown is at default ''
+    if(rf&&rf.value===''){
+      var rm=allT.match(/(?:^|,)ar_([0-9]+:[0-9]+)/);
+      if(rm){
+        var ropts=[].slice.call(rf.options).map(function(o){return o.value;});
+        if(ropts.indexOf(rm[1])>=0)rf.value=rm[1];
+      }
+    }
   }
   function update(){
     var uf=$i('__URL_FID__'),gf=$i('__GRAV_FID__'),rf=$i('__RAT_FID__');
@@ -232,7 +278,16 @@ _CROP_PREVIEW_TMPL = """
     var el=$i(id);
     if(el){el.addEventListener('change',update);el.addEventListener('input',update);}
   });
-  setTimeout(update,500);
+  // Auto-init: detect transforms already in URL, then render preview
+  function init(){
+    var uf=$i('__URL_FID__');
+    var url=uf?uf.value.trim():'';
+    detectFromUrl(url);
+    update();
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
+  else{setTimeout(init,100);}
+  setTimeout(init,600); // fallback for slow admin JS
 })();
 </script>
 """
