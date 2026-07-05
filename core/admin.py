@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.urls import path
 from django.template.response import TemplateResponse
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from django.utils import timezone
 from django.db import models as db_models
 from solo.admin import SingletonModelAdmin
@@ -76,6 +76,166 @@ _EAGER_VIDEO = [{
     'quality': 'auto:good',
     'format': 'mp4',
 }]
+
+_CROP_PREVIEW_TMPL = """
+<style>
+@keyframes cce-spin{to{transform:rotate(360deg)}}
+.cce-cell-ACT{background:#142040!important;border-color:#3a70c0!important;color:#70b0f0!important;box-shadow:0 0 10px rgba(58,112,192,.35)!important}
+</style>
+<div id="cce-__WID__" style="background:#16182a;border:1px solid #252840;border-radius:10px;padding:18px;max-width:720px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-top:10px;box-shadow:0 4px 20px rgba(0,0,0,.3)">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #252840">
+    <span style="font-size:18px">🎨</span>
+    <span style="font-weight:700;font-size:12px;color:#a0aac8;letter-spacing:1px;text-transform:uppercase">Editor de Recorte</span>
+    <span id="cce-badge-__WID__" style="margin-left:auto;font-size:10px;padding:3px 10px;border-radius:10px;background:#252840;color:#506080;font-weight:700;letter-spacing:.8px">SIN IMAGEN</span>
+  </div>
+  <div style="display:flex;gap:16px;align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;color:#506080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:700">Vista Previa</div>
+      <div style="background:#0c0e1a;border-radius:6px;overflow:hidden;border:1px solid #252840">
+        <div id="cce-frame-__WID__" style="width:100%;padding-top:56.25%;position:relative;transition:padding-top .4s ease">
+          <img id="cce-img-__WID__" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none;transition:opacity .3s">
+          <div id="cce-spinner-__WID__" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#0c0e1a">
+            <div style="width:28px;height:28px;border:3px solid #252840;border-top-color:#4a80c0;border-radius:50%;animation:cce-spin .9s linear infinite"></div>
+          </div>
+          <div id="cce-ph-__WID__" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#303450;font-size:12px;gap:10px;text-align:center;padding:20px">
+            <span style="font-size:36px;opacity:.4">🖼️</span>
+            <span>Sube una imagen a Cloudinary<br>para activar el editor de recorte</span>
+          </div>
+          <div id="cce-overlay-__WID__" style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:14px 12px 8px;display:none">
+            <div style="font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.8px;text-transform:uppercase">Título del elemento</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 2px">
+        <span id="cce-ratio-lbl-__WID__" style="font-size:10px;color:#506080;font-family:monospace">—</span>
+        <span id="cce-dims-__WID__" style="font-size:10px;color:#506080;font-family:monospace">—</span>
+      </div>
+    </div>
+    <div style="flex-shrink:0;width:140px">
+      <div style="font-size:10px;color:#506080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:700">Punto de enfoque</div>
+      <div id="cce-grid-__WID__" style="display:grid;grid-template-columns:repeat(3,40px);gap:3px;margin-bottom:10px">
+        <div data-g="northwest" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">↖</div>
+        <div data-g="north" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">↑</div>
+        <div data-g="northeast" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">↗</div>
+        <div data-g="west" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">←</div>
+        <div data-g="center" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#3a4060;transition:all .15s">⊙</div>
+        <div data-g="east" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">→</div>
+        <div data-g="southwest" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">↙</div>
+        <div data-g="south" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">↓</div>
+        <div data-g="southeast" style="height:40px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#3a4060;transition:all .15s">↘</div>
+      </div>
+      <div id="cce-special-__WID__" style="display:none;text-align:center;padding:8px 6px;background:#0c0e1a;border:1px solid #252840;border-radius:4px;margin-bottom:12px">
+        <div id="cce-si-__WID__" style="font-size:22px">🤖</div>
+        <div id="cce-sl-__WID__" style="font-size:9px;color:#506080;margin-top:3px;line-height:1.3">Detección automática</div>
+      </div>
+      <div style="font-size:10px;color:#506080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:700">Tarjeta (3:2)</div>
+      <div style="width:100%;padding-top:66.67%;position:relative;background:#0c0e1a;border:1px solid #252840;border-radius:4px;overflow:hidden">
+        <img id="cce-thumb-__WID__" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none">
+        <div id="cce-tph-__WID__" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#303450;font-size:22px;opacity:.4">🖼️</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:14px;padding-top:14px;border-top:1px solid #252840">
+    <div style="font-size:10px;color:#506080;margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:700">URL Cloudinary generada</div>
+    <div style="display:flex;gap:8px;align-items:stretch">
+      <code id="cce-url-__WID__" style="flex:1;background:#0c0e1a;border:1px solid #1a1c2e;border-radius:4px;padding:7px 10px;font-size:9px;color:#4a5870;word-break:break-all;line-height:1.6;transition:color .3s">
+        Esperando URL de Cloudinary...
+      </code>
+      <button type="button" id="cce-copy-__WID__" style="padding:7px 14px;background:#182040;border:1px solid #2a3560;border-radius:4px;color:#4a70b0;font-size:10px;cursor:pointer;white-space:nowrap;font-weight:700;transition:all .15s;flex-shrink:0">
+        Copiar
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var wid='__WID__';
+  var RATIO_PAD={'':56.25,'16:9':56.25,'4:3':75,'3:2':66.67,'1:1':100,'2:3':150};
+  var RATIO_LBL={'':'Original','16:9':'16:9 — Panorámico','4:3':'4:3 — Clásico','3:2':'3:2 — Foto','1:1':'1:1 — Cuadrado','2:3':'2:3 — Retrato'};
+  var SPEC_G={'auto':['🤖','Detección automática (IA)'],'face':['😶','Enfoca en cara detectada'],'faces':['👥','Enfoca en todas las caras']};
+  function $i(id){return document.getElementById(id);}
+  var frame=$i('cce-frame-'+wid),img=$i('cce-img-'+wid),spinner=$i('cce-spinner-'+wid);
+  var ph=$i('cce-ph-'+wid),badge=$i('cce-badge-'+wid),ratioLbl=$i('cce-ratio-lbl-'+wid);
+  var dims=$i('cce-dims-'+wid),urlEl=$i('cce-url-'+wid),grid=$i('cce-grid-'+wid);
+  var special=$i('cce-special-'+wid),si=$i('cce-si-'+wid),sl=$i('cce-sl-'+wid);
+  var thumb=$i('cce-thumb-'+wid),tph=$i('cce-tph-'+wid),overlay=$i('cce-overlay-'+wid);
+  var copyBtn=$i('cce-copy-'+wid),curUrl='';
+  function setBadge(t,bg,c){badge.textContent=t;badge.style.background=bg;badge.style.color=c;}
+  function updateGrid(g){
+    var cells=grid.querySelectorAll('[data-g]');
+    if(SPEC_G[g]){
+      special.style.display='block';si.textContent=SPEC_G[g][0];sl.textContent=SPEC_G[g][1];
+      cells.forEach(function(c){c.style.background='#0c0e1a';c.style.borderColor='#252840';c.style.color='#3a4060';c.style.boxShadow='none';});
+    } else {
+      special.style.display='none';
+      cells.forEach(function(c){
+        var on=c.getAttribute('data-g')===g;
+        c.style.background=on?'#142040':'#0c0e1a';
+        c.style.borderColor=on?'#3a70c0':'#252840';
+        c.style.color=on?'#70b0f0':'#3a4060';
+        c.style.boxShadow=on?'0 0 10px rgba(58,112,192,.35)':'none';
+      });
+    }
+  }
+  function strip(url){return url.replace(/\/upload\/(?:[^\/]+\/)?(v\d+\/)?/,'/upload/$1');}
+  function buildUrl(url,g,r){
+    var parts=['f_auto','q_auto:good','c_fill','g_'+(g||'auto'),'w_600'];
+    if(r)parts.push('ar_'+r);
+    return strip(url).replace('/upload/','/upload/'+parts.join(',')+'/');
+  }
+  function buildThumb(url,g){
+    var parts=['f_auto','q_auto:good','c_fill','g_'+(g||'auto'),'w_300','ar_3:2'];
+    return strip(url).replace('/upload/','/upload/'+parts.join(',')+'/');
+  }
+  function update(){
+    var uf=$i('__URL_FID__'),gf=$i('__GRAV_FID__'),rf=$i('__RAT_FID__');
+    var url=uf?uf.value.trim():'',g=gf?gf.value:'auto',r=rf?rf.value:'';
+    updateGrid(g);
+    var pad=RATIO_PAD[r]!==undefined?RATIO_PAD[r]:56.25;
+    frame.style.paddingTop=pad+'%';
+    ratioLbl.textContent=RATIO_LBL[r]||'Original';
+    if(!url||url.indexOf('res.cloudinary.com')<0){
+      img.style.display='none';spinner.style.display='none';ph.style.display='flex';
+      overlay.style.display='none';thumb.style.display='none';tph.style.display='flex';
+      setBadge('SIN IMAGEN','#252840','#506080');
+      urlEl.textContent='Esperando URL de Cloudinary...';dims.textContent='—';curUrl='';
+      return;
+    }
+    var purl=buildUrl(url,g,r),turl=buildThumb(url,g);
+    curUrl=purl;urlEl.textContent=purl;
+    var w=600,h=Math.round(w*pad/100);
+    dims.textContent=w+' × '+h+' px';
+    img.style.opacity='0';spinner.style.display='flex';ph.style.display='none';
+    setBadge('CARGANDO','#1a2a14','#60a040');
+    img.onload=function(){
+      spinner.style.display='none';img.style.display='block';img.style.opacity='1';
+      overlay.style.display='block';setBadge('ACTIVO','#142a1a','#40c060');
+    };
+    img.onerror=function(){
+      spinner.style.display='none';ph.style.display='flex';img.style.display='none';
+      setBadge('ERROR','#2a1414','#c04040');
+    };
+    img.src=purl;
+    thumb.onload=function(){thumb.style.display='block';tph.style.display='none';};
+    thumb.src=turl;
+  }
+  copyBtn.addEventListener('click',function(){
+    if(!curUrl)return;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(curUrl).then(function(){
+        copyBtn.textContent='✓ Copiado!';copyBtn.style.color='#40c060';copyBtn.style.borderColor='#30a050';
+        setTimeout(function(){copyBtn.textContent='Copiar';copyBtn.style.color='#4a70b0';copyBtn.style.borderColor='#2a3560';},1800);
+      });
+    }
+  });
+  ['__URL_FID__','__GRAV_FID__','__RAT_FID__'].forEach(function(id){
+    var el=$i(id);
+    if(el){el.addEventListener('change',update);el.addEventListener('input',update);}
+  });
+  setTimeout(update,500);
+})();
+</script>
+"""
 
 
 class CloudinaryUploadMixin:
@@ -168,55 +328,13 @@ class CloudinaryUploadMixin:
         return JsonResponse({'url': url})
 
     def _crop_preview(self, obj, url_field_id, gravity_field_id, ratio_field_id, widget_id=''):
-        """Live crop-preview widget. Reads Cloudinary URL from form field and shows the result."""
         wid = widget_id or url_field_id.replace('id_', '').replace('-', '_')
-        return format_html(
-            '''<div style="margin-top:8px">
-              <div id="cpw-{wid}" style="background:#1a1a1a;border-radius:6px;padding:10px;display:inline-block;min-width:220px">
-                <img id="cpw-img-{wid}" style="max-width:400px;max-height:240px;border-radius:4px;display:none;object-fit:contain">
-                <p id="cpw-msg-{wid}" style="color:#888;font-size:11px;margin:0;padding:4px 0">
-                  Sube a Cloudinary primero — el preview se actualiza al cambiar enfoque o proporción
-                </p>
-              </div>
-            </div>
-            <script>
-            (function(){{
-              var img=document.getElementById('cpw-img-{wid}');
-              var msg=document.getElementById('cpw-msg-{wid}');
-              function upd(){{
-                var uf=document.getElementById('{url_fid}');
-                var gf=document.getElementById('{grav_fid}');
-                var rf=document.getElementById('{rat_fid}');
-                var url=uf?uf.value.trim():'';
-                if(!url||!url.includes('res.cloudinary.com')){{
-                  img.style.display='none';
-                  msg.style.display='block';
-                  msg.textContent='Sube a Cloudinary primero — el preview se actualiza al cambiar enfoque o proporción';
-                  return;
-                }}
-                var g=gf?gf.value:'auto';
-                var r=rf?rf.value:'';
-                var parts=['f_auto','q_auto:good','c_fill','g_'+(g||'auto'),'w_600'];
-                if(r) parts.push('ar_'+r);
-                var t=parts.join(',');
-                var base=url.replace(/\/upload\/[^/]*\/(v\\d+\\/|)/,'/upload/');
-                var purl=base.replace('/upload/','/upload/'+t+'/');
-                img.onload=function(){{img.style.display='block';msg.style.display='none';}};
-                img.onerror=function(){{img.style.display='none';msg.style.display='block';msg.textContent='No se pudo cargar el preview';}};
-                img.src=purl;
-              }}
-              ['{url_fid}','{grav_fid}','{rat_fid}'].forEach(function(id){{
-                var el=document.getElementById(id);
-                if(el){{el.addEventListener('change',upd);el.addEventListener('input',upd);}}
-              }});
-              setTimeout(upd,300);
-            }})();
-            </script>''',
-            wid=wid,
-            url_fid=url_field_id,
-            grav_fid=gravity_field_id,
-            rat_fid=ratio_field_id,
-        )
+        html = (_CROP_PREVIEW_TMPL
+                .replace('__WID__', wid)
+                .replace('__URL_FID__', url_field_id)
+                .replace('__GRAV_FID__', gravity_field_id)
+                .replace('__RAT_FID__', ratio_field_id))
+        return mark_safe(html)
 
     @admin.display(description='Vista previa recorte')
     def crop_preview_image(self, obj):
