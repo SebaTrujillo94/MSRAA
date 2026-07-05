@@ -28,13 +28,49 @@ def _cloudinary_h264(url):
     return url.replace('/upload/', '/upload/vc_h264,ac_aac,w_1920,h_1080,c_limit,q_auto:good/', 1)
 
 
-def _cloudinary_img(url):
-    """Add auto-format + quality optimization to a Cloudinary image URL."""
+_GRAVITY_CHOICES = [
+    ('auto', 'Automático (IA)'),
+    ('face', 'Cara'),
+    ('faces', 'Caras múltiples'),
+    ('center', 'Centro'),
+    ('north', 'Arriba'),
+    ('south', 'Abajo'),
+    ('east', 'Derecha'),
+    ('west', 'Izquierda'),
+    ('northeast', 'Arriba-Derecha'),
+    ('northwest', 'Arriba-Izquierda'),
+    ('southeast', 'Abajo-Derecha'),
+    ('southwest', 'Abajo-Izquierda'),
+]
+
+_RATIO_CHOICES = [
+    ('', 'Original'),
+    ('16:9', '16:9 — Panorámico'),
+    ('4:3', '4:3 — Clásico'),
+    ('3:2', '3:2 — Foto'),
+    ('1:1', '1:1 — Cuadrado'),
+    ('2:3', '2:3 — Retrato'),
+]
+
+_VID_RATIO_CHOICES = [
+    ('', 'Original'),
+    ('16:9', '16:9 — Panorámico'),
+    ('4:3', '4:3 — Clásico'),
+    ('1:1', '1:1 — Cuadrado'),
+    ('9:16', '9:16 — Vertical'),
+]
+
+
+def _cloudinary_img(url, gravity='auto', ratio=''):
+    """Add crop/quality/format transformation to a Cloudinary image URL."""
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
     if 'f_auto' in url or 'q_auto' in url:
         return url
-    return url.replace('/upload/', '/upload/f_auto,q_auto:good/', 1)
+    parts = ['f_auto', 'q_auto:good', 'c_fill', f'g_{gravity or "auto"}']
+    if ratio:
+        parts.append(f'ar_{ratio}')
+    return url.replace('/upload/', f'/upload/{",".join(parts)}/', 1)
 
 
 class SiteConfiguration(SingletonModel):
@@ -206,6 +242,16 @@ class MediaItem(models.Model):
         blank=True, max_length=500, verbose_name='URL de video',
         help_text='YouTube, Vimeo, Cloudinary o Dropbox (MP4 directo). Ej: https://youtu.be/xxx o enlace Dropbox .mp4'
     )
+    img_gravity = models.CharField(
+        max_length=20, choices=_GRAVITY_CHOICES, default='auto', blank=True,
+        verbose_name='Punto de enfoque (imagen)',
+        help_text='Dónde enfocar al recortar la imagen de portada.',
+    )
+    img_ratio = models.CharField(
+        max_length=10, choices=_RATIO_CHOICES, default='', blank=True,
+        verbose_name='Proporción de imagen',
+        help_text='Recortar imagen a esta proporción. Vacío = original.',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -219,7 +265,11 @@ class MediaItem(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _cloudinary_img(_resolve_media_url(self.image_url))
+            return _cloudinary_img(
+                _resolve_media_url(self.image_url),
+                gravity=self.img_gravity or 'auto',
+                ratio=self.img_ratio or '',
+            )
         return self.image.url if self.image else ''
 
     def get_video_embed_url(self):
@@ -488,6 +538,16 @@ class PortfolioProject(models.Model):
         blank=True, max_length=500, verbose_name='URL de video',
         help_text="YouTube, Vimeo o Dropbox MP4. Ej: https://youtu.be/xxxx — se muestra como panel en el overlay."
     )
+    img_gravity = models.CharField(
+        max_length=20, choices=_GRAVITY_CHOICES, default='auto', blank=True,
+        verbose_name='Punto de enfoque (imagen)',
+        help_text='Dónde enfocar al recortar la imagen principal.',
+    )
+    img_ratio = models.CharField(
+        max_length=10, choices=_RATIO_CHOICES, default='', blank=True,
+        verbose_name='Proporción de imagen',
+        help_text='Recortar imagen a esta proporción. Vacío = original.',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -504,7 +564,11 @@ class PortfolioProject(models.Model):
 
     def get_hero_image_src(self):
         if self.hero_image_url:
-            return _cloudinary_img(_resolve_media_url(self.hero_image_url))
+            return _cloudinary_img(
+                _resolve_media_url(self.hero_image_url),
+                gravity=self.img_gravity or 'auto',
+                ratio=self.img_ratio or '',
+            )
         return self.hero_image.url if self.hero_image else ''
 
     def get_video_embed_url(self):

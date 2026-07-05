@@ -167,6 +167,65 @@ class CloudinaryUploadMixin:
         self.model.objects.filter(pk=pk).update(**{self.cld_image_field: url})
         return JsonResponse({'url': url})
 
+    def _crop_preview(self, obj, url_field_id, gravity_field_id, ratio_field_id, widget_id=''):
+        """Live crop-preview widget. Reads Cloudinary URL from form field and shows the result."""
+        wid = widget_id or url_field_id.replace('id_', '').replace('-', '_')
+        return format_html(
+            '''<div style="margin-top:8px">
+              <div id="cpw-{wid}" style="background:#1a1a1a;border-radius:6px;padding:10px;display:inline-block;min-width:220px">
+                <img id="cpw-img-{wid}" style="max-width:400px;max-height:240px;border-radius:4px;display:none;object-fit:contain">
+                <p id="cpw-msg-{wid}" style="color:#888;font-size:11px;margin:0;padding:4px 0">
+                  Sube a Cloudinary primero — el preview se actualiza al cambiar enfoque o proporción
+                </p>
+              </div>
+            </div>
+            <script>
+            (function(){{
+              var img=document.getElementById('cpw-img-{wid}');
+              var msg=document.getElementById('cpw-msg-{wid}');
+              function upd(){{
+                var uf=document.getElementById('{url_fid}');
+                var gf=document.getElementById('{grav_fid}');
+                var rf=document.getElementById('{rat_fid}');
+                var url=uf?uf.value.trim():'';
+                if(!url||!url.includes('res.cloudinary.com')){{
+                  img.style.display='none';
+                  msg.style.display='block';
+                  msg.textContent='Sube a Cloudinary primero — el preview se actualiza al cambiar enfoque o proporción';
+                  return;
+                }}
+                var g=gf?gf.value:'auto';
+                var r=rf?rf.value:'';
+                var parts=['f_auto','q_auto:good','c_fill','g_'+(g||'auto'),'w_600'];
+                if(r) parts.push('ar_'+r);
+                var t=parts.join(',');
+                var base=url.replace(/\/upload\/[^/]*\/(v\\d+\\/|)/,'/upload/');
+                var purl=base.replace('/upload/','/upload/'+t+'/');
+                img.onload=function(){{img.style.display='block';msg.style.display='none';}};
+                img.onerror=function(){{img.style.display='none';msg.style.display='block';msg.textContent='No se pudo cargar el preview';}};
+                img.src=purl;
+              }}
+              ['{url_fid}','{grav_fid}','{rat_fid}'].forEach(function(id){{
+                var el=document.getElementById(id);
+                if(el){{el.addEventListener('change',upd);el.addEventListener('input',upd);}}
+              }});
+              setTimeout(upd,300);
+            }})();
+            </script>''',
+            wid=wid,
+            url_fid=url_field_id,
+            grav_fid=gravity_field_id,
+            rat_fid=ratio_field_id,
+        )
+
+    @admin.display(description='Vista previa recorte')
+    def crop_preview_image(self, obj):
+        return self._crop_preview(obj, 'id_image_url', 'id_img_gravity', 'id_img_ratio')
+
+    @admin.display(description='Vista previa recorte')
+    def crop_preview_hero(self, obj):
+        return self._crop_preview(obj, 'id_hero_image_url', 'id_img_gravity', 'id_img_ratio', 'hero')
+
     def _cld_btn(self, obj, upload_path_suffix, field_id, icon, label, note):
         if not obj.pk:
             return format_html('<span style="color:#999">Guarda el registro primero</span>')
@@ -391,11 +450,12 @@ class PortfolioProjectAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     inlines = [PortfolioProjectImageInline]
-    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn']
+    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn', 'crop_preview_hero']
     fields = [
         'title', 'title_en', 'category', 'year', 'location', 'location_en',
         'description', 'description_en',
         'hero_image', 'hero_image_url', 'cloudinary_image_btn',
+        'img_gravity', 'img_ratio', 'crop_preview_hero',
         'video_url', 'cloudinary_video_btn',
         'order', 'is_active',
     ]
@@ -475,11 +535,12 @@ class MediaItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
     list_filter = ['tipo', 'is_active']
     list_display_links = ['img_preview', 'title']
     ordering = ['-year', 'order']
-    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn']
+    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn', 'crop_preview_image']
     fields = [
         'tipo', 'year', 'title', 'title_en',
         'description', 'description_en',
         'image', 'image_url', 'img_preview_large', 'cloudinary_image_btn',
+        'img_gravity', 'img_ratio', 'crop_preview_image',
         'url', 'url_label', 'url_label_en',
         'video_url', 'cloudinary_video_btn',
         'order', 'is_active',
