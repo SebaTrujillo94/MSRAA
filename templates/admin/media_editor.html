@@ -1,0 +1,563 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Editor de Medios — {{ obj_str }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+:root {
+  --me-bg: #0f1018;
+  --me-panel: #16182a;
+  --me-border: #252840;
+  --me-text: #a0aac8;
+  --me-accent: #4a80c0;
+  --me-gold: #e8b84b;
+  --me-danger: #c04040;
+  --me-success: #40c060;
+}
+#content { max-width: 1440px !important; }
+.me-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0 16px; border-bottom: 1px solid var(--me-border);
+  margin-bottom: 20px;
+}
+.me-header h1 {
+  font-size: 18px; margin: 0; color: var(--me-text); font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+}
+.me-header h1 span { color: #606880; font-weight: 400; }
+.me-back {
+  margin-left: auto; font-size: 12px; color: #5a7090;
+  text-decoration: none; padding: 7px 16px;
+  border: 1px solid var(--me-border); border-radius: 5px;
+  font-weight: 600; transition: all .15s;
+}
+.me-back:hover { border-color: #4a6080; color: #8ab0d0; }
+.me-wrap {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 18px;
+}
+@media (max-width: 1100px) { .me-wrap { grid-template-columns: 1fr; } }
+.me-card {
+  background: var(--me-panel);
+  border: 1px solid var(--me-border);
+  border-radius: 10px; padding: 18px;
+  margin-bottom: 16px;
+}
+.me-label {
+  font-size: 10px; color: #506080; text-transform: uppercase;
+  letter-spacing: .8px; font-weight: 700; margin-bottom: 10px;
+}
+/* Preview frame */
+.me-frame {
+  width: 100%; position: relative;
+  background: #0c0e1a; border-radius: 6px;
+  overflow: hidden; border: 1px solid var(--me-border);
+  transition: padding-top .35s ease;
+}
+.me-frame > * { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.me-frame img { object-fit: cover; display: none; transition: opacity .3s; }
+.me-spinner {
+  display: none; align-items: center; justify-content: center;
+  background: rgba(12,14,26,.85);
+}
+.me-spinner div {
+  width: 30px; height: 30px;
+  border: 3px solid #252840; border-top-color: #4a80c0;
+  border-radius: 50%; animation: me-spin .85s linear infinite;
+}
+@keyframes me-spin { to { transform: rotate(360deg); } }
+.me-ph {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; color: #303450; font-size: 12px;
+  gap: 10px; text-align: center; padding: 20px;
+}
+/* Context tabs */
+.me-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.me-tab {
+  padding: 5px 14px; border: 1px solid var(--me-border);
+  border-radius: 4px; font-size: 11px; cursor: pointer;
+  background: #0c0e1a; color: #506080; font-weight: 600;
+  transition: all .15s;
+}
+.me-tab.active { background: #142040; border-color: var(--me-accent); color: #70b0f0; }
+/* Site card mockup */
+.me-site-card {
+  position: relative; overflow: hidden; border-radius: 5px;
+  background: #0a0a0a; display: none;
+}
+.me-site-card.visible { display: block; }
+.me-site-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.me-site-card .sco {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.78));
+  padding: 28px 14px 12px;
+}
+.me-site-card .sco-cat {
+  font-size: 9px; color: var(--me-gold); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 4px; font-weight: 700;
+}
+.me-site-card .sco-title {
+  font-size: 13px; color: #fff; font-weight: 600; line-height: 1.3;
+}
+.me-site-card .sco-year {
+  font-size: 10px; color: rgba(255,255,255,.45); margin-top: 3px;
+}
+/* Controls */
+.me-ratio-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
+.me-rbtn {
+  padding: 5px 10px; font-size: 10px; font-weight: 700;
+  border: 1px solid var(--me-border); border-radius: 4px;
+  background: #0c0e1a; color: #506080; cursor: pointer;
+  transition: all .15s;
+}
+.me-rbtn.active { background: #142040; border-color: var(--me-accent); color: #70b0f0; }
+.me-ggrid {
+  display: grid; grid-template-columns: repeat(3, 40px); gap: 3px;
+}
+.me-gc {
+  height: 40px; background: #0c0e1a;
+  border: 1px solid var(--me-border); border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #3a4060; cursor: pointer; transition: all .15s;
+}
+.me-gc:hover { border-color: #3a5090; color: #5070a0; }
+.me-gc.active {
+  background: #142040; border-color: var(--me-accent);
+  color: #70b0f0; box-shadow: 0 0 8px rgba(74,128,192,.3);
+}
+.me-gspec-wrap { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.me-gspec {
+  padding: 7px 10px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--me-border); border-radius: 4px;
+  background: #0c0e1a; color: #506080; cursor: pointer;
+  transition: all .15s; text-align: left; white-space: nowrap;
+}
+.me-gspec.active { background: #1a2a40; border-color: #3a70b0; color: #70a0d0; }
+.me-slider-row {
+  display: grid; grid-template-columns: 76px 1fr 56px;
+  align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.me-slider-row label { font-size: 11px; color: #506080; font-weight: 600; }
+.me-slider-row input[type=range] { width: 100%; accent-color: var(--me-accent); cursor: pointer; }
+.me-slider-row .sv {
+  font-size: 11px; color: #a0b0d0; text-align: right;
+  font-family: monospace; font-weight: 700;
+}
+.me-hint { font-size: 10px; color: #3a4a5a; margin-bottom: 12px; line-height: 1.4; }
+.me-divider { border: none; border-top: 1px solid var(--me-border); margin: 16px 0; }
+.me-btn {
+  display: block; width: 100%; padding: 11px;
+  border-radius: 6px; font-size: 13px; font-weight: 700;
+  cursor: pointer; border: none; margin-bottom: 8px;
+  transition: all .15s; letter-spacing: .2px;
+}
+.me-btn:disabled { opacity: .5; cursor: not-allowed; }
+.me-save { background: #1a3a2a; color: #40c070; border: 1px solid #2a6040; }
+.me-save:hover:not(:disabled) { background: #1e4430; }
+.me-del { background: #2a1a1a; color: #c06060; border: 1px solid #5a2020; }
+.me-del:hover { background: #341e1e; }
+.me-status {
+  padding: 9px 14px; border-radius: 6px; font-size: 12px;
+  font-weight: 600; margin-bottom: 14px; display: none; text-align: center;
+}
+.me-status.ok { background: #1a3a2a; color: #40c060; border: 1px solid #2a5030; display: block; }
+.me-status.err { background: #2a1a1a; color: #c04040; border: 1px solid #4a2020; display: block; }
+.me-url-badge {
+  background: #0c0e1a; border: 1px solid var(--me-border); border-radius: 4px;
+  padding: 6px 10px; font-size: 9px; font-family: monospace; color: #3a4a60;
+  word-break: break-all; line-height: 1.5; margin-top: 10px;
+}
+.me-no-cld {
+  background: #1a1a0a; border: 1px solid #3a3010; border-radius: 6px;
+  padding: 12px 14px; font-size: 12px; color: #a09040; margin-bottom: 14px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="me-header">
+  <h1>🎨 Editor de Medios <span>— {{ obj_str }}</span></h1>
+  <a href="{{ change_url }}" class="me-back">← Volver al registro</a>
+</div>
+
+<div id="me-status" class="me-status"></div>
+
+{% if not has_image %}
+<div class="me-no-cld">
+  ⚠️ <strong>Sin imagen Cloudinary.</strong> Sube primero la imagen usando el botón "Subir imagen a Cloudinary" en el registro, luego regresa al editor.
+</div>
+{% endif %}
+
+<div class="me-wrap">
+
+  <!-- ══ LEFT: Previews ══ -->
+  <div>
+
+    <!-- Main preview -->
+    <div class="me-card">
+      <div class="me-label">Vista Previa Principal</div>
+      <div id="me-frame" class="me-frame" style="padding-top:56.25%">
+        <img id="me-img">
+        <div id="me-spinner" class="me-spinner"><div></div></div>
+        <div id="me-ph" class="me-ph">
+          <span style="font-size:40px;opacity:.25">🖼️</span>
+          <span>{% if has_image %}Cargando preview...{% else %}Sin imagen de Cloudinary{% endif %}</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span id="me-ratio-lbl" style="font-size:10px;color:#506080;font-family:monospace">—</span>
+        <span id="me-dims" style="font-size:10px;color:#506080;font-family:monospace">—</span>
+      </div>
+    </div>
+
+    <!-- Context previews -->
+    <div class="me-card">
+      <div class="me-label" style="margin-bottom:12px">Simulación en el Sitio</div>
+      <div class="me-tabs">
+        <button class="me-tab active" data-ctx="card">Tarjeta</button>
+        <button class="me-tab" data-ctx="hero">Hero (16:9)</button>
+        <button class="me-tab" data-ctx="sq">Cuadrado</button>
+      </div>
+
+      <!-- Card 3:2 -->
+      <div id="me-ctx-card" class="me-site-card visible" style="aspect-ratio:3/2;max-width:520px">
+        <img id="me-ctx-card-img">
+        <div class="sco">
+          <div class="sco-cat">{{ ctx_top }}</div>
+          <div class="sco-title">{{ obj_str }}</div>
+          <div class="sco-year">{{ obj_year }}</div>
+        </div>
+      </div>
+
+      <!-- Hero 16:9 -->
+      <div id="me-ctx-hero" class="me-site-card" style="aspect-ratio:16/9">
+        <img id="me-ctx-hero-img">
+        <div class="sco" style="padding:50px 28px 22px">
+          <div class="sco-cat" style="font-size:10px;margin-bottom:6px">MSRAA</div>
+          <div class="sco-title" style="font-size:22px">{{ obj_str }}</div>
+          {% if obj_year %}<div class="sco-year" style="font-size:11px;margin-top:5px">{{ obj_year }}</div>{% endif %}
+        </div>
+      </div>
+
+      <!-- Square 1:1 -->
+      <div id="me-ctx-sq" class="me-site-card" style="aspect-ratio:1/1;max-width:300px">
+        <img id="me-ctx-sq-img">
+      </div>
+    </div>
+
+    <!-- Video preview (if available) -->
+    {% if embed_url %}
+    <div class="me-card">
+      <div class="me-label" style="margin-bottom:10px">Video</div>
+      <div style="aspect-ratio:16/9;background:#0c0e1a;border-radius:6px;overflow:hidden">
+        <iframe src="{{ embed_url }}" style="width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>
+    {% elif has_video %}
+    <div class="me-card">
+      <div class="me-label" style="margin-bottom:8px">Video</div>
+      <div class="me-url-badge">{{ video_url }}</div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- ══ RIGHT: Controls ══ -->
+  <div>
+    <div class="me-card">
+      <div class="me-label" style="margin-bottom:14px;font-size:11px">CONTROLES DE IMAGEN</div>
+
+      <!-- Ratio -->
+      <div class="me-label">Proporción</div>
+      <div class="me-ratio-grid" id="me-ratio-btns">
+        {% for val, label in ratio_choices %}
+        <button class="me-rbtn{% if img_ratio == val %} active{% endif %}"
+                data-ratio="{{ val }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+
+      <!-- Gravity -->
+      <div class="me-label">Punto de Enfoque</div>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:16px">
+        <div class="me-ggrid" id="me-ggrid">
+          {% for val, icon in gravity_grid %}
+          <div class="me-gc{% if img_gravity == val %} active{% endif %}" data-g="{{ val }}">{{ icon }}</div>
+          {% endfor %}
+        </div>
+        <div class="me-gspec-wrap">
+          {% for val, label in special_gravity %}
+          <button class="me-gspec{% if img_gravity == val %} active{% endif %}" data-g="{{ val }}">{{ label }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Zoom -->
+      <div class="me-label">Zoom</div>
+      <div class="me-slider-row">
+        <label>Zoom</label>
+        <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom }}">
+        <span class="sv" id="me-zoom-v">{{ img_zoom }}x</span>
+      </div>
+      <div class="me-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
+
+      <!-- X/Y offset -->
+      <div class="me-label">Ajuste de posición</div>
+      <div class="me-slider-row">
+        <label>Horizontal</label>
+        <input type="range" id="me-x" min="-500" max="500" step="10" value="{{ img_x }}">
+        <span class="sv" id="me-x-v">{{ img_x }}px</span>
+      </div>
+      <div class="me-slider-row">
+        <label>Vertical</label>
+        <input type="range" id="me-y" min="-500" max="500" step="10" value="{{ img_y }}">
+        <span class="sv" id="me-y-v">{{ img_y }}px</span>
+      </div>
+      <div class="me-hint">Desplazamiento en px desde el punto de enfoque.<br>+ = derecha/abajo &nbsp;·&nbsp; − = izquierda/arriba</div>
+
+      <hr class="me-divider">
+
+      <button id="me-save-btn" class="me-btn me-save" onclick="meSave()">💾 Guardar cambios</button>
+
+      {% if has_image %}
+      <button class="me-btn me-del" onclick="meDelImg()">🗑 Eliminar imagen</button>
+      {% endif %}
+      {% if has_video %}
+      <button class="me-btn me-del" onclick="meDelVid()">🗑 Eliminar video</button>
+      {% endif %}
+
+      <a href="{{ change_url }}" class="me-btn" style="background:#1a1c2e;color:#7080a0;border:1px solid var(--me-border);text-align:center;text-decoration:none;display:block;box-sizing:border-box">← Volver al registro</a>
+
+      <!-- Generated URL -->
+      <div style="margin-top:14px">
+        <div class="me-label" style="margin-bottom:5px">URL Cloudinary generada</div>
+        <div id="me-genurl" class="me-url-badge">—</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var IMG_URL = "{{ image_url|escapejs }}";
+  var GRAVITY = "{{ img_gravity|escapejs }}";
+  var RATIO = "{{ img_ratio|escapejs }}";
+  var ZOOM = {{ img_zoom }};
+  var OX = {{ img_x }};
+  var OY = {{ img_y }};
+  var SAVE_URL = "{{ save_url }}";
+  var DEL_IMG_URL = "{{ del_img_url }}";
+  var DEL_VID_URL = "{{ del_vid_url }}";
+  var CSRF = "{{ csrf_token }}";
+  var HAS_IMG = {{ has_image|yesno:"true,false" }};
+
+  var RATIO_PAD = {'':56.25,'16:9':56.25,'4:3':75,'3:2':66.67,'1:1':100,'2:3':150};
+  var RATIO_LBL = {'':'Original','16:9':'16:9','4:3':'4:3','3:2':'3:2','1:1':'1:1','2:3':'2:3'};
+  var CTX_AR = {card:'3:2', hero:'16:9', sq:'1:1'};
+
+  var $frame = document.getElementById('me-frame');
+  var $img = document.getElementById('me-img');
+  var $sp = document.getElementById('me-spinner');
+  var $ph = document.getElementById('me-ph');
+  var $ratioLbl = document.getElementById('me-ratio-lbl');
+  var $dims = document.getElementById('me-dims');
+  var $status = document.getElementById('me-status');
+  var $genurl = document.getElementById('me-genurl');
+  var $zoomSlider = document.getElementById('me-zoom');
+  var $zoomV = document.getElementById('me-zoom-v');
+  var $xSlider = document.getElementById('me-x');
+  var $xV = document.getElementById('me-x-v');
+  var $ySlider = document.getElementById('me-y');
+  var $yV = document.getElementById('me-y-v');
+
+  var curG = GRAVITY, curR = RATIO, curZ = ZOOM, curX = OX, curY = OY;
+  var curCtx = 'card';
+
+  // ── Cloudinary helpers ──
+  function strip(url) {
+    var idx = url.indexOf('/upload/');
+    if (idx < 0) return url;
+    var segs = url.slice(idx + 8).split('/');
+    var ver = '', i = 0;
+    while (i < segs.length) {
+      var s = segs[i];
+      if (/^v\d+$/.test(s)) { ver = s; i++; break; }
+      if (/[,]/.test(s) || /^[a-z]{1,3}_/.test(s)) { i++; continue; }
+      break;
+    }
+    return url.slice(0, idx + 8) + (ver ? ver + '/' : '') + segs.slice(i).join('/');
+  }
+
+  function buildUrl(url, g, r, z, x, y, w) {
+    if (!url || url.indexOf('res.cloudinary.com') < 0) return '';
+    var parts = ['f_auto', 'q_auto:good', 'c_fill', 'g_' + (g || 'auto')];
+    var zf = parseFloat(z) || 1.0;
+    if (Math.abs(zf - 1.0) > 0.001) parts.push('z_' + zf.toFixed(2).replace(/\.?0+$/, ''));
+    var xi = parseInt(x) || 0;
+    if (xi) parts.push('x_' + xi);
+    var yi = parseInt(y) || 0;
+    if (yi) parts.push('y_' + yi);
+    if (w) parts.push('w_' + w);
+    if (r) parts.push('ar_' + r);
+    return strip(url).replace('/upload/', '/upload/' + parts.join(',') + '/');
+  }
+
+  // ── Gravity UI ──
+  function setGravityUI(g) {
+    document.querySelectorAll('.me-gc').forEach(function(c) {
+      c.classList.toggle('active', c.getAttribute('data-g') === g);
+    });
+    document.querySelectorAll('.me-gspec').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-g') === g);
+    });
+  }
+
+  // ── Update previews ──
+  function updateAll() {
+    var pad = RATIO_PAD[curR] !== undefined ? RATIO_PAD[curR] : 56.25;
+    $frame.style.paddingTop = pad + '%';
+    $ratioLbl.textContent = RATIO_LBL[curR] || 'Original';
+    var w = 640, h = Math.round(w * pad / 100);
+    $dims.textContent = w + ' × ' + h + ' px  ·  ' + (RATIO_LBL[curR] || 'Original');
+
+    if (!HAS_IMG) {
+      $img.style.display = 'none'; $ph.style.display = 'flex'; $sp.style.display = 'none';
+      $genurl.textContent = '—';
+      return;
+    }
+
+    var purl = buildUrl(IMG_URL, curG, curR, curZ, curX, curY, 640);
+    $genurl.textContent = purl || '—';
+
+    $img.style.opacity = '0'; $sp.style.display = 'flex'; $ph.style.display = 'none';
+    $img.onload = function() { $img.style.display = 'block'; $img.style.opacity = '1'; $sp.style.display = 'none'; };
+    $img.onerror = function() { $img.style.display = 'none'; $ph.style.display = 'flex'; $sp.style.display = 'none'; };
+    $img.src = purl;
+
+    updateCtxPreview();
+  }
+
+  function updateCtxPreview() {
+    if (!HAS_IMG) return;
+    var ar = CTX_AR[curCtx] || '3:2';
+    var w = curCtx === 'sq' ? 300 : curCtx === 'hero' ? 640 : 520;
+    var purl = buildUrl(IMG_URL, curG, ar, curZ, curX, curY, w);
+    var $ci = document.getElementById('me-ctx-' + curCtx + '-img');
+    if ($ci) { $ci.src = purl; $ci.style.display = 'block'; }
+  }
+
+  // ── Ratio buttons ──
+  document.querySelectorAll('.me-rbtn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      curR = btn.getAttribute('data-ratio') || '';
+      document.querySelectorAll('.me-rbtn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      updateAll();
+    });
+  });
+
+  // ── Gravity ──
+  document.querySelectorAll('.me-gc, .me-gspec').forEach(function(el) {
+    el.addEventListener('click', function() {
+      curG = el.getAttribute('data-g');
+      setGravityUI(curG);
+      updateAll();
+    });
+  });
+
+  // ── Sliders ──
+  $zoomSlider.addEventListener('input', function() {
+    curZ = parseFloat(this.value);
+    $zoomV.textContent = curZ.toFixed(2) + 'x';
+    updateAll();
+  });
+  $xSlider.addEventListener('input', function() {
+    curX = parseInt(this.value);
+    $xV.textContent = (curX > 0 ? '+' : '') + curX + 'px';
+    updateAll();
+  });
+  $ySlider.addEventListener('input', function() {
+    curY = parseInt(this.value);
+    $yV.textContent = (curY > 0 ? '+' : '') + curY + 'px';
+    updateAll();
+  });
+
+  // ── Context tabs ──
+  document.querySelectorAll('.me-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.me-tab').forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      curCtx = tab.getAttribute('data-ctx');
+      ['card','hero','sq'].forEach(function(k) {
+        var el = document.getElementById('me-ctx-' + k);
+        if (el) el.classList.toggle('visible', k === curCtx);
+      });
+      updateCtxPreview();
+    });
+  });
+
+  // ── Save ──
+  window.meSave = function() {
+    var btn = document.getElementById('me-save-btn');
+    btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+    fetch(SAVE_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+      body: JSON.stringify({img_gravity:curG, img_ratio:curR, img_zoom:curZ, img_x:curX, img_y:curY})
+    }).then(function(r){return r.json();}).then(function(d){
+      btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
+      showStatus(d.status === 'ok' ? '✅ Guardado correctamente' : '❌ Error: '+(d.error||'?'),
+                 d.status === 'ok' ? 'ok' : 'err');
+    }).catch(function(){
+      btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
+      showStatus('❌ Error de red', 'err');
+    });
+  };
+
+  window.meDelImg = function() {
+    if (!confirm('¿Eliminar la imagen?\n\nEsto borra la URL del campo. No se puede deshacer.')) return;
+    fetch(DEL_IMG_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+      body: '{}'
+    }).then(function(r){return r.json();}).then(function(d){
+      if (d.status === 'ok') {
+        showStatus('✅ Imagen eliminada. Redirigiendo...', 'ok');
+        setTimeout(function(){ window.location.href = window.location.href; }, 1800);
+      } else { showStatus('❌ '+(d.error||'Error'), 'err'); }
+    });
+  };
+
+  window.meDelVid = function() {
+    if (!confirm('¿Eliminar el video?\n\nEsto borra la URL del campo. No se puede deshacer.')) return;
+    fetch(DEL_VID_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+      body: '{}'
+    }).then(function(r){return r.json();}).then(function(d){
+      if (d.status === 'ok') {
+        showStatus('✅ Video eliminado. Redirigiendo...', 'ok');
+        setTimeout(function(){ window.location.href = window.location.href; }, 1800);
+      } else { showStatus('❌ '+(d.error||'Error'), 'err'); }
+    });
+  };
+
+  function showStatus(msg, type) {
+    $status.textContent = msg;
+    $status.className = 'me-status ' + type;
+    setTimeout(function(){ $status.className = 'me-status'; }, 5000);
+  }
+
+  // ── Init ──
+  setGravityUI(curG);
+  $zoomV.textContent = curZ.toFixed(2) + 'x';
+  $xV.textContent = (curX > 0 ? '+' : '') + curX + 'px';
+  $yV.textContent = (curY > 0 ? '+' : '') + curY + 'px';
+  setTimeout(updateAll, 150);
+})();
+</script>
+{% endblock %}

@@ -61,13 +61,24 @@ _VID_RATIO_CHOICES = [
 ]
 
 
-def _cloudinary_img(url, gravity='auto', ratio=''):
+def _cloudinary_img(url, gravity='auto', ratio='', zoom=None, x=0, y=0):
     """Add crop/quality/format transformation to a Cloudinary image URL."""
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
     if 'f_auto' in url or 'q_auto' in url:
         return url
     parts = ['f_auto', 'q_auto:good', 'c_fill', f'g_{gravity or "auto"}']
+    if zoom:
+        try:
+            z = float(zoom)
+            if abs(z - 1.0) > 0.001:
+                parts.append(f'z_{z:.2f}'.rstrip('0').rstrip('.'))
+        except (TypeError, ValueError):
+            pass
+    if x:
+        parts.append(f'x_{int(x)}')
+    if y:
+        parts.append(f'y_{int(y)}')
     if ratio:
         parts.append(f'ar_{ratio}')
     return url.replace('/upload/', f'/upload/{",".join(parts)}/', 1)
@@ -252,6 +263,21 @@ class MediaItem(models.Model):
         verbose_name='Proporción de imagen',
         help_text='Recortar imagen a esta proporción. Vacío = original.',
     )
+    img_zoom = models.DecimalField(
+        max_digits=4, decimal_places=2, default=1.0, blank=True,
+        verbose_name='Zoom',
+        help_text='1.0 = normal · 0.5 = más contexto · 2.0 = acercar',
+    )
+    img_x = models.IntegerField(
+        default=0, blank=True,
+        verbose_name='Offset X (px)',
+        help_text='+ = derecha, − = izquierda (desde punto de enfoque)',
+    )
+    img_y = models.IntegerField(
+        default=0, blank=True,
+        verbose_name='Offset Y (px)',
+        help_text='+ = abajo, − = arriba (desde punto de enfoque)',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -259,6 +285,7 @@ class MediaItem(models.Model):
         ordering = ['-year', 'order']
         verbose_name = 'Ítem de Medios'
         verbose_name_plural = 'Ítems de Medios'
+        permissions = [('edit_media_crop', 'Puede usar el editor de medios')]
 
     def __str__(self):
         return f"{self.get_tipo_display()} {self.year}: {self.title}"
@@ -269,6 +296,9 @@ class MediaItem(models.Model):
                 _resolve_media_url(self.image_url),
                 gravity=self.img_gravity or 'auto',
                 ratio=self.img_ratio or '',
+                zoom=self.img_zoom,
+                x=self.img_x or 0,
+                y=self.img_y or 0,
             )
         return self.image.url if self.image else ''
 
@@ -548,6 +578,21 @@ class PortfolioProject(models.Model):
         verbose_name='Proporción de imagen',
         help_text='Recortar imagen a esta proporción. Vacío = original.',
     )
+    img_zoom = models.DecimalField(
+        max_digits=4, decimal_places=2, default=1.0, blank=True,
+        verbose_name='Zoom',
+        help_text='1.0 = normal · 0.5 = más contexto · 2.0 = acercar',
+    )
+    img_x = models.IntegerField(
+        default=0, blank=True,
+        verbose_name='Offset X (px)',
+        help_text='+ = derecha, − = izquierda (desde punto de enfoque)',
+    )
+    img_y = models.IntegerField(
+        default=0, blank=True,
+        verbose_name='Offset Y (px)',
+        help_text='+ = abajo, − = arriba (desde punto de enfoque)',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -555,6 +600,7 @@ class PortfolioProject(models.Model):
         ordering = ['order']
         verbose_name = "Proyecto de Portafolio"
         verbose_name_plural = "Proyectos de Portafolio"
+        permissions = [('edit_media_crop', 'Puede usar el editor de medios')]
 
     def __str__(self):
         return self.title
@@ -568,6 +614,9 @@ class PortfolioProject(models.Model):
                 _resolve_media_url(self.hero_image_url),
                 gravity=self.img_gravity or 'auto',
                 ratio=self.img_ratio or '',
+                zoom=self.img_zoom,
+                x=self.img_x or 0,
+                y=self.img_y or 0,
             )
         return self.hero_image.url if self.hero_image else ''
 

@@ -451,6 +451,177 @@ class CloudinaryUploadMixin:
         )
 
 
+_GRAVITY_CHOICES_ADMIN = [
+    ('northwest', '↖'), ('north', '↑'), ('northeast', '↗'),
+    ('west', '←'), ('center', '⊙'), ('east', '→'),
+    ('southwest', '↙'), ('south', '↓'), ('southeast', '↘'),
+]
+
+_SPECIAL_GRAVITY_ADMIN = [
+    ('auto', '🤖 Auto (IA)'),
+    ('face', '😶 Cara'),
+    ('faces', '👥 Caras'),
+]
+
+
+class MediaEditorMixin(CloudinaryUploadMixin):
+    """
+    Extends CloudinaryUploadMixin with a full-page media editor.
+    Requires 'core.edit_media_crop' permission (or superuser).
+
+    Configure per admin class:
+        editor_image_field = 'image_url'   # or 'hero_image_url'
+        editor_video_field = 'video_url'   # or None
+    """
+    editor_image_field = None
+    editor_video_field = 'video_url'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        mn = self.model._meta.model_name
+        custom = [
+            path('<int:pk>/media-editor/',
+                 self.admin_site.admin_view(self._editor_view),
+                 name=f'{mn}_media_editor'),
+            path('<int:pk>/save-media-crop/',
+                 self.admin_site.admin_view(self._save_crop_view),
+                 name=f'{mn}_save_crop'),
+            path('<int:pk>/delete-media-image/',
+                 self.admin_site.admin_view(self._delete_media_image_view),
+                 name=f'{mn}_delete_media_image'),
+            path('<int:pk>/delete-media-video/',
+                 self.admin_site.admin_view(self._delete_media_video_view),
+                 name=f'{mn}_delete_media_video'),
+        ]
+        return custom + urls
+
+    def _check_editor_perm(self, request):
+        return request.user.is_superuser or request.user.has_perm('core.edit_media_crop')
+
+    def _editor_view(self, request, pk):
+        from django.http import HttpResponseForbidden, Http404
+        if not self._check_editor_perm(request):
+            return HttpResponseForbidden(
+                '<h2>Sin permiso</h2><p>Necesitas el permiso <code>core.edit_media_crop</code>.</p>'
+            )
+        try:
+            obj = self.model.objects.get(pk=pk)
+        except self.model.DoesNotExist:
+            raise Http404
+
+        mn = self.model._meta.model_name
+        image_url = (getattr(obj, self.editor_image_field, '') or '') if self.editor_image_field else ''
+        video_url = (getattr(obj, self.editor_video_field, '') or '') if self.editor_video_field else ''
+
+        # Context label for card mockup
+        if hasattr(obj, 'tipo'):
+            ctx_top = obj.get_tipo_display().upper()
+        elif hasattr(obj, 'category') and obj.category:
+            ctx_top = str(obj.category).upper()
+        else:
+            ctx_top = ''
+        obj_year = getattr(obj, 'year', '') or ''
+
+        # Video embed URL
+        embed_url = ''
+        if video_url and hasattr(obj, 'get_video_embed_url'):
+            embed_url = obj.get_video_embed_url() or ''
+
+        from .models import _GRAVITY_CHOICES, _RATIO_CHOICES
+        ctx = dict(
+            self.admin_site.each_context(request),
+            title=f'Editor de Medios — {obj}',
+            obj=obj,
+            obj_pk=pk,
+            obj_str=str(obj),
+            mn=mn,
+            image_url=image_url,
+            video_url=video_url,
+            embed_url=embed_url,
+            img_gravity=getattr(obj, 'img_gravity', 'auto') or 'auto',
+            img_ratio=getattr(obj, 'img_ratio', '') or '',
+            img_zoom=float(getattr(obj, 'img_zoom', 1.0) or 1.0),
+            img_x=int(getattr(obj, 'img_x', 0) or 0),
+            img_y=int(getattr(obj, 'img_y', 0) or 0),
+            ctx_top=ctx_top,
+            obj_year=obj_year,
+            change_url=f'/admin/core/{mn}/{pk}/change/',
+            save_url=f'/admin/core/{mn}/{pk}/save-media-crop/',
+            del_img_url=f'/admin/core/{mn}/{pk}/delete-media-image/',
+            del_vid_url=f'/admin/core/{mn}/{pk}/delete-media-video/',
+            gravity_choices=_GRAVITY_CHOICES,
+            ratio_choices=_RATIO_CHOICES,
+            gravity_grid=_GRAVITY_CHOICES_ADMIN,
+            special_gravity=_SPECIAL_GRAVITY_ADMIN,
+            has_image=bool(image_url and 'res.cloudinary.com' in image_url),
+            has_video=bool(video_url),
+        )
+        return TemplateResponse(request, 'admin/media_editor.html', ctx)
+
+    def _save_crop_view(self, request, pk):
+        import json
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        if not self._check_editor_perm(request):
+            return JsonResponse({'error': 'Sin permiso'}, status=403)
+        try:
+            data = json.loads(request.body)
+            update = {}
+            for field in ('img_gravity', 'img_ratio'):
+                if field in data:
+                    update[field] = str(data[field])
+            if 'img_zoom' in data:
+                update['img_zoom'] = round(float(data['img_zoom']), 2)
+            if 'img_x' in data:
+                update['img_x'] = int(data['img_x'])
+            if 'img_y' in data:
+                update['img_y'] = int(data['img_y'])
+            self.model.objects.filter(pk=pk).update(**update)
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    def _delete_media_image_view(self, request, pk):
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        if not self._check_editor_perm(request):
+            return JsonResponse({'error': 'Sin permiso'}, status=403)
+        if not self.editor_image_field:
+            return JsonResponse({'error': 'Sin campo configurado'}, status=400)
+        self.model.objects.filter(pk=pk).update(**{self.editor_image_field: ''})
+        return JsonResponse({'status': 'ok'})
+
+    def _delete_media_video_view(self, request, pk):
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        if not self._check_editor_perm(request):
+            return JsonResponse({'error': 'Sin permiso'}, status=403)
+        if not self.editor_video_field:
+            return JsonResponse({'error': 'Sin campo configurado'}, status=400)
+        self.model.objects.filter(pk=pk).update(**{self.editor_video_field: ''})
+        return JsonResponse({'status': 'ok'})
+
+    @admin.display(description='🎨 Editor de Medios')
+    def media_editor_btn(self, obj):
+        if not obj.pk:
+            return format_html('<span style="color:#999">Guarda el registro primero</span>')
+        mn = self.model._meta.model_name
+        url = f'/admin/core/{mn}/{obj.pk}/media-editor/'
+        return format_html(
+            '<a href="{}" target="_blank" '
+            'style="display:inline-block;padding:9px 20px;background:#16213a;'
+            'color:#5a90e0;border:1px solid #2a4080;border-radius:5px;'
+            'text-decoration:none;font-size:13px;font-weight:700;letter-spacing:.3px;">'
+            '🎨 Abrir Editor de Medios</a>'
+            '<span style="margin-left:10px;font-size:11px;color:#888">'
+            'Zoom · Encuadre · Recorte · Eliminar</span>',
+            url,
+        )
+
+
 class PortfolioProjectImageInline(admin.TabularInline):
     model = PortfolioProjectImage
     extra = 2
@@ -615,20 +786,21 @@ class PortfolioCategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(PortfolioProject)
-class PortfolioProjectAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
     cld_video_field = 'video_url'
     cld_image_field = 'hero_image_url'
     cld_folder = 'msraa/portfolio'
+    editor_image_field = 'hero_image_url'
+    editor_video_field = 'video_url'
     list_display = ['title', 'category', 'year', 'location', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     inlines = [PortfolioProjectImageInline]
-    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn', 'crop_preview_hero']
+    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn']
     fields = [
         'title', 'title_en', 'category', 'year', 'location', 'location_en',
         'description', 'description_en',
-        'hero_image', 'hero_image_url', 'cloudinary_image_btn',
-        'img_gravity', 'img_ratio', 'crop_preview_hero',
+        'hero_image', 'hero_image_url', 'cloudinary_image_btn', 'media_editor_btn',
         'video_url', 'cloudinary_video_btn',
         'order', 'is_active',
     ]
@@ -698,22 +870,23 @@ class MediaItemVideoInline(admin.TabularInline):
 
 
 @admin.register(MediaItem)
-class MediaItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+class MediaItemAdmin(MediaEditorMixin, admin.ModelAdmin):
     cld_video_field = 'video_url'
     cld_image_field = 'image_url'
     cld_folder = 'msraa/medios'
+    editor_image_field = 'image_url'
+    editor_video_field = 'video_url'
     inlines = [MediaItemSectionInline, MediaItemVideoInline, MediaItemImageInline]
     list_display = ['img_preview', 'title', 'tipo', 'year', 'url', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['tipo', 'is_active']
     list_display_links = ['img_preview', 'title']
     ordering = ['-year', 'order']
-    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn', 'crop_preview_image']
+    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn']
     fields = [
         'tipo', 'year', 'title', 'title_en',
         'description', 'description_en',
-        'image', 'image_url', 'img_preview_large', 'cloudinary_image_btn',
-        'img_gravity', 'img_ratio', 'crop_preview_image',
+        'image', 'image_url', 'img_preview_large', 'cloudinary_image_btn', 'media_editor_btn',
         'url', 'url_label', 'url_label_en',
         'video_url', 'cloudinary_video_btn',
         'order', 'is_active',
