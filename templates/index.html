@@ -6071,27 +6071,34 @@
   </script>
 
   <!-- Scroll to top button -->
-  <button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Volver arriba" style="
-    position:fixed;
-    bottom:2.5rem;
-    right:calc(70px + 1.25rem);
-    width:44px;
-    height:44px;
-    background:rgba(232,184,75,0.15);
-    color:rgba(232,184,75,0.85);
-    border:1px solid rgba(232,184,75,0.3);
-    border-radius:50%;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    visibility:hidden;
-    transition:opacity .3s,visibility .3s,transform .2s,background .2s,border-color .2s;
-    z-index:9999;
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-  "><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+  <style>
+    #scrollTopBtn {
+      position: fixed;
+      bottom: 2.5rem;
+      right: calc(46px + 1.25rem);
+      width: 44px;
+      height: 44px;
+      background: rgba(232,184,75,0.15);
+      color: rgba(232,184,75,0.85);
+      border: 1px solid rgba(232,184,75,0.3);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .3s, visibility .3s, transform .2s, background .2s, border-color .2s;
+      z-index: 9990;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    @media (max-width: 992px) {
+      #scrollTopBtn { right: 1.25rem; }
+    }
+    body.sidebars-hidden #scrollTopBtn { right: 1.25rem; }
+  </style>
+  <button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Volver arriba"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
   <script>
     (function(){
       var btn = document.getElementById('scrollTopBtn');
