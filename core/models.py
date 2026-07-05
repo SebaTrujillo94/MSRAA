@@ -24,8 +24,17 @@ def _cloudinary_h264(url):
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
     if 'vc_h264' in url:
-        return url  # transformation already present
+        return url
     return url.replace('/upload/', '/upload/vc_h264,ac_aac,w_1920,h_1080,c_limit,q_auto:good/', 1)
+
+
+def _cloudinary_img(url):
+    """Add auto-format + quality optimization to a Cloudinary image URL."""
+    if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
+        return url
+    if 'f_auto' in url or 'q_auto' in url:
+        return url
+    return url.replace('/upload/', '/upload/f_auto,q_auto:good/', 1)
 
 
 class SiteConfiguration(SingletonModel):
@@ -210,7 +219,7 @@ class MediaItem(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _resolve_media_url(self.image_url)
+            return _cloudinary_img(_resolve_media_url(self.image_url))
         return self.image.url if self.image else ''
 
     def get_video_embed_url(self):
@@ -221,6 +230,8 @@ class MediaItem(models.Model):
             return ''
         if 'dropbox.com' in url:
             return _resolve_media_url(url)
+        if 'res.cloudinary.com' in url:
+            return _cloudinary_h264(url)
         if 'player.cloudinary.com/embed' in url:
             parsed = urlparse(url)
             params = parse_qs(parsed.query, keep_blank_values=True)
@@ -250,7 +261,7 @@ class MediaItemImage(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _resolve_media_url(self.image_url)
+            return _cloudinary_img(_resolve_media_url(self.image_url))
         return self.image.url if self.image else ''
 
     def __str__(self):
@@ -344,6 +355,8 @@ class CurriculumItem(models.Model):
             return ''
         if 'dropbox.com' in url:
             return _resolve_media_url(url)
+        if 'res.cloudinary.com' in url:
+            return _cloudinary_h264(url)
         if 'player.cloudinary.com/embed' in url:
             return url
         yt = re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/))([A-Za-z0-9_-]{11})', url)
@@ -369,7 +382,7 @@ class CurriculumItemImage(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _resolve_media_url(self.image_url)
+            return _cloudinary_img(_resolve_media_url(self.image_url))
         return self.image.url if self.image else ''
 
     def __str__(self):
@@ -491,7 +504,7 @@ class PortfolioProject(models.Model):
 
     def get_hero_image_src(self):
         if self.hero_image_url:
-            return _resolve_media_url(self.hero_image_url)
+            return _cloudinary_img(_resolve_media_url(self.hero_image_url))
         return self.hero_image.url if self.hero_image else ''
 
     def get_video_embed_url(self):
@@ -501,6 +514,8 @@ class PortfolioProject(models.Model):
             return ''
         if 'dropbox.com' in url:
             return _resolve_media_url(url)
+        if 'res.cloudinary.com' in url:
+            return _cloudinary_h264(url)
         if 'player.cloudinary.com/embed' in url:
             return url
         yt = re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/))([A-Za-z0-9_-]{11})', url)
@@ -546,7 +561,7 @@ class PortfolioProjectImage(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _resolve_media_url(self.image_url)
+            return _cloudinary_img(_resolve_media_url(self.image_url))
         return self.image.url if self.image else ''
 
     def __str__(self):

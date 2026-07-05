@@ -24,7 +24,6 @@ def _safe_save(admin_instance, request, obj, form, change):
     file_fields_changed = any(f in form.changed_data for f in file_field_names)
 
     if change and not file_fields_changed and file_field_names:
-        # queryset.update() bypasses pre_save entirely — no Cloudinary trigger
         update_vals = {
             f.attname: getattr(obj, f.attname)
             for f in obj._meta.fields
@@ -50,6 +49,174 @@ def _safe_save(admin_instance, request, obj, form, change):
                     raise
             else:
                 raise
+
+
+def _cld_init():
+    """Configure Cloudinary SDK from env. Returns error string or None."""
+    import os, re
+    from django.conf import settings
+    import cloudinary
+    cld_env = (
+        os.environ.get('CLOUDINARY_URL') or
+        getattr(settings, 'CLOUDINARY_STORAGE', {}).get('CLOUDINARY_URL', '')
+    )
+    m = re.match(r'cloudinary://([^:]+):([^@]+)@(.+)', cld_env or '')
+    if not m:
+        return 'CLOUDINARY_URL no configurada en Vercel env vars'
+    cloudinary.config(api_key=m.group(1), api_secret=m.group(2), cloud_name=m.group(3))
+    return None
+
+
+_EAGER_VIDEO = [{
+    'video_codec': 'h264',
+    'audio_codec': 'aac',
+    'width': 1920,
+    'height': 1080,
+    'crop': 'limit',
+    'quality': 'auto:good',
+    'format': 'mp4',
+}]
+
+
+class CloudinaryUploadMixin:
+    """
+    Mixin for ModelAdmin classes that adds Cloudinary upload buttons.
+
+    Configure per admin class:
+        cld_video_field = 'video_url'       # URLField for video (None to disable)
+        cld_image_field = 'image_url'       # URLField for image (None to disable)
+        cld_folder      = 'msraa/videos'    # Cloudinary folder prefix (auto if None)
+    """
+    cld_video_field = 'video_url'
+    cld_image_field = None
+    cld_folder = None
+
+    def get_urls(self):
+        urls = super().get_urls()
+        mn = self.model._meta.model_name
+        custom = []
+        if self.cld_video_field:
+            custom.append(path(
+                '<int:pk>/upload-cld-video/',
+                self.admin_site.admin_view(self._cld_video_view),
+                name=f'{mn}_upload_cld_video',
+            ))
+        if self.cld_image_field:
+            custom.append(path(
+                '<int:pk>/upload-cld-image/',
+                self.admin_site.admin_view(self._cld_image_view),
+                name=f'{mn}_upload_cld_image',
+            ))
+        return custom + urls
+
+    def _cld_upload(self, source_url, resource_type, pk, eager=None):
+        """Upload source_url to Cloudinary. Returns (secure_url, error)."""
+        from .models import _resolve_media_url
+        import cloudinary.uploader
+        err = _cld_init()
+        if err:
+            return None, err
+        mn = self.model._meta.model_name
+        folder = self.cld_folder or f'msraa/{mn}'
+        resolved = _resolve_media_url(source_url)
+        try:
+            kwargs = dict(
+                resource_type=resource_type,
+                folder=folder,
+                public_id=f'{mn}_{pk}',
+                overwrite=True,
+            )
+            if eager:
+                kwargs.update(eager=eager, eager_async=True)
+            result = cloudinary.uploader.upload(resolved, **kwargs)
+            return result['secure_url'], None
+        except Exception as e:
+            return None, str(e)
+
+    def _cld_video_view(self, request, pk):
+        import json
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        try:
+            source_url = json.loads(request.body).get('url', '').strip()
+        except Exception:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        if not source_url:
+            return JsonResponse({'error': 'URL requerida'}, status=400)
+        url, error = self._cld_upload(source_url, 'video', pk, eager=_EAGER_VIDEO)
+        if error:
+            return JsonResponse({'error': error}, status=500)
+        self.model.objects.filter(pk=pk).update(**{self.cld_video_field: url})
+        return JsonResponse({'url': url})
+
+    def _cld_image_view(self, request, pk):
+        import json
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        try:
+            source_url = json.loads(request.body).get('url', '').strip()
+        except Exception:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        if not source_url:
+            return JsonResponse({'error': 'URL requerida'}, status=400)
+        url, error = self._cld_upload(source_url, 'image', pk)
+        if error:
+            return JsonResponse({'error': error}, status=500)
+        self.model.objects.filter(pk=pk).update(**{self.cld_image_field: url})
+        return JsonResponse({'url': url})
+
+    def _cld_btn(self, obj, upload_path_suffix, field_id, icon, label, note):
+        if not obj.pk:
+            return format_html('<span style="color:#999">Guarda el registro primero</span>')
+        slug = field_id.replace('id_', '').replace('-', '_')
+        upload_path = f'/admin/core/{self.model._meta.model_name}/{obj.pk}/{upload_path_suffix}'
+        return format_html(
+            '''<div>
+              <button type="button" id="cld-btn-{slug}"
+                onclick="cldUp_{slug}()"
+                style="padding:8px 18px;background:#e05d20;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;">
+                {icon} {label}
+              </button>
+              <span id="cld-st-{slug}" style="margin-left:12px;font-size:13px;"></span>
+              <p style="margin:5px 0 0;font-size:11px;color:#888">{note}</p>
+            </div>
+            <script>
+            function cldUp_{slug}() {{
+              var btn=document.getElementById('cld-btn-{slug}');
+              var st=document.getElementById('cld-st-{slug}');
+              var f=document.getElementById('{field_id}');
+              var url=f?f.value.trim():'';
+              if(!url){{st.style.color='#c00';st.textContent='❌ Ingresa una URL primero';return;}}
+              btn.disabled=true;btn.textContent='⏳ Subiendo...';st.textContent='';
+              var csrf=document.querySelector('[name=csrfmiddlewaretoken]').value;
+              fetch('{upload_path}',{{method:'POST',headers:{{'Content-Type':'application/json','X-CSRFToken':csrf}},body:JSON.stringify({{url:url}})}})
+              .then(r=>r.json()).then(d=>{{
+                if(d.url){{f.value=d.url;st.style.color='green';st.textContent='✅ Subido';btn.textContent='{icon} {label}';btn.disabled=false;}}
+                else{{st.style.color='#c00';st.textContent='❌ '+d.error;btn.disabled=false;btn.textContent='{icon} {label}';}}
+              }}).catch(()=>{{st.style.color='#c00';st.textContent='❌ Error de red';btn.disabled=false;btn.textContent='{icon} {label}';}});
+            }}
+            </script>''',
+            slug=slug, icon=icon, label=label, note=note,
+            field_id=field_id, upload_path=upload_path,
+        )
+
+    @admin.display(description='☁️ Subir video a Cloudinary')
+    def cloudinary_video_btn(self, obj):
+        return self._cld_btn(
+            obj, 'upload-cld-video/', f'id_{self.cld_video_field}',
+            '☁️', 'Subir video a Cloudinary',
+            'Descarga desde Dropbox y sube a Cloudinary CDN con H.264+1080p. Tarda 1–3 min.',
+        )
+
+    @admin.display(description='🖼️ Subir imagen a Cloudinary')
+    def cloudinary_image_btn(self, obj):
+        return self._cld_btn(
+            obj, 'upload-cld-image/', f'id_{self.cld_image_field}',
+            '🖼️', 'Subir imagen a Cloudinary',
+            'Descarga desde Dropbox/Drive y sube a Cloudinary CDN con auto-calidad.',
+        )
 
 
 class PortfolioProjectImageInline(admin.TabularInline):
@@ -119,6 +286,9 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
         ctx = dict(self.admin_site.each_context(request), title='Estado Cloudinary')
         try:
             import cloudinary.api
+            err = _cld_init()
+            if err:
+                raise Exception(err)
             usage = cloudinary.api.usage()
             storage_bytes = usage.get('storage', {}).get('usage', 0)
             bandwidth_bytes = usage.get('bandwidth', {}).get('usage', 0)
@@ -151,138 +321,19 @@ class MenuItemAdmin(admin.ModelAdmin):
 
 
 @admin.register(HeroVideo)
-class HeroVideoAdmin(admin.ModelAdmin):
+class HeroVideoAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+    cld_video_field = 'video_url'
+    cld_folder = 'msraa/hero'
     list_display = ['title_line1', 'title_line2', 'order', 'is_active']
     list_editable = ['order', 'is_active']
-    readonly_fields = ['cloudinary_upload_btn']
+    readonly_fields = ['cloudinary_video_btn']
     fields = [
         'title_line1', 'title_line1_en',
         'title_line2', 'title_line2_en',
-        'video_file', 'video_url', 'cloudinary_upload_btn',
+        'video_file', 'video_url', 'cloudinary_video_btn',
         'order', 'is_active',
     ]
     actions = ['make_active', 'make_inactive']
-
-    def get_urls(self):
-        urls = super().get_urls()
-        custom = [
-            path('<int:pk>/upload-cloudinary/',
-                 self.admin_site.admin_view(self._upload_cloudinary_view),
-                 name='herovideo_upload_cloudinary'),
-        ]
-        return custom + urls
-
-    def _upload_cloudinary_view(self, request, pk):
-        import json, os, re
-        from django.http import JsonResponse
-        from django.conf import settings
-        from .models import _resolve_media_url
-        if request.method != 'POST':
-            return JsonResponse({'error': 'POST only'}, status=405)
-        try:
-            source_url = json.loads(request.body).get('url', '').strip()
-        except Exception:
-            return JsonResponse({'error': 'JSON inválido'}, status=400)
-        if not source_url:
-            return JsonResponse({'error': 'URL requerida'}, status=400)
-        # Initialise Cloudinary SDK explicitly (cloudinary_storage only
-        # configures the Django storage backend, not the uploader API)
-        import cloudinary, cloudinary.uploader
-        cld_env = (
-            os.environ.get('CLOUDINARY_URL') or
-            getattr(settings, 'CLOUDINARY_STORAGE', {}).get('CLOUDINARY_URL', '')
-        )
-        m = re.match(r'cloudinary://([^:]+):([^@]+)@(.+)', cld_env or '')
-        if m:
-            cloudinary.config(api_key=m.group(1), api_secret=m.group(2), cloud_name=m.group(3))
-        else:
-            return JsonResponse({'error': 'CLOUDINARY_URL no configurada en Vercel env vars'}, status=500)
-        resolved = _resolve_media_url(source_url)
-        try:
-            result = cloudinary.uploader.upload(
-                resolved,
-                resource_type='video',
-                folder='msraa/videos',
-                public_id=f'herovideo_{pk}',
-                overwrite=True,
-                eager=[{
-                    'video_codec': 'h264',
-                    'audio_codec': 'aac',
-                    'width': 1920,
-                    'height': 1080,
-                    'crop': 'limit',
-                    'quality': 'auto:good',
-                    'format': 'mp4',
-                }],
-                eager_async=True,
-            )
-            cld_url = result['secure_url']
-            HeroVideo.objects.filter(pk=pk).update(video_url=cld_url)
-            return JsonResponse({'url': cld_url})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-
-    @admin.display(description='Subir a Cloudinary')
-    def cloudinary_upload_btn(self, obj):
-        if not obj.pk:
-            return format_html('<span style="color:#999">Guarda el registro primero</span>')
-        return format_html(
-            '''<div>
-              <button type="button" id="cld-btn"
-                onclick="cldUpload({})"
-                style="padding:8px 18px;background:#e05d20;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;">
-                &#x2601;&#xFE0F; Subir a Cloudinary desde URL
-              </button>
-              <span id="cld-status" style="margin-left:12px;font-size:13px;"></span>
-              <p style="margin:5px 0 0;font-size:11px;color:#888">
-                Cloudinary descarga el video desde Dropbox y lo sirve como CDN optimizado.<br>
-                Puede tardar 1&#x2013;3 min seg&#xFA;n tama&#xF1;o. El campo URL se actualiza solo.
-              </p>
-            </div>
-            <script>
-            function cldUpload(pk) {{
-              var btn = document.getElementById('cld-btn');
-              var status = document.getElementById('cld-status');
-              var urlField = document.getElementById('id_video_url');
-              var url = urlField ? urlField.value.trim() : '';
-              if (!url) {{
-                status.style.color='#c00';
-                status.textContent='&#10060; Ingresa una URL de Dropbox en el campo URL primero';
-                return;
-              }}
-              btn.disabled = true;
-              btn.textContent = '&#x23F3; Subiendo... puede tardar';
-              status.textContent = '';
-              var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
-              fetch('/admin/core/herovideo/'+pk+'/upload-cloudinary/', {{
-                method: 'POST',
-                headers: {{'Content-Type':'application/json','X-CSRFToken':csrf}},
-                body: JSON.stringify({{url: url}})
-              }})
-              .then(r => r.json())
-              .then(d => {{
-                if (d.url) {{
-                  urlField.value = d.url;
-                  status.style.color='green';
-                  status.textContent='&#x2705; Subido. Guarda el formulario para confirmar.';
-                  btn.textContent='&#x2705; Subido';
-                }} else {{
-                  status.style.color='#c00';
-                  status.textContent='&#10060; '+d.error;
-                  btn.disabled=false;
-                  btn.textContent='&#x2601;&#xFE0F; Subir a Cloudinary desde URL';
-                }}
-              }})
-              .catch(() => {{
-                status.style.color='#c00';
-                status.textContent='&#10060; Timeout o error de red. Intenta de nuevo.';
-                btn.disabled=false;
-                btn.textContent='&#x2601;&#xFE0F; Subir a Cloudinary desde URL';
-              }});
-            }}
-            </script>''',
-            obj.pk
-        )
 
     def save_model(self, request, obj, form, change):
         _safe_save(self, request, obj, form, change)
@@ -332,12 +383,22 @@ class PortfolioCategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(PortfolioProject)
-class PortfolioProjectAdmin(admin.ModelAdmin):
+class PortfolioProjectAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+    cld_video_field = 'video_url'
+    cld_image_field = 'hero_image_url'
+    cld_folder = 'msraa/portfolio'
     list_display = ['title', 'category', 'year', 'location', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     inlines = [PortfolioProjectImageInline]
-    fields = ['title', 'category', 'year', 'location', 'description', 'hero_image', 'hero_image_url', 'video_url', 'order', 'is_active']
+    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn']
+    fields = [
+        'title', 'title_en', 'category', 'year', 'location', 'location_en',
+        'description', 'description_en',
+        'hero_image', 'hero_image_url', 'cloudinary_image_btn',
+        'video_url', 'cloudinary_video_btn',
+        'order', 'is_active',
+    ]
     actions = ['make_active', 'make_inactive']
 
     def save_model(self, request, obj, form, change):
@@ -359,13 +420,21 @@ class CurriculumItemImageInline(admin.TabularInline):
 
 
 @admin.register(CurriculumItem)
-class CurriculumItemAdmin(admin.ModelAdmin):
+class CurriculumItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+    cld_video_field = 'video_url'
+    cld_folder = 'msraa/curriculum'
     inlines = [CurriculumItemImageInline]
     list_display = ['title', 'category', 'year', 'subtitle', 'url', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     ordering = ['category', 'order']
-    fields = ['category', 'year', 'title', 'subtitle', 'url', 'url_label', 'video_url', 'order', 'is_active']
+    readonly_fields = ['cloudinary_video_btn']
+    fields = [
+        'category', 'year', 'title', 'title_en', 'subtitle', 'subtitle_en',
+        'url', 'url_label', 'url_label_en',
+        'video_url', 'cloudinary_video_btn',
+        'order', 'is_active',
+    ]
     actions = ['make_active', 'make_inactive']
 
     @admin.action(description='✅ Activar seleccionados')
@@ -396,15 +465,25 @@ class MediaItemVideoInline(admin.TabularInline):
 
 
 @admin.register(MediaItem)
-class MediaItemAdmin(admin.ModelAdmin):
+class MediaItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+    cld_video_field = 'video_url'
+    cld_image_field = 'image_url'
+    cld_folder = 'msraa/medios'
     inlines = [MediaItemSectionInline, MediaItemVideoInline, MediaItemImageInline]
     list_display = ['img_preview', 'title', 'tipo', 'year', 'url', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['tipo', 'is_active']
     list_display_links = ['img_preview', 'title']
     ordering = ['-year', 'order']
-    readonly_fields = ['img_preview_large']
-    fields = ['tipo', 'year', 'title', 'description', 'image', 'image_url', 'img_preview_large', 'url', 'url_label', 'video_url', 'order', 'is_active']
+    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn']
+    fields = [
+        'tipo', 'year', 'title', 'title_en',
+        'description', 'description_en',
+        'image', 'image_url', 'img_preview_large', 'cloudinary_image_btn',
+        'url', 'url_label', 'url_label_en',
+        'video_url', 'cloudinary_video_btn',
+        'order', 'is_active',
+    ]
     actions = ['make_active', 'make_inactive']
 
     def save_model(self, request, obj, form, change):
