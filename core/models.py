@@ -23,9 +23,9 @@ def _cloudinary_h264(url):
     """Add H.264 + quality transformation to a Cloudinary video URL for mobile compatibility."""
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
-    import re
-    # Only inject if no transformation already present (version string vNNNN follows /upload/)
-    return re.sub(r'/upload/(v\d+/)', r'/upload/vc_h264,q_auto:good/\1', url)
+    if 'vc_h264' in url:
+        return url  # transformation already present
+    return url.replace('/upload/', '/upload/vc_h264,q_auto:good/', 1)
 
 
 class SiteConfiguration(SingletonModel):
