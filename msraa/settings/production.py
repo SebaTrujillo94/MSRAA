@@ -17,10 +17,12 @@ DATABASES = {
 }
 
 # Cloudinary for media uploads (logos, portfolio images)
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-CLOUDINARY_STORAGE = {
-    'CLOUDINARY_URL': config('CLOUDINARY_URL'),
-}
+_cld_url = config('CLOUDINARY_URL', default='')
+if _cld_url:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {'CLOUDINARY_URL': _cld_url}
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Use compressed (no manifest) storage — videos excluded from git break manifest
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
