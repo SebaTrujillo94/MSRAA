@@ -19,6 +19,15 @@ def _resolve_media_url(url):
     return url
 
 
+def _cloudinary_h264(url):
+    """Add H.264 + quality transformation to a Cloudinary video URL for mobile compatibility."""
+    if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
+        return url
+    import re
+    # Only inject if no transformation already present (version string vNNNN follows /upload/)
+    return re.sub(r'/upload/(v\d+/)', r'/upload/vc_h264,q_auto:good/\1', url)
+
+
 class SiteConfiguration(SingletonModel):
     site_title = models.CharField(max_length=200, default="MSRAA — Estudio de Arquitectura", verbose_name="Título del sitio")
     tagline = models.CharField(max_length=200, default="MSRAA", verbose_name="Eslogan")
@@ -284,6 +293,8 @@ class MediaItemVideo(models.Model):
             return ''
         if 'dropbox.com' in url:
             return _resolve_media_url(url)
+        if 'res.cloudinary.com' in url:
+            return _cloudinary_h264(url)
         yt = re.search(r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/))([A-Za-z0-9_-]{11})', url)
         if yt:
             return f'https://www.youtube.com/embed/{yt.group(1)}'
@@ -395,7 +406,7 @@ class HeroVideo(models.Model):
     def get_video_url(self):
         if self.video_file:
             return self.video_file.url
-        return _resolve_media_url(self.video_url)
+        return _cloudinary_h264(_resolve_media_url(self.video_url))
 
 
 class ClientLogo(models.Model):

@@ -3084,7 +3084,8 @@
     .pd-overlay.pd-vert .pd-panel-img { width: 100%; height: 80vh; }
     .pd-overlay.pd-vert .pd-panel-img.narrow { width: 100%; height: 60vh; }
     .pd-overlay.pd-vert .pd-panel-video { width: 100%; height: 80vh; background: #000; }
-    .pd-overlay.pd-vert .pd-panel-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .pd-overlay.pd-vert .pd-panel-video iframe,
+    .pd-overlay.pd-vert .pd-panel-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
     .pd-overlay.pd-vert .pd-panel-text { width: 100%; max-width: 860px; margin: 0 auto; padding: 12vh 8vw; border-left: none; border-top: 1px solid rgba(255,255,255,0.06); height: auto; }
     .pd-overlay.pd-vert .pd-panel-next { width: 100%; }
     .pd-overlay.pd-vert .pd-nav-label { display: none; }
@@ -5193,7 +5194,12 @@
     }
 
     function isDirectVideo(url) {
-      return url && (url.includes('dropbox.com') || url.includes('dropboxusercontent.com') || /\.(mp4|webm|mov)(\?|$)/i.test(url));
+      return url && (
+        url.includes('dropbox.com') ||
+        url.includes('dropboxusercontent.com') ||
+        url.includes('res.cloudinary.com') ||
+        /\.(mp4|webm|mov)(\?|$)/i.test(url)
+      );
     }
     function videoTag(url, title) {
       if (isDirectVideo(url)) {
@@ -5217,7 +5223,7 @@
     (function() {
       function tryPlayHero() {
         if (heroVideoA && heroVideoA.paused) heroVideoA.play().catch(() => {});
-        if (heroVideoB && !heroVideoB.paused) return;
+        if (heroVideoB && heroVideoB.src && heroVideoB.paused) heroVideoB.play().catch(() => {});
         document.removeEventListener('touchstart', tryPlayHero);
         document.removeEventListener('click', tryPlayHero);
       }
