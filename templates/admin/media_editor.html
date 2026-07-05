@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n l10n %}
 
 {% block title %}Editor de Medios — {{ obj_str }}{% endblock %}
 
@@ -298,8 +298,8 @@
       <div class="me-label">Zoom</div>
       <div class="me-slider-row">
         <label>Zoom</label>
-        <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom }}">
-        <span class="sv" id="me-zoom-v">{{ img_zoom }}x</span>
+        <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom|unlocalize }}">
+        <span class="sv" id="me-zoom-v">{{ img_zoom|unlocalize }}x</span>
       </div>
       <div class="me-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
 
@@ -307,13 +307,13 @@
       <div class="me-label">Ajuste de posición</div>
       <div class="me-slider-row">
         <label>Horizontal</label>
-        <input type="range" id="me-x" min="-500" max="500" step="10" value="{{ img_x }}">
-        <span class="sv" id="me-x-v">{{ img_x }}px</span>
+        <input type="range" id="me-x" min="-500" max="500" step="10" value="{{ img_x|unlocalize }}">
+        <span class="sv" id="me-x-v">{{ img_x|unlocalize }}px</span>
       </div>
       <div class="me-slider-row">
         <label>Vertical</label>
-        <input type="range" id="me-y" min="-500" max="500" step="10" value="{{ img_y }}">
-        <span class="sv" id="me-y-v">{{ img_y }}px</span>
+        <input type="range" id="me-y" min="-500" max="500" step="10" value="{{ img_y|unlocalize }}">
+        <span class="sv" id="me-y-v">{{ img_y|unlocalize }}px</span>
       </div>
       <div class="me-hint">Desplazamiento en px desde el punto de enfoque.<br>+ = derecha/abajo &nbsp;·&nbsp; − = izquierda/arriba</div>
 
@@ -346,9 +346,9 @@
   var IMG_URL = "{{ image_url|escapejs }}";
   var GRAVITY = "{{ img_gravity|escapejs }}";
   var RATIO = "{{ img_ratio|escapejs }}";
-  var ZOOM = {{ img_zoom }};
-  var OX = {{ img_x }};
-  var OY = {{ img_y }};
+  var ZOOM = {{ img_zoom|unlocalize }};
+  var OX = {{ img_x|unlocalize }};
+  var OY = {{ img_y|unlocalize }};
   var SAVE_URL = "{{ save_url }}";
   var DEL_IMG_URL = "{{ del_img_url }}";
   var DEL_VID_URL = "{{ del_vid_url }}";
