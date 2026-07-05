@@ -154,7 +154,113 @@ class MenuItemAdmin(admin.ModelAdmin):
 class HeroVideoAdmin(admin.ModelAdmin):
     list_display = ['title_line1', 'title_line2', 'order', 'is_active']
     list_editable = ['order', 'is_active']
+    readonly_fields = ['cloudinary_upload_btn']
+    fields = [
+        'title_line1', 'title_line1_en',
+        'title_line2', 'title_line2_en',
+        'video_file', 'video_url', 'cloudinary_upload_btn',
+        'order', 'is_active',
+    ]
     actions = ['make_active', 'make_inactive']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path('<int:pk>/upload-cloudinary/',
+                 self.admin_site.admin_view(self._upload_cloudinary_view),
+                 name='herovideo_upload_cloudinary'),
+        ]
+        return custom + urls
+
+    def _upload_cloudinary_view(self, request, pk):
+        import json
+        from django.http import JsonResponse
+        from .models import _resolve_media_url
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        try:
+            source_url = json.loads(request.body).get('url', '').strip()
+        except Exception:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        if not source_url:
+            return JsonResponse({'error': 'URL requerida'}, status=400)
+        resolved = _resolve_media_url(source_url)
+        try:
+            import cloudinary.uploader
+            result = cloudinary.uploader.upload(
+                resolved,
+                resource_type='video',
+                folder='msraa/videos',
+                public_id=f'herovideo_{pk}',
+                overwrite=True,
+            )
+            cld_url = result['secure_url']
+            HeroVideo.objects.filter(pk=pk).update(video_url=cld_url)
+            return JsonResponse({'url': cld_url})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    @admin.display(description='Subir a Cloudinary')
+    def cloudinary_upload_btn(self, obj):
+        if not obj.pk:
+            return format_html('<span style="color:#999">Guarda el registro primero</span>')
+        return format_html(
+            '''<div>
+              <button type="button" id="cld-btn"
+                onclick="cldUpload({})"
+                style="padding:8px 18px;background:#e05d20;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;">
+                &#x2601;&#xFE0F; Subir a Cloudinary desde URL
+              </button>
+              <span id="cld-status" style="margin-left:12px;font-size:13px;"></span>
+              <p style="margin:5px 0 0;font-size:11px;color:#888">
+                Cloudinary descarga el video desde Dropbox y lo sirve como CDN optimizado.<br>
+                Puede tardar 1&#x2013;3 min seg&#xFA;n tama&#xF1;o. El campo URL se actualiza solo.
+              </p>
+            </div>
+            <script>
+            function cldUpload(pk) {{
+              var btn = document.getElementById('cld-btn');
+              var status = document.getElementById('cld-status');
+              var urlField = document.getElementById('id_video_url');
+              var url = urlField ? urlField.value.trim() : '';
+              if (!url) {{
+                status.style.color='#c00';
+                status.textContent='&#10060; Ingresa una URL de Dropbox en el campo URL primero';
+                return;
+              }}
+              btn.disabled = true;
+              btn.textContent = '&#x23F3; Subiendo... puede tardar';
+              status.textContent = '';
+              var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+              fetch('/admin/core/herovideo/'+pk+'/upload-cloudinary/', {{
+                method: 'POST',
+                headers: {{'Content-Type':'application/json','X-CSRFToken':csrf}},
+                body: JSON.stringify({{url: url}})
+              }})
+              .then(r => r.json())
+              .then(d => {{
+                if (d.url) {{
+                  urlField.value = d.url;
+                  status.style.color='green';
+                  status.textContent='&#x2705; Subido. Guarda el formulario para confirmar.';
+                  btn.textContent='&#x2705; Subido';
+                }} else {{
+                  status.style.color='#c00';
+                  status.textContent='&#10060; '+d.error;
+                  btn.disabled=false;
+                  btn.textContent='&#x2601;&#xFE0F; Subir a Cloudinary desde URL';
+                }}
+              }})
+              .catch(() => {{
+                status.style.color='#c00';
+                status.textContent='&#10060; Timeout o error de red. Intenta de nuevo.';
+                btn.disabled=false;
+                btn.textContent='&#x2601;&#xFE0F; Subir a Cloudinary desde URL';
+              }});
+            }}
+            </script>''',
+            obj.pk
+        )
 
     def save_model(self, request, obj, form, change):
         _safe_save(self, request, obj, form, change)
