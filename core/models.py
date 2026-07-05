@@ -20,12 +20,12 @@ def _resolve_media_url(url):
 
 
 def _cloudinary_h264(url):
-    """Add H.264 + quality transformation to a Cloudinary video URL for mobile compatibility."""
+    """Add H.264 + 1080p transformation to a Cloudinary video URL for mobile compatibility."""
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
     if 'vc_h264' in url:
         return url  # transformation already present
-    return url.replace('/upload/', '/upload/vc_h264,q_auto:good/', 1)
+    return url.replace('/upload/', '/upload/vc_h264,ac_aac,w_1920,h_1080,c_limit,q_auto:good/', 1)
 
 
 class SiteConfiguration(SingletonModel):

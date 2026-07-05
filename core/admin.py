@@ -205,6 +205,16 @@ class HeroVideoAdmin(admin.ModelAdmin):
                 folder='msraa/videos',
                 public_id=f'herovideo_{pk}',
                 overwrite=True,
+                eager=[{
+                    'video_codec': 'h264',
+                    'audio_codec': 'aac',
+                    'width': 1920,
+                    'height': 1080,
+                    'crop': 'limit',
+                    'quality': 'auto:good',
+                    'format': 'mp4',
+                }],
+                eager_async=True,
             )
             cld_url = result['secure_url']
             HeroVideo.objects.filter(pk=pk).update(video_url=cld_url)
