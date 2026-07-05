@@ -3127,9 +3127,11 @@
   <!-- PAGE CURTAIN — must be first in DOM so GSAP finds it at script eval time -->
   <div class="page-curtain" id="pageCurtain">
     <!-- Blurred background video -->
+    {% with cv_url=hero_videos.0.get_video_url %}
     <video class="curtain-bg-video" autoplay muted playsinline loop aria-hidden="true">
-      <source src="{% if hero_videos %}{{ hero_videos.0.get_video_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}" type="video/mp4">
+      <source src="{% if cv_url %}{{ cv_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}" type="video/mp4">
     </video>
+    {% endwith %}
     <!-- Vignette overlay -->
     <div class="curtain-vignette"></div>
     <!-- Logo centrado -->
@@ -3296,8 +3298,10 @@
 
     <!-- CENTER IMAGE -->
     <main class="main-hero">
+      {% with hv_url=hero_videos.0.get_video_url %}
       <video class="hero-img" id="heroVideoA" autoplay muted playsinline loop
-        src="{% if hero_videos %}{{ hero_videos.0.get_video_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}"></video>
+        src="{% if hv_url %}{{ hv_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}"></video>
+      {% endwith %}
       <video class="hero-img" id="heroVideoB" muted playsinline loop style="opacity:0"></video>
       <div class="hero-overlay"></div>
       <div class="hero-title-wrap" id="heroTitleWrap">
@@ -5208,6 +5212,18 @@
       heroTitleWrap = document.getElementById('heroTitleWrap'),
       dots = document.querySelectorAll('.dot-btn');
     let activeVid = heroVideoA, inactiveVid = heroVideoB;
+
+    // Mobile: browsers may block autoplay. Retry play on first touch/click.
+    (function() {
+      function tryPlayHero() {
+        if (heroVideoA && heroVideoA.paused) heroVideoA.play().catch(() => {});
+        if (heroVideoB && !heroVideoB.paused) return;
+        document.removeEventListener('touchstart', tryPlayHero);
+        document.removeEventListener('click', tryPlayHero);
+      }
+      document.addEventListener('touchstart', tryPlayHero, { once: true, passive: true });
+      document.addEventListener('click', tryPlayHero, { once: true });
+    })();
 
     function crossfadeVideo(src, onDone) {
       inactiveVid.src = src;
