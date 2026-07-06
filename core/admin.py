@@ -309,7 +309,13 @@ class CloudinaryUploadMixin:
     def get_urls(self):
         urls = super().get_urls()
         mn = self.model._meta.model_name
-        custom = []
+        custom = [
+            path(
+                'inline-upload-cld/',
+                self.admin_site.admin_view(self._cld_inline_upload_view),
+                name=f'{mn}_inline_cld_upload',
+            ),
+        ]
         if self.cld_video_field:
             custom.append(path(
                 '<int:pk>/upload-cld-video/',
@@ -323,6 +329,44 @@ class CloudinaryUploadMixin:
                 name=f'{mn}_upload_cld_image',
             ))
         return custom + urls
+
+    def _cld_inline_upload_view(self, request):
+        """Upload a URL to Cloudinary without saving to DB. Returns {url}."""
+        import json, hashlib
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+        try:
+            data = json.loads(request.body)
+            source_url = data.get('url', '').strip()
+            resource_type = data.get('resource_type', 'image')
+            if resource_type not in ('image', 'video'):
+                resource_type = 'image'
+        except Exception:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+        if not source_url:
+            return JsonResponse({'error': 'URL requerida'}, status=400)
+        from .models import _resolve_media_url
+        import cloudinary.uploader
+        err = _cld_init()
+        if err:
+            return JsonResponse({'error': err}, status=500)
+        mn = self.model._meta.model_name
+        folder = self.cld_folder or f'msraa/{mn}'
+        pid = hashlib.md5(source_url.encode()).hexdigest()[:12]
+        try:
+            kwargs = dict(
+                resource_type=resource_type,
+                folder=folder,
+                public_id=f'{mn}_inline_{pid}',
+                overwrite=True,
+            )
+            if resource_type == 'video':
+                kwargs.update(eager=_EAGER_VIDEO, eager_async=True)
+            result = cloudinary.uploader.upload(_resolve_media_url(source_url), **kwargs)
+            return JsonResponse({'url': result['secure_url']})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
     def _cld_upload(self, source_url, resource_type, pk, eager=None):
         """Upload source_url to Cloudinary. Returns (secure_url, error)."""
@@ -398,6 +442,49 @@ class CloudinaryUploadMixin:
     @admin.display(description='Vista previa recorte')
     def crop_preview_hero(self, obj):
         return self._crop_preview(obj, 'id_hero_image_url', 'id_img_gravity', 'id_img_ratio', 'hero')
+
+    @admin.display(description='')
+    def inline_cloudinary_btns(self, obj):
+        """Injects JS that adds individual upload buttons to every inline URL field."""
+        if not obj or not obj.pk:
+            return mark_safe('')
+        mn = self.model._meta.model_name
+        upload_url = f'/admin/core/{mn}/inline-upload-cld/'
+        js = (
+            '<span style="display:none" id="cld-inline-helper">'
+            '<script>(function(){'
+            'var UPL="__URL__";'
+            'function csrf(){var t=document.querySelector("[name=csrfmiddlewaretoken]");return t?t.value:"";}'
+            'function addBtns(root){'
+            '(root||document).querySelectorAll("input[name$=\\"-image_url\\"],input[name$=\\"-video_url\\"]").forEach(function(inp){'
+            'if(inp.dataset.cldDone)return;inp.dataset.cldDone="1";'
+            'var isVid=inp.name.endsWith("-video_url");'
+            'var lbl=isVid?"☁️ Subir video":"🖼️ Subir imagen";'
+            'var sp=document.createElement("span");sp.style="margin-left:6px";'
+            'var btn=document.createElement("button");btn.type="button";btn.textContent=lbl;'
+            'btn.style="padding:3px 9px;background:#e05d20;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px";'
+            'var st=document.createElement("span");st.style="margin-left:6px;font-size:11px";'
+            'btn.onclick=function(){'
+            'var url=inp.value.trim();'
+            'if(!url){st.style.color="#c00";st.textContent="❌ Ingresa URL";return;}'
+            'btn.disabled=true;btn.textContent="⏳...";st.textContent="";'
+            'fetch(UPL,{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":csrf()},body:JSON.stringify({url:url,resource_type:isVid?"video":"image"})})'
+            '.then(function(r){return r.json();})'
+            '.then(function(d){'
+            'btn.textContent=lbl;btn.disabled=false;'
+            'if(d.url){inp.value=d.url;st.style.color="green";st.textContent="✅";setTimeout(function(){st.textContent="";},3000);}'
+            'else{st.style.color="#c00";st.textContent="❌ "+(d.error||"Error");}'
+            '}).catch(function(){btn.textContent=lbl;btn.disabled=false;st.style.color="#c00";st.textContent="❌ Red";});'
+            '};'
+            'sp.appendChild(btn);sp.appendChild(st);'
+            'inp.parentNode.insertBefore(sp,inp.nextSibling);'
+            '});}'
+            'if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){addBtns();});}'
+            'else{addBtns();}'
+            'document.addEventListener("formset:added",function(e){addBtns(e.target||document);});'
+            '})();</script></span>'
+        ).replace('__URL__', upload_url)
+        return mark_safe(js)
 
     def _cld_btn(self, obj, upload_path_suffix, field_id, icon, label, note):
         if not obj.pk:
@@ -796,12 +883,13 @@ class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     inlines = [PortfolioProjectImageInline]
-    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn']
+    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn', 'inline_cloudinary_btns']
     fields = [
         'title', 'title_en', 'category', 'year', 'location', 'location_en',
         'description', 'description_en',
         'hero_image', 'hero_image_url', 'cloudinary_image_btn', 'media_editor_btn',
         'video_url', 'cloudinary_video_btn',
+        'inline_cloudinary_btns',
         'order', 'is_active',
     ]
     actions = ['make_active', 'make_inactive']
@@ -833,11 +921,12 @@ class CurriculumItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     ordering = ['category', 'order']
-    readonly_fields = ['cloudinary_video_btn']
+    readonly_fields = ['cloudinary_video_btn', 'inline_cloudinary_btns']
     fields = [
         'category', 'year', 'title', 'title_en', 'subtitle', 'subtitle_en',
         'url', 'url_label', 'url_label_en',
         'video_url', 'cloudinary_video_btn',
+        'inline_cloudinary_btns',
         'order', 'is_active',
     ]
     actions = ['make_active', 'make_inactive']
@@ -882,13 +971,14 @@ class MediaItemAdmin(MediaEditorMixin, admin.ModelAdmin):
     list_filter = ['tipo', 'is_active']
     list_display_links = ['img_preview', 'title']
     ordering = ['-year', 'order']
-    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn']
+    readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn', 'inline_cloudinary_btns']
     fields = [
         'tipo', 'year', 'title', 'title_en',
         'description', 'description_en',
         'image', 'image_url', 'img_preview_large', 'cloudinary_image_btn', 'media_editor_btn',
         'url', 'url_label', 'url_label_en',
         'video_url', 'cloudinary_video_btn',
+        'inline_cloudinary_btns',
         'order', 'is_active',
     ]
     actions = ['make_active', 'make_inactive']
