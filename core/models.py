@@ -60,25 +60,44 @@ _VID_RATIO_CHOICES = [
     ('9:16', '9:16 — Vertical'),
 ]
 
+_CROP_MODE_CHOICES = [
+    ('fill',  'Rellenar (c_fill) — recorta para llenar'),
+    ('fit',   'Ajustar (c_fit) — escala sin recortar'),
+    ('pad',   'Añadir fondo (c_pad) — letterbox/pillarbox'),
+    ('scale', 'Estirar (c_scale) — deforma proporciones'),
+]
 
-def _cloudinary_img(url, gravity='auto', ratio='', zoom=None, x=0, y=0):
+
+def _cloudinary_img(url, gravity='auto', ratio='', zoom=None, x=0, y=0, crop='fill', bg=''):
     """Add crop/quality/format transformation to a Cloudinary image URL."""
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
     if 'f_auto' in url or 'q_auto' in url:
         return url
-    parts = ['f_auto', 'q_auto:good', 'c_fill', f'g_{gravity or "auto"}']
-    if zoom:
-        try:
-            z = float(zoom)
-            if abs(z - 1.0) > 0.001:
-                parts.append(f'z_{z:.2f}'.rstrip('0').rstrip('.'))
-        except (TypeError, ValueError):
-            pass
-    if x:
-        parts.append(f'x_{int(x)}')
-    if y:
-        parts.append(f'y_{int(y)}')
+    crop_mode = crop or 'fill'
+    parts = ['f_auto', 'q_auto:good', f'c_{crop_mode}']
+    if crop_mode != 'scale':
+        parts.append(f'g_{gravity or "auto"}')
+    if crop_mode in ('fill', 'pad'):
+        if zoom:
+            try:
+                z = float(zoom)
+                if abs(z - 1.0) > 0.001:
+                    parts.append(f'z_{z:.2f}'.rstrip('0').rstrip('.'))
+            except (TypeError, ValueError):
+                pass
+        if x:
+            parts.append(f'x_{int(x)}')
+        if y:
+            parts.append(f'y_{int(y)}')
+    if crop_mode == 'pad' and bg:
+        bg_val = bg.strip()
+        if bg_val.startswith('#'):
+            hex_part = bg_val.lstrip('#')
+            if len(hex_part) == 3:
+                hex_part = ''.join(c * 2 for c in hex_part)
+            bg_val = 'rgb:' + hex_part
+        parts.append(f'b_{bg_val}')
     if ratio:
         parts.append(f'ar_{ratio}')
     return url.replace('/upload/', f'/upload/{",".join(parts)}/', 1)
@@ -278,6 +297,16 @@ class MediaItem(models.Model):
         verbose_name='Offset Y (px)',
         help_text='+ = abajo, − = arriba (desde punto de enfoque)',
     )
+    img_crop = models.CharField(
+        max_length=10, choices=_CROP_MODE_CHOICES, default='fill', blank=True,
+        verbose_name='Modo de recorte',
+        help_text='fill=recorta · fit=ajusta · pad=añade fondo · scale=estira',
+    )
+    img_bg = models.CharField(
+        max_length=30, default='', blank=True,
+        verbose_name='Color de fondo',
+        help_text='Solo para pad. Ej: white, black, auto:border, rgb:FF0000',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -299,6 +328,8 @@ class MediaItem(models.Model):
                 zoom=self.img_zoom,
                 x=self.img_x or 0,
                 y=self.img_y or 0,
+                crop=self.img_crop or 'fill',
+                bg=self.img_bg or '',
             )
         return self.image.url if self.image else ''
 
@@ -593,6 +624,16 @@ class PortfolioProject(models.Model):
         verbose_name='Offset Y (px)',
         help_text='+ = abajo, − = arriba (desde punto de enfoque)',
     )
+    img_crop = models.CharField(
+        max_length=10, choices=_CROP_MODE_CHOICES, default='fill', blank=True,
+        verbose_name='Modo de recorte',
+        help_text='fill=recorta · fit=ajusta · pad=añade fondo · scale=estira',
+    )
+    img_bg = models.CharField(
+        max_length=30, default='', blank=True,
+        verbose_name='Color de fondo',
+        help_text='Solo para pad. Ej: white, black, auto:border, rgb:FF0000',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -617,6 +658,8 @@ class PortfolioProject(models.Model):
                 zoom=self.img_zoom,
                 x=self.img_x or 0,
                 y=self.img_y or 0,
+                crop=self.img_crop or 'fill',
+                bg=self.img_bg or '',
             )
         return self.hero_image.url if self.hero_image else ''
 

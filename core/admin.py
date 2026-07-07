@@ -614,7 +614,7 @@ class MediaEditorMixin(CloudinaryUploadMixin):
         if video_url and hasattr(obj, 'get_video_embed_url'):
             embed_url = obj.get_video_embed_url() or ''
 
-        from .models import _GRAVITY_CHOICES, _RATIO_CHOICES
+        from .models import _GRAVITY_CHOICES, _RATIO_CHOICES, _CROP_MODE_CHOICES
         ctx = dict(
             self.admin_site.each_context(request),
             title=f'Editor de Medios — {obj}',
@@ -630,6 +630,9 @@ class MediaEditorMixin(CloudinaryUploadMixin):
             img_zoom=float(getattr(obj, 'img_zoom', 1.0) or 1.0),
             img_x=int(getattr(obj, 'img_x', 0) or 0),
             img_y=int(getattr(obj, 'img_y', 0) or 0),
+            img_crop=getattr(obj, 'img_crop', 'fill') or 'fill',
+            img_bg=getattr(obj, 'img_bg', '') or '',
+            crop_mode_choices=_CROP_MODE_CHOICES,
             ctx_top=ctx_top,
             obj_year=obj_year,
             change_url=f'/admin/core/{mn}/{pk}/change/',
@@ -664,6 +667,13 @@ class MediaEditorMixin(CloudinaryUploadMixin):
                 update['img_x'] = int(data['img_x'])
             if 'img_y' in data:
                 update['img_y'] = int(data['img_y'])
+            _valid_crops = {'fill', 'fit', 'pad', 'scale'}
+            if 'img_crop' in data:
+                val = str(data['img_crop'])
+                if val in _valid_crops:
+                    update['img_crop'] = val
+            if 'img_bg' in data:
+                update['img_bg'] = str(data['img_bg'])[:30]
             self.model.objects.filter(pk=pk).update(**update)
             return JsonResponse({'status': 'ok'})
         except Exception as e:

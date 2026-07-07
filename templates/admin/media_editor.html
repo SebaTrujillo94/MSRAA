@@ -174,6 +174,31 @@
   background: #1a1a0a; border: 1px solid #3a3010; border-radius: 6px;
   padding: 12px 14px; font-size: 12px; color: #a09040; margin-bottom: 14px;
 }
+/* Crop mode buttons */
+.me-crop-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 16px;
+}
+.me-cbtn {
+  padding: 8px 4px; border: 1px solid var(--me-border); border-radius: 4px;
+  background: #0c0e1a; color: #506080; cursor: pointer; text-align: center;
+  font-size: 10px; transition: all .15s; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; width: 100%;
+}
+.me-cbtn-lbl { font-weight: 700; font-size: 10px; color: #7080a0; }
+.me-cbtn-sub { font-size: 8px; color: #3a4a60; font-family: monospace; }
+.me-cbtn:hover { border-color: #3a5090; }
+.me-cbtn.active { background: #142040; border-color: var(--me-accent); }
+.me-cbtn.active .me-cbtn-lbl { color: #70b0f0; }
+.me-cbtn.active .me-cbtn-sub { color: #4070a0; }
+/* Background color swatches */
+.me-swatch {
+  width: 28px; height: 28px; border-radius: 4px; cursor: pointer; flex-shrink: 0;
+  border: 2px solid var(--me-border); transition: border-color .15s;
+}
+.me-swatch:hover { border-color: #3a5090; }
+.me-swatch.active { border-color: var(--me-accent); box-shadow: 0 0 6px rgba(74,128,192,.4); }
+/* Dim irrelevant controls */
+.me-controls-dim { opacity: 0.35; pointer-events: none; transition: opacity .2s; }
 </style>
 {% endblock %}
 
@@ -270,6 +295,31 @@
     <div class="me-card">
       <div class="me-label" style="margin-bottom:14px;font-size:11px">CONTROLES DE IMAGEN</div>
 
+      <!-- Crop mode -->
+      <div class="me-label">Modo de Recorte</div>
+      <div class="me-crop-grid" id="me-crop-btns">
+        <button class="me-cbtn{% if img_crop == 'fill' %} active{% endif %}" data-crop="fill" title="Recorta para llenar el área exacta — el más usado">
+          <span style="font-size:14px">⬛</span>
+          <span class="me-cbtn-lbl">Rellenar</span>
+          <span class="me-cbtn-sub">c_fill</span>
+        </button>
+        <button class="me-cbtn{% if img_crop == 'fit' %} active{% endif %}" data-crop="fit" title="Escala sin recortar — puede quedar espacio vacío">
+          <span style="font-size:14px">🔲</span>
+          <span class="me-cbtn-lbl">Ajustar</span>
+          <span class="me-cbtn-sub">c_fit</span>
+        </button>
+        <button class="me-cbtn{% if img_crop == 'pad' %} active{% endif %}" data-crop="pad" title="Añade fondo para completar el área (letterbox)">
+          <span style="font-size:14px">🖼️</span>
+          <span class="me-cbtn-lbl">Fondo</span>
+          <span class="me-cbtn-sub">c_pad</span>
+        </button>
+        <button class="me-cbtn{% if img_crop == 'scale' %} active{% endif %}" data-crop="scale" title="Estira la imagen — puede distorsionar proporciones">
+          <span style="font-size:14px">↔️</span>
+          <span class="me-cbtn-lbl">Estirar</span>
+          <span class="me-cbtn-sub">c_scale</span>
+        </button>
+      </div>
+
       <!-- Ratio -->
       <div class="me-label">Proporción</div>
       <div class="me-ratio-grid" id="me-ratio-btns">
@@ -280,42 +330,67 @@
       </div>
 
       <!-- Gravity -->
-      <div class="me-label">Punto de Enfoque</div>
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:16px">
-        <div class="me-ggrid" id="me-ggrid">
-          {% for val, icon in gravity_grid %}
-          <div class="me-gc{% if img_gravity == val %} active{% endif %}" data-g="{{ val }}">{{ icon }}</div>
-          {% endfor %}
-        </div>
-        <div class="me-gspec-wrap">
-          {% for val, label in special_gravity %}
-          <button class="me-gspec{% if img_gravity == val %} active{% endif %}" data-g="{{ val }}">{{ label }}</button>
-          {% endfor %}
+      <div id="me-gravity-section">
+        <div class="me-label">Punto de Enfoque</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:16px">
+          <div class="me-ggrid" id="me-ggrid">
+            {% for val, icon in gravity_grid %}
+            <div class="me-gc{% if img_gravity == val %} active{% endif %}" data-g="{{ val }}">{{ icon }}</div>
+            {% endfor %}
+          </div>
+          <div class="me-gspec-wrap">
+            {% for val, label in special_gravity %}
+            <button class="me-gspec{% if img_gravity == val %} active{% endif %}" data-g="{{ val }}">{{ label }}</button>
+            {% endfor %}
+          </div>
         </div>
       </div>
 
-      <!-- Zoom -->
-      <div class="me-label">Zoom</div>
-      <div class="me-slider-row">
-        <label>Zoom</label>
-        <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom|unlocalize }}">
-        <span class="sv" id="me-zoom-v">{{ img_zoom|unlocalize }}x</span>
+      <!-- Background color (only visible for c_pad) -->
+      <div id="me-bg-section" style="display:{% if img_crop == 'pad' %}block{% else %}none{% endif %}">
+        <div class="me-label">Color de Fondo</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+          <button class="me-swatch{% if img_bg == 'white' %} active{% endif %}"
+                  data-bg="white" style="background:#ffffff" title="Blanco"></button>
+          <button class="me-swatch{% if img_bg == 'black' %} active{% endif %}"
+                  data-bg="black" style="background:#000000" title="Negro"></button>
+          <button class="me-swatch{% if img_bg == 'auto:border' %} active{% endif %}"
+                  data-bg="auto:border"
+                  style="background:linear-gradient(135deg,#e07030 0%,#3050c0 100%);font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center"
+                  title="Auto — color dominante de bordes de la imagen">A</button>
+          <input type="color" id="me-bg-picker" value="#ffffff"
+                 style="width:28px;height:28px;padding:1px;border:1px solid var(--me-border);border-radius:3px;background:#0c0e1a;cursor:pointer;flex-shrink:0">
+          <input type="text" id="me-bg-hex" placeholder="white · black · auto:border · rgb:FF0000"
+                 value="{{ img_bg|escapejs }}" maxlength="30"
+                 style="flex:1;min-width:80px;padding:5px 8px;background:#0c0e1a;border:1px solid var(--me-border);border-radius:4px;color:#a0aac8;font-size:10px;font-family:monospace">
+          <button class="me-rbtn" id="me-bg-clear" title="Limpiar fondo">✕</button>
+        </div>
+        <div class="me-hint">Blanco · Negro · Auto (color dominante) · o valor Cloudinary directo</div>
       </div>
-      <div class="me-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
 
-      <!-- X/Y offset -->
-      <div class="me-label">Ajuste de posición</div>
-      <div class="me-slider-row">
-        <label>Horizontal</label>
-        <input type="range" id="me-x" min="-500" max="500" step="10" value="{{ img_x|unlocalize }}">
-        <span class="sv" id="me-x-v">{{ img_x|unlocalize }}px</span>
+      <!-- Zoom + offsets -->
+      <div id="me-sliders-section">
+        <div class="me-label">Zoom</div>
+        <div class="me-slider-row">
+          <label>Zoom</label>
+          <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom|unlocalize }}">
+          <span class="sv" id="me-zoom-v">{{ img_zoom|unlocalize }}x</span>
+        </div>
+        <div class="me-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
+
+        <div class="me-label">Ajuste de posición</div>
+        <div class="me-slider-row">
+          <label>Horizontal</label>
+          <input type="range" id="me-x" min="-500" max="500" step="10" value="{{ img_x|unlocalize }}">
+          <span class="sv" id="me-x-v">{{ img_x|unlocalize }}px</span>
+        </div>
+        <div class="me-slider-row">
+          <label>Vertical</label>
+          <input type="range" id="me-y" min="-500" max="500" step="10" value="{{ img_y|unlocalize }}">
+          <span class="sv" id="me-y-v">{{ img_y|unlocalize }}px</span>
+        </div>
+        <div class="me-hint">Desplazamiento en px desde el punto de enfoque.<br>+ = derecha/abajo &nbsp;·&nbsp; − = izquierda/arriba</div>
       </div>
-      <div class="me-slider-row">
-        <label>Vertical</label>
-        <input type="range" id="me-y" min="-500" max="500" step="10" value="{{ img_y|unlocalize }}">
-        <span class="sv" id="me-y-v">{{ img_y|unlocalize }}px</span>
-      </div>
-      <div class="me-hint">Desplazamiento en px desde el punto de enfoque.<br>+ = derecha/abajo &nbsp;·&nbsp; − = izquierda/arriba</div>
 
       <hr class="me-divider">
 
@@ -345,36 +420,45 @@
 (function() {
   var IMG_URL = "{{ image_url|escapejs }}";
   var GRAVITY = "{{ img_gravity|escapejs }}";
-  var RATIO = "{{ img_ratio|escapejs }}";
+  var RATIO   = "{{ img_ratio|escapejs }}";
+  var CROP    = "{{ img_crop|escapejs }}";
+  var BG      = "{{ img_bg|escapejs }}";
   var ZOOM = {{ img_zoom|unlocalize }};
-  var OX = {{ img_x|unlocalize }};
-  var OY = {{ img_y|unlocalize }};
-  var SAVE_URL = "{{ save_url }}";
+  var OX   = {{ img_x|unlocalize }};
+  var OY   = {{ img_y|unlocalize }};
+  var SAVE_URL    = "{{ save_url }}";
   var DEL_IMG_URL = "{{ del_img_url }}";
   var DEL_VID_URL = "{{ del_vid_url }}";
-  var CSRF = "{{ csrf_token }}";
+  var CSRF    = "{{ csrf_token }}";
   var HAS_IMG = {{ has_image|yesno:"true,false" }};
 
   var RATIO_PAD = {'':56.25,'16:9':56.25,'4:3':75,'3:2':66.67,'1:1':100,'2:3':150};
   var RATIO_LBL = {'':'Original','16:9':'16:9','4:3':'4:3','3:2':'3:2','1:1':'1:1','2:3':'2:3'};
   var CTX_AR = {card:'3:2', hero:'16:9', sq:'1:1'};
 
-  var $frame = document.getElementById('me-frame');
-  var $img = document.getElementById('me-img');
-  var $sp = document.getElementById('me-spinner');
-  var $ph = document.getElementById('me-ph');
-  var $ratioLbl = document.getElementById('me-ratio-lbl');
-  var $dims = document.getElementById('me-dims');
-  var $status = document.getElementById('me-status');
-  var $genurl = document.getElementById('me-genurl');
+  var $frame     = document.getElementById('me-frame');
+  var $img       = document.getElementById('me-img');
+  var $sp        = document.getElementById('me-spinner');
+  var $ph        = document.getElementById('me-ph');
+  var $ratioLbl  = document.getElementById('me-ratio-lbl');
+  var $dims      = document.getElementById('me-dims');
+  var $status    = document.getElementById('me-status');
+  var $genurl    = document.getElementById('me-genurl');
   var $zoomSlider = document.getElementById('me-zoom');
-  var $zoomV = document.getElementById('me-zoom-v');
-  var $xSlider = document.getElementById('me-x');
-  var $xV = document.getElementById('me-x-v');
-  var $ySlider = document.getElementById('me-y');
-  var $yV = document.getElementById('me-y-v');
+  var $zoomV     = document.getElementById('me-zoom-v');
+  var $xSlider   = document.getElementById('me-x');
+  var $xV        = document.getElementById('me-x-v');
+  var $ySlider   = document.getElementById('me-y');
+  var $yV        = document.getElementById('me-y-v');
+  var $bgSection = document.getElementById('me-bg-section');
+  var $bgHex     = document.getElementById('me-bg-hex');
+  var $bgPicker  = document.getElementById('me-bg-picker');
+  var $bgClear   = document.getElementById('me-bg-clear');
+  var $gravSect  = document.getElementById('me-gravity-section');
+  var $slidSect  = document.getElementById('me-sliders-section');
 
   var curG = GRAVITY, curR = RATIO, curZ = ZOOM, curX = OX, curY = OY;
+  var curCrop = CROP || 'fill', curBg = BG;
   var curCtx = 'card';
 
   // ── Cloudinary helpers ──
@@ -392,15 +476,22 @@
     return url.slice(0, idx + 8) + (ver ? ver + '/' : '') + segs.slice(i).join('/');
   }
 
-  function buildUrl(url, g, r, z, x, y, w) {
+  function buildUrl(url, g, r, z, x, y, w, crop, bg) {
     if (!url || url.indexOf('res.cloudinary.com') < 0) return '';
-    var parts = ['f_auto', 'q_auto:good', 'c_fill', 'g_' + (g || 'auto')];
-    var zf = parseFloat(z) || 1.0;
-    if (Math.abs(zf - 1.0) > 0.001) parts.push('z_' + zf.toFixed(2).replace(/\.?0+$/, ''));
-    var xi = parseInt(x) || 0;
-    if (xi) parts.push('x_' + xi);
-    var yi = parseInt(y) || 0;
-    if (yi) parts.push('y_' + yi);
+    var mode = crop || 'fill';
+    var parts = ['f_auto', 'q_auto:good', 'c_' + mode];
+    if (mode !== 'scale') parts.push('g_' + (g || 'auto'));
+    if (mode === 'fill' || mode === 'pad') {
+      var zf = parseFloat(z) || 1.0;
+      if (Math.abs(zf - 1.0) > 0.001) parts.push('z_' + zf.toFixed(2).replace(/\.?0+$/, ''));
+      var xi = parseInt(x) || 0; if (xi) parts.push('x_' + xi);
+      var yi = parseInt(y) || 0; if (yi) parts.push('y_' + yi);
+    }
+    if (mode === 'pad' && bg) {
+      var bgv = bg.trim();
+      if (/^#?[0-9a-fA-F]{6}$/.test(bgv)) bgv = 'rgb:' + bgv.replace('#', '');
+      parts.push('b_' + bgv);
+    }
     if (w) parts.push('w_' + w);
     if (r) parts.push('ar_' + r);
     return strip(url).replace('/upload/', '/upload/' + parts.join(',') + '/');
@@ -414,6 +505,46 @@
     document.querySelectorAll('.me-gspec').forEach(function(b) {
       b.classList.toggle('active', b.getAttribute('data-g') === g);
     });
+  }
+
+  // ── Crop mode ──
+  function setCropMode(mode) {
+    curCrop = mode;
+    document.querySelectorAll('.me-cbtn').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-crop') === mode);
+    });
+    if ($bgSection) $bgSection.style.display = (mode === 'pad') ? 'block' : 'none';
+    if ($gravSect)  $gravSect.classList.toggle('me-controls-dim', mode === 'scale');
+    if ($slidSect)  $slidSect.classList.toggle('me-controls-dim', mode === 'fit' || mode === 'scale');
+    updateAll();
+  }
+
+  document.querySelectorAll('.me-cbtn').forEach(function(btn) {
+    btn.addEventListener('click', function() { setCropMode(btn.getAttribute('data-crop')); });
+  });
+
+  // ── Background color ──
+  function setBg(val) {
+    curBg = val;
+    if ($bgHex) $bgHex.value = val;
+    if ($bgPicker && /^rgb:[0-9a-fA-F]{6}$/i.test(val)) $bgPicker.value = '#' + val.slice(4);
+    document.querySelectorAll('.me-swatch').forEach(function(s) {
+      s.classList.toggle('active', s.getAttribute('data-bg') === val);
+    });
+    updateAll();
+  }
+
+  document.querySelectorAll('.me-swatch').forEach(function(s) {
+    s.addEventListener('click', function() { setBg(s.getAttribute('data-bg')); });
+  });
+  if ($bgHex) {
+    $bgHex.addEventListener('input', function() { curBg = $bgHex.value.trim(); updateAll(); });
+  }
+  if ($bgPicker) {
+    $bgPicker.addEventListener('input', function() { setBg('rgb:' + $bgPicker.value.replace('#', '')); });
+  }
+  if ($bgClear) {
+    $bgClear.addEventListener('click', function() { setBg(''); });
   }
 
   // ── Update previews ──
@@ -430,7 +561,7 @@
       return;
     }
 
-    var purl = buildUrl(IMG_URL, curG, curR, curZ, curX, curY, 640);
+    var purl = buildUrl(IMG_URL, curG, curR, curZ, curX, curY, 640, curCrop, curBg);
     $genurl.textContent = purl || '—';
 
     $img.style.opacity = '0'; $sp.style.display = 'flex'; $ph.style.display = 'none';
@@ -445,16 +576,16 @@
     if (!HAS_IMG) return;
     var ar = CTX_AR[curCtx] || '3:2';
     var w = curCtx === 'sq' ? 300 : curCtx === 'hero' ? 640 : 520;
-    var purl = buildUrl(IMG_URL, curG, ar, curZ, curX, curY, w);
+    var purl = buildUrl(IMG_URL, curG, ar, curZ, curX, curY, w, curCrop, curBg);
     var $ci = document.getElementById('me-ctx-' + curCtx + '-img');
     if ($ci) { $ci.src = purl; $ci.style.display = 'block'; }
   }
 
   // ── Ratio buttons ──
-  document.querySelectorAll('.me-rbtn').forEach(function(btn) {
+  document.querySelectorAll('.me-rbtn[data-ratio]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       curR = btn.getAttribute('data-ratio') || '';
-      document.querySelectorAll('.me-rbtn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.me-rbtn[data-ratio]').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       updateAll();
     });
@@ -507,7 +638,11 @@
     fetch(SAVE_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-      body: JSON.stringify({img_gravity:curG, img_ratio:curR, img_zoom:curZ, img_x:curX, img_y:curY})
+      body: JSON.stringify({
+        img_gravity: curG, img_ratio: curR,
+        img_zoom: curZ, img_x: curX, img_y: curY,
+        img_crop: curCrop, img_bg: curBg
+      })
     }).then(function(r){return r.json();}).then(function(d){
       btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
       showStatus(d.status === 'ok' ? '✅ Guardado correctamente' : '❌ Error: '+(d.error||'?'),
@@ -557,7 +692,8 @@
   $zoomV.textContent = curZ.toFixed(2) + 'x';
   $xV.textContent = (curX > 0 ? '+' : '') + curX + 'px';
   $yV.textContent = (curY > 0 ? '+' : '') + curY + 'px';
-  setTimeout(updateAll, 150);
+  if (curBg) setBg(curBg);
+  setCropMode(curCrop);
 })();
 </script>
 {% endblock %}
