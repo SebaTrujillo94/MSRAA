@@ -368,16 +368,19 @@
         <div class="me-hint">Blanco · Negro · Auto (color dominante) · o valor Cloudinary directo</div>
       </div>
 
-      <!-- Zoom + offsets -->
-      <div id="me-sliders-section">
+      <!-- Zoom -->
+      <div id="me-zoom-section">
         <div class="me-label">Zoom</div>
         <div class="me-slider-row">
           <label>Zoom</label>
           <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom|unlocalize }}">
           <span class="sv" id="me-zoom-v">{{ img_zoom|unlocalize }}x</span>
         </div>
-        <div class="me-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
+        <div class="me-hint" id="me-zoom-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
+      </div>
 
+      <!-- Position (fill / pad only) -->
+      <div id="me-pos-section">
         <div class="me-label">Ajuste de posición</div>
         <div class="me-slider-row">
           <label>Horizontal</label>
@@ -455,7 +458,9 @@
   var $bgPicker  = document.getElementById('me-bg-picker');
   var $bgClear   = document.getElementById('me-bg-clear');
   var $gravSect  = document.getElementById('me-gravity-section');
-  var $slidSect  = document.getElementById('me-sliders-section');
+  var $zoomSect  = document.getElementById('me-zoom-section');
+  var $posSect   = document.getElementById('me-pos-section');
+  var $zoomHint  = document.getElementById('me-zoom-hint');
 
   var curG = GRAVITY, curR = RATIO, curZ = ZOOM, curX = OX, curY = OY;
   var curCrop = CROP || 'fill', curBg = BG;
@@ -486,6 +491,10 @@
       if (Math.abs(zf - 1.0) > 0.001) parts.push('z_' + zf.toFixed(2).replace(/\.?0+$/, ''));
       var xi = parseInt(x) || 0; if (xi) parts.push('x_' + xi);
       var yi = parseInt(y) || 0; if (yi) parts.push('y_' + yi);
+    } else if (mode === 'fit' || mode === 'scale') {
+      var zf2 = parseFloat(z) || 1.0;
+      var wv = Math.max(100, Math.round((w || 640) * zf2));
+      parts.push('w_' + wv);
     }
     if (mode === 'pad' && bg) {
       var bgv = bg.trim();
@@ -514,8 +523,20 @@
       b.classList.toggle('active', b.getAttribute('data-crop') === mode);
     });
     if ($bgSection) $bgSection.style.display = (mode === 'pad') ? 'block' : 'none';
-    if ($gravSect)  $gravSect.classList.toggle('me-controls-dim', mode === 'scale');
-    if ($slidSect)  $slidSect.classList.toggle('me-controls-dim', mode === 'fit' || mode === 'scale');
+    if ($gravSect)  $gravSect.classList.toggle('me-controls-dim', mode === 'scale' || mode === 'fit');
+    if ($posSect)   $posSect.classList.toggle('me-controls-dim', mode === 'fit' || mode === 'scale');
+    if ($zoomSect)  $zoomSect.classList.remove('me-controls-dim');
+    if ($zoomHint) {
+      if (mode === 'fit' || mode === 'scale') {
+        $zoomHint.textContent = '0.5x = más pequeño · 1.0 = tamaño base · 2.0 = más grande';
+      } else {
+        $zoomHint.innerHTML = '1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar';
+      }
+    }
+    var $previewImg = document.getElementById('me-img');
+    if ($previewImg) {
+      $previewImg.style.objectFit = (mode === 'fit' || mode === 'scale') ? 'contain' : 'cover';
+    }
     updateAll();
   }
 

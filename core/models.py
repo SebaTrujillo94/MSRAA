@@ -90,6 +90,14 @@ def _cloudinary_img(url, gravity='auto', ratio='', zoom=None, x=0, y=0, crop='fi
             parts.append(f'x_{int(x)}')
         if y:
             parts.append(f'y_{int(y)}')
+    elif crop_mode in ('fit', 'scale'):
+        if zoom:
+            try:
+                z = float(zoom)
+                w_val = max(100, round(1200 * z))
+                parts.append(f'w_{w_val}')
+            except (TypeError, ValueError):
+                pass
     if crop_mode == 'pad' and bg:
         bg_val = bg.strip()
         if bg_val.startswith('#'):
