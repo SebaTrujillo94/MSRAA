@@ -76,7 +76,7 @@ def _cloudinary_img(url, gravity='auto', ratio='', zoom=None, x=0, y=0, crop='fi
         return url
     crop_mode = crop or 'fill'
     parts = ['f_auto', 'q_auto:good', f'c_{crop_mode}']
-    if crop_mode != 'scale':
+    if crop_mode in ('fill', 'pad'):
         parts.append(f'g_{gravity or "auto"}')
     if crop_mode in ('fill', 'pad'):
         if zoom:
