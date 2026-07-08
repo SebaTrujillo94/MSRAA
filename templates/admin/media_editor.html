@@ -1,10 +1,11 @@
 {% extends "admin/base_site.html" %}
-{% load i18n l10n %}
+{% load i18n %}
 
 {% block title %}Editor de Medios — {{ obj_str }}{% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 <style>
 :root {
   --me-bg: #0f1018;
@@ -13,8 +14,6 @@
   --me-text: #a0aac8;
   --me-accent: #4a80c0;
   --me-gold: #e8b84b;
-  --me-danger: #c04040;
-  --me-success: #40c060;
 }
 #content { max-width: 1440px !important; }
 .me-header {
@@ -22,68 +21,41 @@
   padding: 14px 0 16px; border-bottom: 1px solid var(--me-border);
   margin-bottom: 20px;
 }
-.me-header h1 {
-  font-size: 18px; margin: 0; color: var(--me-text); font-weight: 700;
-  display: flex; align-items: center; gap: 10px;
-}
+.me-header h1 { font-size: 18px; margin: 0; color: var(--me-text); font-weight: 700; }
 .me-header h1 span { color: #606880; font-weight: 400; }
 .me-back {
   margin-left: auto; font-size: 12px; color: #5a7090;
   text-decoration: none; padding: 7px 16px;
   border: 1px solid var(--me-border); border-radius: 5px;
-  font-weight: 600; transition: all .15s;
+  font-weight: 600;
 }
 .me-back:hover { border-color: #4a6080; color: #8ab0d0; }
 .me-wrap {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 18px;
+  display: grid; grid-template-columns: 1fr 300px; gap: 18px;
 }
 @media (max-width: 1100px) { .me-wrap { grid-template-columns: 1fr; } }
 .me-card {
-  background: var(--me-panel);
-  border: 1px solid var(--me-border);
-  border-radius: 10px; padding: 18px;
-  margin-bottom: 16px;
+  background: var(--me-panel); border: 1px solid var(--me-border);
+  border-radius: 10px; padding: 18px; margin-bottom: 16px;
 }
 .me-label {
   font-size: 10px; color: #506080; text-transform: uppercase;
   letter-spacing: .8px; font-weight: 700; margin-bottom: 10px;
 }
-/* Preview frame */
-.me-frame {
-  width: 100%; position: relative;
-  background: #0c0e1a; border-radius: 6px;
-  overflow: hidden; border: 1px solid var(--me-border);
-  transition: padding-top .35s ease;
+/* Cropper container */
+#me-crop-wrap {
+  background: #0c0e1a; border-radius: 6px; overflow: hidden;
+  border: 1px solid var(--me-border); max-height: 600px;
 }
-.me-frame > * { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-.me-frame img { object-fit: cover; display: none; transition: opacity .3s; }
-.me-spinner {
-  display: none; align-items: center; justify-content: center;
-  background: rgba(12,14,26,.85);
-}
-.me-spinner div {
-  width: 30px; height: 30px;
-  border: 3px solid #252840; border-top-color: #4a80c0;
-  border-radius: 50%; animation: me-spin .85s linear infinite;
-}
-@keyframes me-spin { to { transform: rotate(360deg); } }
-.me-ph {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; color: #303450; font-size: 12px;
-  gap: 10px; text-align: center; padding: 20px;
-}
-/* Context tabs */
+#me-crop-wrap img { display: block; max-width: 100%; max-height: 600px; }
+/* Context previews */
 .me-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
 .me-tab {
   padding: 5px 14px; border: 1px solid var(--me-border);
   border-radius: 4px; font-size: 11px; cursor: pointer;
   background: #0c0e1a; color: #506080; font-weight: 600;
-  transition: all .15s;
 }
 .me-tab.active { background: #142040; border-color: var(--me-accent); color: #70b0f0; }
-/* Site card mockup */
 .me-site-card {
   position: relative; overflow: hidden; border-radius: 5px;
   background: #0a0a0a; display: none;
@@ -99,66 +71,26 @@
   font-size: 9px; color: var(--me-gold); letter-spacing: 1px;
   text-transform: uppercase; margin-bottom: 4px; font-weight: 700;
 }
-.me-site-card .sco-title {
-  font-size: 13px; color: #fff; font-weight: 600; line-height: 1.3;
-}
-.me-site-card .sco-year {
-  font-size: 10px; color: rgba(255,255,255,.45); margin-top: 3px;
-}
-/* Controls */
+.me-site-card .sco-title { font-size: 13px; color: #fff; font-weight: 600; line-height: 1.3; }
+.me-site-card .sco-year { font-size: 10px; color: rgba(255,255,255,.45); margin-top: 3px; }
+/* Ratio buttons */
 .me-ratio-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
 .me-rbtn {
-  padding: 5px 10px; font-size: 10px; font-weight: 700;
+  padding: 6px 10px; font-size: 10px; font-weight: 700;
   border: 1px solid var(--me-border); border-radius: 4px;
   background: #0c0e1a; color: #506080; cursor: pointer;
-  transition: all .15s;
 }
+.me-rbtn:hover { border-color: #3a5090; color: #8ab0d0; }
 .me-rbtn.active { background: #142040; border-color: var(--me-accent); color: #70b0f0; }
-.me-ggrid {
-  display: grid; grid-template-columns: repeat(3, 40px); gap: 3px;
-}
-.me-gc {
-  height: 40px; background: #0c0e1a;
-  border: 1px solid var(--me-border); border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; color: #3a4060; cursor: pointer; transition: all .15s;
-}
-.me-gc:hover { border-color: #3a5090; color: #5070a0; }
-.me-gc.active {
-  background: #142040; border-color: var(--me-accent);
-  color: #70b0f0; box-shadow: 0 0 8px rgba(74,128,192,.3);
-}
-.me-gspec-wrap { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.me-gspec {
-  padding: 7px 10px; font-size: 11px; font-weight: 600;
-  border: 1px solid var(--me-border); border-radius: 4px;
-  background: #0c0e1a; color: #506080; cursor: pointer;
-  transition: all .15s; text-align: left; white-space: nowrap;
-}
-.me-gspec.active { background: #1a2a40; border-color: #3a70b0; color: #70a0d0; }
-.me-slider-row {
-  display: grid; grid-template-columns: 76px 1fr 56px;
-  align-items: center; gap: 8px; margin-bottom: 10px;
-}
-.me-slider-row label { font-size: 11px; color: #506080; font-weight: 600; }
-.me-slider-row input[type=range] { width: 100%; accent-color: var(--me-accent); cursor: pointer; }
-.me-slider-row .sv {
-  font-size: 11px; color: #a0b0d0; text-align: right;
-  font-family: monospace; font-weight: 700;
-}
-.me-hint { font-size: 10px; color: #3a4a5a; margin-bottom: 12px; line-height: 1.4; }
-.me-divider { border: none; border-top: 1px solid var(--me-border); margin: 16px 0; }
+/* Buttons */
 .me-btn {
   display: block; width: 100%; padding: 11px;
   border-radius: 6px; font-size: 13px; font-weight: 700;
   cursor: pointer; border: none; margin-bottom: 8px;
-  transition: all .15s; letter-spacing: .2px;
 }
 .me-btn:disabled { opacity: .5; cursor: not-allowed; }
 .me-save { background: #1a3a2a; color: #40c070; border: 1px solid #2a6040; }
 .me-save:hover:not(:disabled) { background: #1e4430; }
-.me-del { background: #2a1a1a; color: #c06060; border: 1px solid #5a2020; }
-.me-del:hover { background: #341e1e; }
 .me-status {
   padding: 9px 14px; border-radius: 6px; font-size: 12px;
   font-weight: 600; margin-bottom: 14px; display: none; text-align: center;
@@ -174,37 +106,14 @@
   background: #1a1a0a; border: 1px solid #3a3010; border-radius: 6px;
   padding: 12px 14px; font-size: 12px; color: #a09040; margin-bottom: 14px;
 }
-/* Crop mode buttons */
-.me-crop-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 16px;
-}
-.me-cbtn {
-  padding: 8px 4px; border: 1px solid var(--me-border); border-radius: 4px;
-  background: #0c0e1a; color: #506080; cursor: pointer; text-align: center;
-  font-size: 10px; transition: all .15s; display: flex; flex-direction: column;
-  align-items: center; gap: 2px; width: 100%;
-}
-.me-cbtn-lbl { font-weight: 700; font-size: 10px; color: #7080a0; }
-.me-cbtn-sub { font-size: 8px; color: #3a4a60; font-family: monospace; }
-.me-cbtn:hover { border-color: #3a5090; }
-.me-cbtn.active { background: #142040; border-color: var(--me-accent); }
-.me-cbtn.active .me-cbtn-lbl { color: #70b0f0; }
-.me-cbtn.active .me-cbtn-sub { color: #4070a0; }
-/* Background color swatches */
-.me-swatch {
-  width: 28px; height: 28px; border-radius: 4px; cursor: pointer; flex-shrink: 0;
-  border: 2px solid var(--me-border); transition: border-color .15s;
-}
-.me-swatch:hover { border-color: #3a5090; }
-.me-swatch.active { border-color: var(--me-accent); box-shadow: 0 0 6px rgba(74,128,192,.4); }
-/* Dim irrelevant controls */
-.me-controls-dim { opacity: 0.35; pointer-events: none; transition: opacity .2s; }
+.me-info { font-size: 10px; color: #3a4a5a; line-height: 1.5; margin-bottom: 10px; }
+.me-divider { border: none; border-top: 1px solid var(--me-border); margin: 14px 0; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="me-header">
-  <h1>🎨 Editor de Medios <span>— {{ obj_str }}</span></h1>
+  <h1>✂️ Editor de Recorte <span>— {{ obj_str }}</span></h1>
   <a href="{{ change_url }}" class="me-back">← Volver al registro</a>
 </div>
 
@@ -218,24 +127,16 @@
 
 <div class="me-wrap">
 
-  <!-- ══ LEFT: Previews ══ -->
+  <!-- LEFT: Crop editor + context previews -->
   <div>
-
-    <!-- Main preview -->
     <div class="me-card">
-      <div class="me-label">Vista Previa Principal</div>
-      <div id="me-frame" class="me-frame" style="padding-top:56.25%">
-        <img id="me-img">
-        <div id="me-spinner" class="me-spinner"><div></div></div>
-        <div id="me-ph" class="me-ph">
-          <span style="font-size:40px;opacity:.25">🖼️</span>
-          <span>{% if has_image %}Cargando preview...{% else %}Sin imagen de Cloudinary{% endif %}</span>
-        </div>
-        <div id="me-drag-hint" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#a0b8d0;font-size:10px;padding:3px 10px;border-radius:10px;pointer-events:none;white-space:nowrap">↔ Arrastra para ajustar</div>
+      <div class="me-label">Recorte de Imagen</div>
+      <div id="me-crop-wrap">
+        <img id="me-crop-img" src="{{ image_url }}" alt="Imagen para recortar">
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px">
-        <span id="me-ratio-lbl" style="font-size:10px;color:#506080;font-family:monospace">—</span>
-        <span id="me-dims" style="font-size:10px;color:#506080;font-family:monospace">—</span>
+      <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+        <span id="me-crop-info" style="font-size:10px;color:#506080;font-family:monospace">—</span>
+        <button class="me-rbtn" id="me-reset-btn" style="margin:0" title="Restablecer recorte al área completa">↺ Resetear</button>
       </div>
     </div>
 
@@ -247,34 +148,27 @@
         <button class="me-tab" data-ctx="hero">Hero (16:9)</button>
         <button class="me-tab" data-ctx="sq">Cuadrado</button>
       </div>
-
-      <!-- Card 3:2 -->
       <div id="me-ctx-card" class="me-site-card visible" style="aspect-ratio:3/2;max-width:520px">
-        <img id="me-ctx-card-img">
+        <img id="me-ctx-card-img" style="display:none">
         <div class="sco">
           <div class="sco-cat">{{ ctx_top }}</div>
           <div class="sco-title">{{ obj_str }}</div>
           <div class="sco-year">{{ obj_year }}</div>
         </div>
       </div>
-
-      <!-- Hero 16:9 -->
       <div id="me-ctx-hero" class="me-site-card" style="aspect-ratio:16/9">
-        <img id="me-ctx-hero-img">
+        <img id="me-ctx-hero-img" style="display:none">
         <div class="sco" style="padding:50px 28px 22px">
           <div class="sco-cat" style="font-size:10px;margin-bottom:6px">MSRAA</div>
           <div class="sco-title" style="font-size:22px">{{ obj_str }}</div>
           {% if obj_year %}<div class="sco-year" style="font-size:11px;margin-top:5px">{{ obj_year }}</div>{% endif %}
         </div>
       </div>
-
-      <!-- Square 1:1 -->
       <div id="me-ctx-sq" class="me-site-card" style="aspect-ratio:1/1;max-width:300px">
-        <img id="me-ctx-sq-img">
+        <img id="me-ctx-sq-img" style="display:none">
       </div>
     </div>
 
-    <!-- Video preview (if available) -->
     {% if embed_url %}
     <div class="me-card">
       <div class="me-label" style="margin-bottom:10px">Video</div>
@@ -288,143 +182,59 @@
       <div class="me-url-badge">{{ video_url }}</div>
     </div>
     {% endif %}
-
   </div>
 
-  <!-- ══ RIGHT: Controls ══ -->
+  <!-- RIGHT: Controls -->
   <div>
     <div class="me-card">
-      <div class="me-label" style="margin-bottom:14px;font-size:11px">CONTROLES DE IMAGEN</div>
-
-      <!-- Crop mode -->
-      <div class="me-label">Modo de Recorte</div>
-      <div class="me-crop-grid" id="me-crop-btns">
-        <button class="me-cbtn{% if img_crop == 'fill' %} active{% endif %}" data-crop="fill" title="Recorta para llenar el área exacta — el más usado">
-          <span style="font-size:14px">⬛</span>
-          <span class="me-cbtn-lbl">Recortar</span>
-          <span class="me-cbtn-sub">c_fill</span>
-        </button>
-        <button class="me-cbtn{% if img_crop == 'fit' %} active{% endif %}" data-crop="fit" title="Escala sin recortar — puede quedar espacio vacío">
-          <span style="font-size:14px">🔲</span>
-          <span class="me-cbtn-lbl">Ajustar</span>
-          <span class="me-cbtn-sub">c_fit</span>
-        </button>
-      </div>
-
-      <!-- Ratio -->
-      <div class="me-label">Proporción</div>
+      <div class="me-label" style="margin-bottom:14px">PROPORCIÓN DEL RECORTE</div>
       <div class="me-ratio-grid" id="me-ratio-btns">
-        {% for val, label in ratio_choices %}
-        <button class="me-rbtn{% if img_ratio == val %} active{% endif %}"
-                data-ratio="{{ val }}">{{ label }}</button>
-        {% endfor %}
+        <button class="me-rbtn active" data-ar="free" data-arv="NaN">Libre</button>
+        <button class="me-rbtn" data-ar="16:9" data-arv="1.7778">16:9</button>
+        <button class="me-rbtn" data-ar="4:3" data-arv="1.3333">4:3</button>
+        <button class="me-rbtn" data-ar="3:2" data-arv="1.5">3:2</button>
+        <button class="me-rbtn" data-ar="1:1" data-arv="1">1:1</button>
+        <button class="me-rbtn" data-ar="2:3" data-arv="0.6667">2:3</button>
+        <button class="me-rbtn" data-ar="9:16" data-arv="0.5625">9:16</button>
       </div>
 
-      <!-- Background color (only visible for c_pad) -->
-      <div id="me-bg-section" style="display:{% if img_crop == 'pad' %}block{% else %}none{% endif %}">
-        <div class="me-label">Color de Fondo</div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
-          <button class="me-swatch{% if img_bg == 'white' %} active{% endif %}"
-                  data-bg="white" style="background:#ffffff" title="Blanco"></button>
-          <button class="me-swatch{% if img_bg == 'black' %} active{% endif %}"
-                  data-bg="black" style="background:#000000" title="Negro"></button>
-          <button class="me-swatch{% if img_bg == 'auto:border' %} active{% endif %}"
-                  data-bg="auto:border"
-                  style="background:linear-gradient(135deg,#e07030 0%,#3050c0 100%);font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center"
-                  title="Auto — color dominante de bordes de la imagen">A</button>
-          <input type="color" id="me-bg-picker" value="#ffffff"
-                 style="width:28px;height:28px;padding:1px;border:1px solid var(--me-border);border-radius:3px;background:#0c0e1a;cursor:pointer;flex-shrink:0">
-          <input type="text" id="me-bg-hex" placeholder="white · black · auto:border · rgb:FF0000"
-                 value="{{ img_bg|escapejs }}" maxlength="30"
-                 style="flex:1;min-width:80px;padding:5px 8px;background:#0c0e1a;border:1px solid var(--me-border);border-radius:4px;color:#a0aac8;font-size:10px;font-family:monospace">
-          <button class="me-rbtn" id="me-bg-clear" title="Limpiar fondo">✕</button>
-        </div>
-        <div class="me-hint">Blanco · Negro · Auto (color dominante) · o valor Cloudinary directo</div>
-      </div>
-
-      <!-- Zoom -->
-      <div id="me-zoom-section">
-        <div class="me-label">Zoom</div>
-        <div class="me-slider-row">
-          <label>Zoom</label>
-          <input type="range" id="me-zoom" min="0.5" max="3.0" step="0.05" value="{{ img_zoom|unlocalize }}">
-          <span class="sv" id="me-zoom-v">{{ img_zoom|unlocalize }}x</span>
-        </div>
-        <div class="me-hint" id="me-zoom-hint">1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar</div>
-      </div>
-
+      <div class="me-info">Arrastra los manejadores para ajustar el área de recorte. El recorte define exactamente qué parte de la imagen se mostrará.</div>
 
       <hr class="me-divider">
 
-      <button id="me-save-btn" class="me-btn me-save" onclick="meSave()">💾 Guardar cambios</button>
-
-      {% if has_image %}
-      <div class="me-hint" style="margin-top:-2px;margin-bottom:8px">Acciones disponibles: Ajustar o Recortar.</div>
-      {% endif %}
+      <button id="me-save-btn" class="me-btn me-save" onclick="meSave()">💾 Guardar recorte</button>
 
       <a href="{{ change_url }}" class="me-btn" style="background:#1a1c2e;color:#7080a0;border:1px solid var(--me-border);text-align:center;text-decoration:none;display:block;box-sizing:border-box">← Volver al registro</a>
 
-      <!-- Generated URL -->
       <div style="margin-top:14px">
         <div class="me-label" style="margin-bottom:5px">URL Cloudinary generada</div>
         <div id="me-genurl" class="me-url-badge">—</div>
       </div>
-
     </div>
   </div>
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
 (function() {
-  var IMG_URL = "{{ image_url|escapejs }}";
-  var GRAVITY = "{{ img_gravity|escapejs }}";
-  var RATIO   = "{{ img_ratio|escapejs }}";
-  var CROP    = "{{ img_crop|escapejs }}";
-  var BG      = "{{ img_bg|escapejs }}";
-  var ZOOM = {{ img_zoom|unlocalize }};
-  var OX   = {{ img_x|unlocalize }};
-  var OY   = {{ img_y|unlocalize }};
-  var SAVE_URL    = "{{ save_url }}";
-  var DEL_IMG_URL = "{{ del_img_url }}";
-  var DEL_VID_URL = "{{ del_vid_url }}";
-  var CSRF    = "{{ csrf_token }}";
-  var HAS_IMG = {{ has_image|yesno:"true,false" }};
+  var IMG_URL  = "{{ image_url|escapejs }}";
+  var OX       = {{ img_x }};
+  var OY       = {{ img_y }};
+  var OW       = {{ img_crop_w }};
+  var OH       = {{ img_crop_h }};
+  var SAVE_URL = "{{ save_url }}";
+  var CSRF     = "{{ csrf_token }}";
+  var HAS_IMG  = {{ has_image|yesno:"true,false" }};
 
-  var RATIO_PAD = {'':56.25,'16:9':56.25,'4:3':75,'3:2':66.67,'1:1':100,'2:3':150};
-  var RATIO_LBL = {'':'Original','16:9':'16:9','4:3':'4:3','3:2':'3:2','1:1':'1:1','2:3':'2:3'};
-  var CTX_AR = {card:'3:2', hero:'16:9', sq:'1:1'};
+  var $genurl  = document.getElementById('me-genurl');
+  var $status  = document.getElementById('me-status');
+  var $info    = document.getElementById('me-crop-info');
+  var $imgEl   = document.getElementById('me-crop-img');
+  var curCtx   = 'card';
+  var cropper  = null;
 
-  var $frame     = document.getElementById('me-frame');
-  var $img       = document.getElementById('me-img');
-  var $sp        = document.getElementById('me-spinner');
-  var $ph        = document.getElementById('me-ph');
-  var $ratioLbl  = document.getElementById('me-ratio-lbl');
-  var $dims      = document.getElementById('me-dims');
-  var $status    = document.getElementById('me-status');
-  var $genurl    = document.getElementById('me-genurl');
-  var $zoomSlider = document.getElementById('me-zoom');
-  var $zoomV     = document.getElementById('me-zoom-v');
-
-  var $bgSection = document.getElementById('me-bg-section');
-  var $bgHex     = document.getElementById('me-bg-hex');
-  var $bgPicker  = document.getElementById('me-bg-picker');
-  var $bgClear   = document.getElementById('me-bg-clear');
-  var $zoomSect  = document.getElementById('me-zoom-section');
-  var $zoomHint  = document.getElementById('me-zoom-hint');
-  var $dragHint  = document.getElementById('me-drag-hint');
-
-  var curG = 'center', curR = RATIO, curZ = ZOOM, curX = OX, curY = OY;
-  var curCrop = CROP || 'fill', curBg = BG;
-  var curCtx = 'card';
-  var natW = 0, natH = 0;
-  if (HAS_IMG) {
-    var _ni = new Image();
-    _ni.onload = function() { natW = _ni.naturalWidth; natH = _ni.naturalHeight; };
-    _ni.src = strip(IMG_URL);
-  }
-
-  // ── Cloudinary helpers ──
+  // ── strip Cloudinary transforms from URL ──
   function strip(url) {
     var idx = url.indexOf('/upload/');
     if (idx < 0) return url;
@@ -439,165 +249,66 @@
     return url.slice(0, idx + 8) + (ver ? ver + '/' : '') + segs.slice(i).join('/');
   }
 
-  function buildUrl(url, g, r, z, x, y, w, crop, bg) {
-    if (!url || url.indexOf('res.cloudinary.com') < 0) return '';
-    var mode = crop || 'fill';
-    var parts = ['f_auto', 'q_auto:good', 'c_' + mode];
-    if (mode === 'fill') parts.push('g_' + (g || 'auto'));
-    if (mode === 'fill') {
-      var zf = parseFloat(z) || 1.0;
-      if (Math.abs(zf - 1.0) > 0.001) parts.push('z_' + zf.toFixed(2).replace(/\.?0+$/, ''));
-      var xi = parseInt(x) || 0; if (xi) parts.push('x_' + xi);
-      var yi = parseInt(y) || 0; if (yi) parts.push('y_' + yi);
-    } else if (mode === 'fit') {
-      var zf2 = parseFloat(z) || 1.0;
-      var wv = Math.max(100, Math.round((w || 640) * zf2));
-      parts.push('w_' + wv);
-    }
-    if (w) parts.push('w_' + w);
-    if (r) parts.push('ar_' + r);
-    return strip(url).replace('/upload/', '/upload/' + parts.join(',') + '/');
+  function buildCropUrl(x, y, w, h) {
+    if (!IMG_URL || w <= 0 || h <= 0) return '';
+    var base = strip(IMG_URL);
+    if (base.indexOf('res.cloudinary.com') < 0) return '';
+    return base.replace('/upload/', '/upload/c_crop,f_auto,q_auto:good,x_' + x + ',y_' + y + ',w_' + w + ',h_' + h + '/');
   }
 
-  // ── Drag to pan ──
-  (function() {
-    var dragging = false, sx = 0, sy = 0;
-    function startDrag(cx, cy) {
-      if (!HAS_IMG || (curCrop !== 'fill' && curCrop !== 'pad')) return;
-      dragging = true; sx = cx; sy = cy;
-      $frame.style.cursor = 'grabbing';
-    }
-    function moveDrag(cx, cy) {
-      if (!dragging) return;
-      var dx = cx - sx, dy = cy - sy;
-      $img.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
-    }
-    function endDrag(cx, cy) {
-      if (!dragging) return;
-      dragging = false;
-      $img.style.transform = '';
-      $frame.style.cursor = 'grab';
-      var dx = cx - sx, dy = cy - sy;
-      if (Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
-      var cw = $frame.clientWidth || 640;
-      var ch = $frame.clientHeight || 360;
-      if (natW > 0) {
-        var scale = natW / (cw * curZ);
-        curX = Math.round(curX - dx * scale);
-        curY = Math.round(curY - dy * scale);
-      } else {
-        curX = Math.round(curX - dx * 3);
-        curY = Math.round(curY - dy * 3);
-      }
-      updateAll();
-    }
-    $frame.addEventListener('mousedown', function(e) { startDrag(e.clientX, e.clientY); e.preventDefault(); });
-    document.addEventListener('mousemove', function(e) { moveDrag(e.clientX, e.clientY); });
-    document.addEventListener('mouseup',   function(e) { endDrag(e.clientX, e.clientY); });
-    $frame.addEventListener('touchstart', function(e) { if(e.touches[0]) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
-    document.addEventListener('touchmove', function(e) { if(e.touches[0]) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
-    document.addEventListener('touchend',  function(e) { if(e.changedTouches[0]) endDrag(e.changedTouches[0].clientX, e.changedTouches[0].clientY); });
-  })();
-
-  // ── Crop mode ──
-  function setCropMode(mode) {
-    curCrop = mode;
-    document.querySelectorAll('.me-cbtn').forEach(function(b) {
-      b.classList.toggle('active', b.getAttribute('data-crop') === mode);
-    });
-    if ($bgSection) $bgSection.style.display = (mode === 'pad') ? 'block' : 'none';
-    if ($zoomSect)  $zoomSect.classList.remove('me-controls-dim');
-    if ($zoomHint) {
-      if (mode === 'fit' || mode === 'scale') {
-        $zoomHint.textContent = '0.5x = más pequeño · 1.0 = tamaño base · 2.0 = más grande';
-      } else {
-        $zoomHint.innerHTML = '1.0 = normal &nbsp;·&nbsp; 0.5 = más contexto &nbsp;·&nbsp; 2.0 = acercar';
-      }
-    }
-    if ($img) $img.style.objectFit = (mode === 'fit' || mode === 'scale') ? 'contain' : 'cover';
-    var canDrag = HAS_IMG && (mode === 'fill' || mode === 'pad');
-    if ($frame) $frame.style.cursor = canDrag ? 'grab' : 'default';
-    if ($dragHint) $dragHint.style.display = canDrag ? 'block' : 'none';
-    updateAll();
+  function onCropChange() {
+    if (!cropper) return;
+    var d = cropper.getData(true);
+    var x = d.x, y = d.y, w = d.width, h = d.height;
+    if ($info) $info.textContent = 'x:' + x + ' y:' + y + '  ' + w + '×' + h + ' px';
+    var purl = buildCropUrl(x, y, w, h);
+    if ($genurl) $genurl.textContent = purl || '—';
+    updateCtxPreview(purl);
   }
 
-  document.querySelectorAll('.me-cbtn').forEach(function(btn) {
-    btn.addEventListener('click', function() { setCropMode(btn.getAttribute('data-crop')); });
-  });
-
-  // ── Background color ──
-  function setBg(val) {
-    curBg = val;
-    if ($bgHex) $bgHex.value = val;
-    if ($bgPicker && /^rgb:[0-9a-fA-F]{6}$/i.test(val)) $bgPicker.value = '#' + val.slice(4);
-    document.querySelectorAll('.me-swatch').forEach(function(s) {
-      s.classList.toggle('active', s.getAttribute('data-bg') === val);
-    });
-    updateAll();
-  }
-
-  document.querySelectorAll('.me-swatch').forEach(function(s) {
-    s.addEventListener('click', function() { setBg(s.getAttribute('data-bg')); });
-  });
-  if ($bgHex) {
-    $bgHex.addEventListener('input', function() { curBg = $bgHex.value.trim(); updateAll(); });
-  }
-  if ($bgPicker) {
-    $bgPicker.addEventListener('input', function() { setBg('rgb:' + $bgPicker.value.replace('#', '')); });
-  }
-  if ($bgClear) {
-    $bgClear.addEventListener('click', function() { setBg(''); });
-  }
-
-  // ── Update previews ──
-  function updateAll() {
-    var pad = RATIO_PAD[curR] !== undefined ? RATIO_PAD[curR] : 56.25;
-    $frame.style.paddingTop = pad + '%';
-    $ratioLbl.textContent = RATIO_LBL[curR] || 'Original';
-    var w = 640, h = Math.round(w * pad / 100);
-    $dims.textContent = w + ' × ' + h + ' px  ·  ' + (RATIO_LBL[curR] || 'Original');
-
-    if (!HAS_IMG) {
-      $img.style.display = 'none'; $ph.style.display = 'flex'; $sp.style.display = 'none';
-      $genurl.textContent = '—';
-      return;
-    }
-
-    var purl = buildUrl(IMG_URL, curG, curR, curZ, curX, curY, 640, curCrop, curBg);
-    $genurl.textContent = purl || '—';
-
-    $img.style.opacity = '0'; $sp.style.display = 'flex'; $ph.style.display = 'none';
-    $img.onload = function() { $img.style.display = 'block'; $img.style.opacity = '1'; $sp.style.display = 'none'; };
-    $img.onerror = function() { $img.style.display = 'none'; $ph.style.display = 'flex'; $sp.style.display = 'none'; };
-    $img.src = purl;
-
-    updateCtxPreview();
-  }
-
-  function updateCtxPreview() {
-    if (!HAS_IMG) return;
-    var ar = CTX_AR[curCtx] || '3:2';
-    var w = curCtx === 'sq' ? 300 : curCtx === 'hero' ? 640 : 520;
-    var purl = buildUrl(IMG_URL, curG, ar, curZ, curX, curY, w, curCrop, curBg);
+  function updateCtxPreview(purl) {
+    if (!purl) return;
     var $ci = document.getElementById('me-ctx-' + curCtx + '-img');
     if ($ci) { $ci.src = purl; $ci.style.display = 'block'; }
   }
 
+  // ── Init Cropper.js ──
+  if (HAS_IMG) {
+    $imgEl.src = strip(IMG_URL);
+    cropper = new Cropper($imgEl, {
+      viewMode: 1,
+      autoCropArea: 1,
+      movable: false,
+      rotatable: false,
+      scalable: false,
+      zoomable: false,
+      aspectRatio: NaN,
+      ready: function() {
+        if (OW > 0 && OH > 0) {
+          cropper.setData({ x: OX, y: OY, width: OW, height: OH });
+        }
+        onCropChange();
+      },
+      cropend: onCropChange,
+      crop: null,
+    });
+  } else {
+    if ($imgEl) $imgEl.style.display = 'none';
+  }
+
   // ── Ratio buttons ──
-  document.querySelectorAll('.me-rbtn[data-ratio]').forEach(function(btn) {
+  document.querySelectorAll('.me-rbtn[data-ar]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      curR = btn.getAttribute('data-ratio') || '';
-      document.querySelectorAll('.me-rbtn[data-ratio]').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.me-rbtn[data-ar]').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      updateAll();
+      var arv = btn.getAttribute('data-arv');
+      if (cropper) cropper.setAspectRatio(arv === 'NaN' ? NaN : parseFloat(arv));
     });
   });
 
-  // ── Zoom slider ──
-  $zoomSlider.addEventListener('input', function() {
-    curZ = parseFloat(this.value);
-    $zoomV.textContent = curZ.toFixed(2) + 'x';
-    updateAll();
+  // ── Reset button ──
+  document.getElementById('me-reset-btn').addEventListener('click', function() {
+    if (cropper) cropper.reset();
   });
 
   // ── Context tabs ──
@@ -606,74 +317,42 @@
       document.querySelectorAll('.me-tab').forEach(function(t) { t.classList.remove('active'); });
       tab.classList.add('active');
       curCtx = tab.getAttribute('data-ctx');
-      ['card','hero','sq'].forEach(function(k) {
+      ['card', 'hero', 'sq'].forEach(function(k) {
         var el = document.getElementById('me-ctx-' + k);
         if (el) el.classList.toggle('visible', k === curCtx);
       });
-      updateCtxPreview();
+      if (cropper) {
+        var d = cropper.getData(true);
+        updateCtxPreview(buildCropUrl(d.x, d.y, d.width, d.height));
+      }
     });
   });
 
   // ── Save ──
   window.meSave = function() {
+    if (!cropper) return;
+    var d = cropper.getData(true);
     var btn = document.getElementById('me-save-btn');
     btn.textContent = '⏳ Guardando...'; btn.disabled = true;
     fetch(SAVE_URL, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-      body: JSON.stringify({
-        img_gravity: curG, img_ratio: curR,
-        img_zoom: curZ, img_x: curX, img_y: curY,
-        img_crop: curCrop, img_bg: curBg
-      })
-    }).then(function(r){return r.json();}).then(function(d){
-      btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
-      showStatus(d.status === 'ok' ? '✅ Guardado correctamente' : '❌ Error: '+(d.error||'?'),
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ img_x: d.x, img_y: d.y, img_crop_w: d.width, img_crop_h: d.height })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      btn.textContent = '💾 Guardar recorte'; btn.disabled = false;
+      showStatus(d.status === 'ok' ? '✅ Recorte guardado' : '❌ Error: ' + (d.error || '?'),
                  d.status === 'ok' ? 'ok' : 'err');
-    }).catch(function(){
-      btn.textContent = '💾 Guardar cambios'; btn.disabled = false;
+    }).catch(function() {
+      btn.textContent = '💾 Guardar recorte'; btn.disabled = false;
       showStatus('❌ Error de red', 'err');
-    });
-  };
-
-  window.meDelImg = function() {
-    if (!confirm('¿Eliminar la imagen?\n\nEsto borra la URL del campo. No se puede deshacer.')) return;
-    fetch(DEL_IMG_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-      body: '{}'
-    }).then(function(r){return r.json();}).then(function(d){
-      if (d.status === 'ok') {
-        showStatus('✅ Imagen eliminada. Redirigiendo...', 'ok');
-        setTimeout(function(){ window.location.href = window.location.href; }, 1800);
-      } else { showStatus('❌ '+(d.error||'Error'), 'err'); }
-    });
-  };
-
-  window.meDelVid = function() {
-    if (!confirm('¿Eliminar el video?\n\nEsto borra la URL del campo. No se puede deshacer.')) return;
-    fetch(DEL_VID_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-      body: '{}'
-    }).then(function(r){return r.json();}).then(function(d){
-      if (d.status === 'ok') {
-        showStatus('✅ Video eliminado. Redirigiendo...', 'ok');
-        setTimeout(function(){ window.location.href = window.location.href; }, 1800);
-      } else { showStatus('❌ '+(d.error||'Error'), 'err'); }
     });
   };
 
   function showStatus(msg, type) {
     $status.textContent = msg;
     $status.className = 'me-status ' + type;
-    setTimeout(function(){ $status.className = 'me-status'; }, 5000);
+    setTimeout(function() { $status.className = 'me-status'; }, 5000);
   }
-
-  // ── Init ──
-  $zoomV.textContent = curZ.toFixed(2) + 'x';
-  if (curBg) setBg(curBg);
-  setCropMode(curCrop);
 })();
 </script>
 {% endblock %}

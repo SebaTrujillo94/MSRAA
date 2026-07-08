@@ -627,10 +627,7 @@ class MediaEditorMixin(CloudinaryUploadMixin):
         if video_url and hasattr(obj, 'get_video_embed_url'):
             embed_url = obj.get_video_embed_url() or ''
 
-        from .models import _GRAVITY_CHOICES, _RATIO_CHOICES, _CROP_MODE_CHOICES
-        current_crop = getattr(obj, 'img_crop', 'fill') or 'fill'
-        if current_crop not in {'fill', 'fit'}:
-            current_crop = 'fill'
+        from .models import _RATIO_CHOICES
         ctx = dict(
             self.admin_site.each_context(request),
             title=f'Editor de Medios — {obj}',
@@ -641,24 +638,17 @@ class MediaEditorMixin(CloudinaryUploadMixin):
             image_url=image_url,
             video_url=video_url,
             embed_url=embed_url,
-            img_gravity=getattr(obj, 'img_gravity', 'auto') or 'auto',
-            img_ratio=getattr(obj, 'img_ratio', '') or '',
-            img_zoom=float(getattr(obj, 'img_zoom', 1.0) or 1.0),
             img_x=int(getattr(obj, 'img_x', 0) or 0),
             img_y=int(getattr(obj, 'img_y', 0) or 0),
-            img_crop=current_crop,
-            img_bg=getattr(obj, 'img_bg', '') or '',
-            crop_mode_choices=_CROP_MODE_CHOICES,
+            img_crop_w=int(getattr(obj, 'img_crop_w', 0) or 0),
+            img_crop_h=int(getattr(obj, 'img_crop_h', 0) or 0),
             ctx_top=ctx_top,
             obj_year=obj_year,
             change_url=f'/admin/core/{mn}/{pk}/change/',
             save_url=f'/admin/core/{mn}/{pk}/save-media-crop/',
             del_img_url=f'/admin/core/{mn}/{pk}/delete-media-image/',
             del_vid_url=f'/admin/core/{mn}/{pk}/delete-media-video/',
-            gravity_choices=_GRAVITY_CHOICES,
             ratio_choices=_RATIO_CHOICES,
-            gravity_grid=_GRAVITY_CHOICES_ADMIN,
-            special_gravity=_SPECIAL_GRAVITY_ADMIN,
             has_image=bool(image_url and 'res.cloudinary.com' in image_url),
             has_video=bool(video_url),
         )
@@ -674,22 +664,14 @@ class MediaEditorMixin(CloudinaryUploadMixin):
         try:
             data = json.loads(request.body)
             update = {}
-            for field in ('img_gravity', 'img_ratio'):
-                if field in data:
-                    update[field] = str(data[field])
-            if 'img_zoom' in data:
-                update['img_zoom'] = round(float(data['img_zoom']), 2)
             if 'img_x' in data:
                 update['img_x'] = int(data['img_x'])
             if 'img_y' in data:
                 update['img_y'] = int(data['img_y'])
-            _valid_crops = {'fill', 'fit'}
-            if 'img_crop' in data:
-                val = str(data['img_crop'])
-                if val in _valid_crops:
-                    update['img_crop'] = val
-            if 'img_bg' in data:
-                update['img_bg'] = str(data['img_bg'])[:30]
+            if 'img_crop_w' in data:
+                update['img_crop_w'] = max(0, int(data['img_crop_w']))
+            if 'img_crop_h' in data:
+                update['img_crop_h'] = max(0, int(data['img_crop_h']))
             self.model.objects.filter(pk=pk).update(**update)
             return JsonResponse({'status': 'ok'})
         except Exception as e:

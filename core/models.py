@@ -111,6 +111,15 @@ def _cloudinary_img(url, gravity='auto', ratio='', zoom=None, x=0, y=0, crop='fi
     return url.replace('/upload/', f'/upload/{",".join(parts)}/', 1)
 
 
+def _cloudinary_crop(url, x, y, w, h):
+    if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
+        return url
+    if 'f_auto' in url or 'q_auto' in url:
+        return url
+    parts = f'c_crop,f_auto,q_auto:good,x_{x},y_{y},w_{w},h_{h}'
+    return url.replace('/upload/', f'/upload/{parts}/', 1)
+
+
 class SiteConfiguration(SingletonModel):
     site_title = models.CharField(max_length=200, default="MSRAA — Estudio de Arquitectura", verbose_name="Título del sitio")
     tagline = models.CharField(max_length=200, default="MSRAA", verbose_name="Eslogan")
@@ -315,6 +324,8 @@ class MediaItem(models.Model):
         verbose_name='Color de fondo',
         help_text='Solo para pad. Ej: white, black, auto:border, rgb:FF0000',
     )
+    img_crop_w = models.PositiveIntegerField(default=0, verbose_name='Ancho recorte (px)')
+    img_crop_h = models.PositiveIntegerField(default=0, verbose_name='Alto recorte (px)')
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -329,16 +340,12 @@ class MediaItem(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _cloudinary_img(
-                _resolve_media_url(self.image_url),
-                gravity=self.img_gravity or 'auto',
-                ratio=self.img_ratio or '',
-                zoom=self.img_zoom,
-                x=self.img_x or 0,
-                y=self.img_y or 0,
-                crop=self.img_crop or 'fill',
-                bg=self.img_bg or '',
-            )
+            url = _resolve_media_url(self.image_url)
+            if self.img_crop_w and self.img_crop_h:
+                return _cloudinary_crop(url, self.img_x or 0, self.img_y or 0, self.img_crop_w, self.img_crop_h)
+            return _cloudinary_img(url, gravity=self.img_gravity or 'auto', ratio=self.img_ratio or '',
+                                   zoom=self.img_zoom, x=self.img_x or 0, y=self.img_y or 0,
+                                   crop=self.img_crop or 'fill', bg=self.img_bg or '')
         return self.image.url if self.image else ''
 
     def get_video_embed_url(self):
@@ -642,6 +649,8 @@ class PortfolioProject(models.Model):
         verbose_name='Color de fondo',
         help_text='Solo para pad. Ej: white, black, auto:border, rgb:FF0000',
     )
+    img_crop_w = models.PositiveIntegerField(default=0, verbose_name='Ancho recorte (px)')
+    img_crop_h = models.PositiveIntegerField(default=0, verbose_name='Alto recorte (px)')
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -659,16 +668,12 @@ class PortfolioProject(models.Model):
 
     def get_hero_image_src(self):
         if self.hero_image_url:
-            return _cloudinary_img(
-                _resolve_media_url(self.hero_image_url),
-                gravity=self.img_gravity or 'auto',
-                ratio=self.img_ratio or '',
-                zoom=self.img_zoom,
-                x=self.img_x or 0,
-                y=self.img_y or 0,
-                crop=self.img_crop or 'fill',
-                bg=self.img_bg or '',
-            )
+            url = _resolve_media_url(self.hero_image_url)
+            if self.img_crop_w and self.img_crop_h:
+                return _cloudinary_crop(url, self.img_x or 0, self.img_y or 0, self.img_crop_w, self.img_crop_h)
+            return _cloudinary_img(url, gravity=self.img_gravity or 'auto', ratio=self.img_ratio or '',
+                                   zoom=self.img_zoom, x=self.img_x or 0, y=self.img_y or 0,
+                                   crop=self.img_crop or 'fill', bg=self.img_bg or '')
         return self.hero_image.url if self.hero_image else ''
 
     def get_video_embed_url(self):
@@ -721,6 +726,8 @@ class PortfolioProjectImage(models.Model):
     img_y = models.IntegerField(default=0, verbose_name='Ajuste Y')
     img_crop = models.CharField(max_length=10, choices=_CROP_MODE_CHOICES, default='fill', blank=True, verbose_name='Modo de recorte')
     img_bg = models.CharField(max_length=30, default='', blank=True, verbose_name='Color de fondo')
+    img_crop_w = models.PositiveIntegerField(default=0, verbose_name='Ancho recorte (px)')
+    img_crop_h = models.PositiveIntegerField(default=0, verbose_name='Alto recorte (px)')
 
     class Meta:
         ordering = ['order']
@@ -729,16 +736,12 @@ class PortfolioProjectImage(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _cloudinary_img(
-                _resolve_media_url(self.image_url),
-                gravity=self.img_gravity or 'auto',
-                ratio=self.img_ratio or '',
-                zoom=self.img_zoom,
-                x=self.img_x or 0,
-                y=self.img_y or 0,
-                crop=self.img_crop or 'fill',
-                bg=self.img_bg or '',
-            )
+            url = _resolve_media_url(self.image_url)
+            if self.img_crop_w and self.img_crop_h:
+                return _cloudinary_crop(url, self.img_x or 0, self.img_y or 0, self.img_crop_w, self.img_crop_h)
+            return _cloudinary_img(url, gravity=self.img_gravity or 'auto', ratio=self.img_ratio or '',
+                                   zoom=self.img_zoom, x=self.img_x or 0, y=self.img_y or 0,
+                                   crop=self.img_crop or 'fill', bg=self.img_bg or '')
         return self.image.url if self.image else ''
 
     def __str__(self):
