@@ -156,7 +156,7 @@ def index(request):
             'desc': _tf(p, 'description', is_en),
             'videoUrl': p.get_video_embed_url(),
             'images': [
-                {'url': img.get_image_src(), 'size': img.size}
+                {'url': img.get_image_src()}
                 for img in p.images.all() if img.get_image_src()
             ],
         })
