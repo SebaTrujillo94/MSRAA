@@ -524,10 +524,11 @@ class CloudinaryUploadMixin:
               btn.disabled=true;btn.textContent='⏳ Subiendo...';st.textContent='';
               var csrf=document.querySelector('[name=csrfmiddlewaretoken]').value;
               fetch('{upload_path}',{{method:'POST',headers:{{'Content-Type':'application/json','X-CSRFToken':csrf}},body:JSON.stringify({{url:url}})}})
-              .then(r=>r.json()).then(d=>{{
+              .then(r=>{{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}})
+              .then(d=>{{
                 if(d.url){{f.value=d.url;st.style.color='green';st.textContent='✅ Subido';btn.textContent='{icon} {label}';btn.disabled=false;}}
-                else{{st.style.color='#c00';st.textContent='❌ '+d.error;btn.disabled=false;btn.textContent='{icon} {label}';}}
-              }}).catch(()=>{{st.style.color='#c00';st.textContent='❌ Error de red';btn.disabled=false;btn.textContent='{icon} {label}';}});
+                else{{st.style.color='#c00';st.textContent='❌ '+(d.error||'Error');btn.disabled=false;btn.textContent='{icon} {label}';}}
+              }}).catch(err=>{{st.style.color='#c00';st.textContent='❌ '+(err.message||'Error de red');btn.disabled=false;btn.textContent='{icon} {label}';}});
             }}
             </script>''',
             slug=slug, icon=icon, label=label, note=note,

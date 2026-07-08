@@ -225,6 +225,12 @@
   var OH       = {{ img_crop_h }};
   var SAVE_URL = "{{ save_url }}";
   var CSRF     = "{{ csrf_token }}";
+  function getCsrf() {
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
+    var el = document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : CSRF;
+  }
   var HAS_IMG  = {{ has_image|yesno:"true,false" }};
 
   var $genurl  = document.getElementById('me-genurl');
@@ -233,6 +239,7 @@
   var $imgEl   = document.getElementById('me-crop-img');
   var curCtx   = 'card';
   var cropper  = null;
+  var rawUrl   = HAS_IMG ? strip(IMG_URL) : '';
 
   // ── strip Cloudinary transforms from URL ──
   function strip(url) {
@@ -267,14 +274,20 @@
   }
 
   function updateCtxPreview(purl) {
-    if (!purl) return;
+    var url = purl || rawUrl || '';
+    if (!url) return;
     var $ci = document.getElementById('me-ctx-' + curCtx + '-img');
-    if ($ci) { $ci.src = purl; $ci.style.display = 'block'; }
+    if ($ci) { $ci.src = url; $ci.style.display = 'block'; }
   }
 
   // ── Init Cropper.js ──
   if (HAS_IMG) {
-    $imgEl.src = strip(IMG_URL);
+    // Show original image in all context previews immediately while Cropper.js loads
+    ['card', 'hero', 'sq'].forEach(function(k) {
+      var ci = document.getElementById('me-ctx-' + k + '-img');
+      if (ci) { ci.src = rawUrl; ci.style.display = 'block'; }
+    });
+    $imgEl.src = rawUrl;
     cropper = new Cropper($imgEl, {
       viewMode: 1,
       autoCropArea: 1,
@@ -287,10 +300,10 @@
         if (OW > 0 && OH > 0) {
           cropper.setData({ x: OX, y: OY, width: OW, height: OH });
         }
-        onCropChange();
+        // Delay so Cropper has fully committed crop box dimensions
+        setTimeout(onCropChange, 80);
       },
       cropend: onCropChange,
-      crop: null,
     });
   } else {
     if ($imgEl) $imgEl.style.display = 'none';
@@ -336,15 +349,19 @@
     btn.textContent = '⏳ Guardando...'; btn.disabled = true;
     fetch(SAVE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
       body: JSON.stringify({ img_x: d.x, img_y: d.y, img_crop_w: d.width, img_crop_h: d.height })
-    }).then(function(r) { return r.json(); }).then(function(d) {
+    }).then(function(r) {
+      if (r.status === 403) throw new Error('Sin permiso (403) — inicia sesión de nuevo');
+      if (!r.ok) throw new Error('Error servidor HTTP ' + r.status);
+      return r.json();
+    }).then(function(data) {
       btn.textContent = '💾 Guardar recorte'; btn.disabled = false;
-      showStatus(d.status === 'ok' ? '✅ Recorte guardado' : '❌ Error: ' + (d.error || '?'),
-                 d.status === 'ok' ? 'ok' : 'err');
-    }).catch(function() {
+      showStatus(data.status === 'ok' ? '✅ Recorte guardado' : '❌ ' + (data.error || 'Error'),
+                 data.status === 'ok' ? 'ok' : 'err');
+    }).catch(function(err) {
       btn.textContent = '💾 Guardar recorte'; btn.disabled = false;
-      showStatus('❌ Error de red', 'err');
+      showStatus('❌ ' + (err.message || 'Error de red'), 'err');
     });
   };
 
