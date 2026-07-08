@@ -472,7 +472,20 @@ class CloudinaryUploadMixin:
             '.then(function(r){return r.json();})'
             '.then(function(d){'
             'btn.textContent=lbl;btn.disabled=false;'
-            'if(d.url){inp.value=d.url;st.style.color="green";st.textContent="✅";setTimeout(function(){st.textContent="";},3000);}'
+            'if(d.url){'
+            'inp.value=d.url;st.style.color="green";st.textContent="✅";setTimeout(function(){st.textContent="";},3000);'
+            'if(!isVid&&d.url.indexOf("res.cloudinary.com")>=0){'
+            'var row=inp.closest("tr")||inp.closest(".dynamic-form");'
+            'if(row){'
+            'var pkInp=row.querySelector("input[name$=\\"-id\\"]");'
+            'var edCell=row.querySelector(".inline-editor-cell[data-pk]");'
+            'var pk=edCell?edCell.getAttribute("data-pk"):(pkInp?pkInp.value:"");'
+            'var mn=edCell?edCell.getAttribute("data-mn"):(inp.name.split("_set-")[0]||"");'
+            'if(pk&&mn){'
+            'var edSpan=row.querySelector(".inline-editor-cell");'
+            'if(edSpan){edSpan.innerHTML="<a href=\'/admin/core/"+mn+"/"+pk+"/media-editor/\' target=\'_blank\' style=\'display:inline-block;padding:4px 10px;background:#142040;color:#70b0f0;border:1px solid #2a4080;border-radius:4px;font-size:11px;font-weight:700;text-decoration:none\'>✏️ Editar</a>";}'
+            '}}}'
+            '}'
             'else{st.style.color="#c00";st.textContent="❌ "+(d.error||"Error");}'
             '}).catch(function(){btn.textContent=lbl;btn.disabled=false;st.style.color="#c00";st.textContent="❌ Red";});'
             '};'
@@ -730,15 +743,16 @@ class PortfolioProjectImageInline(admin.TabularInline):
 
     def image_editor_btn(self, obj):
         if not obj.pk:
-            return mark_safe('<span style="color:#506080;font-size:11px">Guarda primero</span>')
+            return mark_safe('<span class="inline-editor-cell" style="color:#506080;font-size:11px">Guarda primero</span>')
         has_cld = obj.image_url and 'res.cloudinary.com' in obj.image_url
         if not has_cld:
-            return mark_safe('<span style="color:#506080;font-size:11px">↑ Sube a Cloudinary</span>')
+            return mark_safe(f'<span class="inline-editor-cell" data-pk="{obj.pk}" data-mn="portfolioprojectimage" style="color:#506080;font-size:11px">↑ Sube a Cloudinary</span>')
         url = f'/admin/core/portfolioprojectimage/{obj.pk}/media-editor/'
         return mark_safe(
+            f'<span class="inline-editor-cell">'
             f'<a href="{url}" target="_blank" style="display:inline-block;padding:4px 10px;'
             f'background:#142040;color:#70b0f0;border:1px solid #2a4080;border-radius:4px;'
-            f'font-size:11px;font-weight:700;text-decoration:none">✏️ Editar</a>'
+            f'font-size:11px;font-weight:700;text-decoration:none">✏️ Editar</a></span>'
         )
     image_editor_btn.short_description = 'Editor'
 
