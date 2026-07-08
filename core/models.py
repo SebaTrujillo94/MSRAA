@@ -710,13 +710,17 @@ class ContactSubmission(models.Model):
 
 
 class PortfolioProjectImage(models.Model):
-    SIZE_CHOICES = [('large', 'Grande'), ('small', 'Pequeña')]
-
     project = models.ForeignKey(PortfolioProject, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='portfolio/images/', blank=True, null=True, max_length=500)
     image_url = models.URLField(blank=True, max_length=500, verbose_name='URL de imagen', help_text='URL directa, Dropbox o Drive (alternativa a subir archivo)')
-    size = models.CharField(max_length=10, choices=SIZE_CHOICES, default='large')
     order = models.PositiveIntegerField(default=0)
+    img_gravity = models.CharField(max_length=20, choices=_GRAVITY_CHOICES, default='auto', blank=True, verbose_name='Punto de enfoque')
+    img_ratio = models.CharField(max_length=10, choices=_RATIO_CHOICES, default='', blank=True, verbose_name='Proporción')
+    img_zoom = models.DecimalField(max_digits=4, decimal_places=2, default=1.0, verbose_name='Zoom')
+    img_x = models.IntegerField(default=0, verbose_name='Ajuste X')
+    img_y = models.IntegerField(default=0, verbose_name='Ajuste Y')
+    img_crop = models.CharField(max_length=10, choices=_CROP_MODE_CHOICES, default='fill', blank=True, verbose_name='Modo de recorte')
+    img_bg = models.CharField(max_length=30, default='', blank=True, verbose_name='Color de fondo')
 
     class Meta:
         ordering = ['order']
@@ -725,7 +729,16 @@ class PortfolioProjectImage(models.Model):
 
     def get_image_src(self):
         if self.image_url:
-            return _cloudinary_img(_resolve_media_url(self.image_url))
+            return _cloudinary_img(
+                _resolve_media_url(self.image_url),
+                gravity=self.img_gravity or 'auto',
+                ratio=self.img_ratio or '',
+                zoom=self.img_zoom,
+                x=self.img_x or 0,
+                y=self.img_y or 0,
+                crop=self.img_crop or 'fill',
+                bg=self.img_bg or '',
+            )
         return self.image.url if self.image else ''
 
     def __str__(self):

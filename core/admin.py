@@ -615,6 +615,9 @@ class MediaEditorMixin(CloudinaryUploadMixin):
             embed_url = obj.get_video_embed_url() or ''
 
         from .models import _GRAVITY_CHOICES, _RATIO_CHOICES, _CROP_MODE_CHOICES
+        current_crop = getattr(obj, 'img_crop', 'fill') or 'fill'
+        if current_crop not in {'fill', 'fit'}:
+            current_crop = 'fill'
         ctx = dict(
             self.admin_site.each_context(request),
             title=f'Editor de Medios — {obj}',
@@ -630,7 +633,7 @@ class MediaEditorMixin(CloudinaryUploadMixin):
             img_zoom=float(getattr(obj, 'img_zoom', 1.0) or 1.0),
             img_x=int(getattr(obj, 'img_x', 0) or 0),
             img_y=int(getattr(obj, 'img_y', 0) or 0),
-            img_crop=getattr(obj, 'img_crop', 'fill') or 'fill',
+            img_crop=current_crop,
             img_bg=getattr(obj, 'img_bg', '') or '',
             crop_mode_choices=_CROP_MODE_CHOICES,
             ctx_top=ctx_top,
@@ -667,7 +670,7 @@ class MediaEditorMixin(CloudinaryUploadMixin):
                 update['img_x'] = int(data['img_x'])
             if 'img_y' in data:
                 update['img_y'] = int(data['img_y'])
-            _valid_crops = {'fill', 'fit', 'pad', 'scale'}
+            _valid_crops = {'fill', 'fit'}
             if 'img_crop' in data:
                 val = str(data['img_crop'])
                 if val in _valid_crops:
@@ -722,7 +725,22 @@ class MediaEditorMixin(CloudinaryUploadMixin):
 class PortfolioProjectImageInline(admin.TabularInline):
     model = PortfolioProjectImage
     extra = 2
-    fields = ['image', 'image_url', 'size', 'order']
+    readonly_fields = ['image_editor_btn']
+    fields = ['image', 'image_url', 'image_editor_btn', 'order']
+
+    def image_editor_btn(self, obj):
+        if not obj.pk:
+            return mark_safe('<span style="color:#506080;font-size:11px">Guarda primero</span>')
+        has_cld = obj.image_url and 'res.cloudinary.com' in obj.image_url
+        if not has_cld:
+            return mark_safe('<span style="color:#506080;font-size:11px">↑ Sube a Cloudinary</span>')
+        url = f'/admin/core/portfolioprojectimage/{obj.pk}/media-editor/'
+        return mark_safe(
+            f'<a href="{url}" target="_blank" style="display:inline-block;padding:4px 10px;'
+            f'background:#142040;color:#70b0f0;border:1px solid #2a4080;border-radius:4px;'
+            f'font-size:11px;font-weight:700;text-decoration:none">✏️ Editar</a>'
+        )
+    image_editor_btn.short_description = 'Editor'
 
 
 @admin.register(SiteConfiguration)
@@ -880,6 +898,21 @@ class ClientLogoAdmin(admin.ModelAdmin):
 class PortfolioCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'name_en', 'slug', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(PortfolioProjectImage)
+class PortfolioProjectImageAdmin(MediaEditorMixin, admin.ModelAdmin):
+    cld_image_field = 'image_url'
+    cld_folder = 'msraa/portfolio'
+    editor_image_field = 'image_url'
+    editor_video_field = None
+    list_display = ['__str__', 'project', 'img_crop', 'order']
+    list_filter = ['project']
+    readonly_fields = ['cloudinary_image_btn', 'media_editor_btn']
+    fields = ['project', 'image', 'image_url', 'cloudinary_image_btn', 'media_editor_btn', 'img_crop', 'img_gravity', 'img_ratio', 'img_zoom', 'img_x', 'img_y', 'img_bg', 'order']
+
+    def save_model(self, request, obj, form, change):
+        _safe_save(self, request, obj, form, change)
 
 
 @admin.register(PortfolioProject)
