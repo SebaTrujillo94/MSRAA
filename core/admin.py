@@ -720,9 +720,24 @@ class MediaEditorMixin(CloudinaryUploadMixin):
 
 class PortfolioProjectImageInline(admin.TabularInline):
     model = PortfolioProjectImage
-    extra = 2
-    readonly_fields = ['image_editor_btn']
-    fields = ['image', 'image_url', 'image_editor_btn', 'order']
+    extra = 1
+    readonly_fields = ['img_thumb', 'image_editor_btn']
+    fields = ['img_thumb', 'image_url', 'image_editor_btn', 'order']
+
+    def img_thumb(self, obj):
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            return format_html(
+                '<img src="{}" style="height:56px;width:84px;object-fit:cover;border-radius:4px;border:1px solid #ccc">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb;font-size:10px">Sin imagen</span>')
+    img_thumb.short_description = '📷'
 
     def image_editor_btn(self, obj):
         if not obj.pk:
@@ -903,13 +918,63 @@ class PortfolioProjectImageAdmin(MediaEditorMixin, admin.ModelAdmin):
     cld_folder = 'msraa/portfolio'
     editor_image_field = 'image_url'
     editor_video_field = None
-    list_display = ['__str__', 'project', 'img_crop', 'order']
+    list_display = ['img_thumb_list', 'project', 'order']
     list_filter = ['project']
-    readonly_fields = ['cloudinary_image_btn', 'media_editor_btn']
-    fields = ['project', 'image', 'image_url', 'cloudinary_image_btn', 'media_editor_btn', 'img_crop', 'img_gravity', 'img_ratio', 'img_zoom', 'img_x', 'img_y', 'img_bg', 'order']
+    readonly_fields = ['img_thumb_detail', 'cloudinary_image_btn', 'media_editor_btn']
+    fieldsets = [
+        ('Información', {'fields': ['project', 'order']}),
+        ('🖼️ Imagen', {'fields': [
+            'img_thumb_detail',
+            'image_url', 'cloudinary_image_btn', 'media_editor_btn',
+        ]}),
+        ('✂️ Recorte (automático desde editor)', {
+            'fields': ['img_x', 'img_y', 'img_crop_w', 'img_crop_h'],
+            'classes': ('collapse',),
+        }),
+    ]
 
     def save_model(self, request, obj, form, change):
         _safe_save(self, request, obj, form, change)
+
+    @admin.display(description='📷')
+    def img_thumb_list(self, obj):
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            return format_html(
+                '<img src="{}" style="height:40px;width:60px;object-fit:cover;border-radius:3px;border:1px solid #ccc">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb">—</span>')
+
+    @admin.display(description='Vista actual')
+    def img_thumb_detail(self, obj):
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            is_cld = 'res.cloudinary.com' in src
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="max-height:180px;max-width:400px;object-fit:cover;'
+                'border-radius:5px;border:1px solid #ddd;display:block">'
+                '<div style="margin-top:4px;font-size:11px;color:{}">{}</div>'
+                '</div>',
+                src,
+                '#40a060' if is_cld else '#e8a020',
+                '✅ En Cloudinary' if is_cld else '⚠️ URL externa',
+            )
+        return format_html(
+            '<div style="padding:10px;background:#fff8e1;border-radius:4px;border:1px solid #f0d060;'
+            'font-size:12px;color:#a07020">⚠️ Sin imagen — ingresa URL y sube a Cloudinary</div>'
+        )
 
 
 @admin.register(PortfolioProject)
@@ -923,14 +988,24 @@ class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     inlines = [PortfolioProjectImageInline]
-    readonly_fields = ['cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn', 'inline_cloudinary_btns']
-    fields = [
-        'title', 'title_en', 'category', 'year', 'location', 'location_en',
-        'description', 'description_en',
-        'hero_image', 'hero_image_url', 'cloudinary_image_btn', 'media_editor_btn',
-        'video_url', 'cloudinary_video_btn',
-        'inline_cloudinary_btns',
-        'order', 'is_active',
+    readonly_fields = ['hero_preview', 'cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn', 'inline_cloudinary_btns']
+    fieldsets = [
+        ('📝 Información', {'fields': [
+            'title', 'title_en', 'category', 'year', 'location', 'location_en',
+            'description', 'description_en',
+        ]}),
+        ('🖼️ Imagen Principal (Hero)', {'fields': [
+            'hero_preview',
+            'hero_image_url', 'cloudinary_image_btn', 'media_editor_btn',
+        ]}),
+        ('🎬 Video Principal', {'fields': [
+            'video_url', 'cloudinary_video_btn',
+        ]}),
+        ('📸 Galería de Imágenes', {
+            'fields': ['inline_cloudinary_btns'],
+            'description': 'Las imágenes de la galería se administran en la sección de abajo. Los botones "Subir" aparecen junto a cada URL.',
+        }),
+        ('⚙️ Publicación', {'fields': ['order', 'is_active']}),
     ]
     actions = ['make_active', 'make_inactive']
 
@@ -945,11 +1020,58 @@ class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
     def make_inactive(self, request, queryset):
         queryset.update(is_active=False)
 
+    @admin.display(description='Vista actual — Imagen Hero')
+    def hero_preview(self, obj):
+        src = (getattr(obj, 'hero_image_url', '') or '') if obj.pk else ''
+        if not src and obj.pk:
+            img = getattr(obj, 'hero_image', None)
+            if img:
+                try:
+                    src = img.url
+                except Exception:
+                    pass
+        if src:
+            is_cld = 'res.cloudinary.com' in src
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="max-height:200px;max-width:480px;object-fit:cover;'
+                'border-radius:6px;border:1px solid #ddd;display:block">'
+                '<div style="margin-top:5px;font-size:11px;color:{}">{}</div>'
+                '</div>',
+                src,
+                '#40a060' if is_cld else '#e8a020',
+                '✅ En Cloudinary — usa Editor de Recorte para ajustar' if is_cld
+                else '⚠️ URL externa — sube a Cloudinary para mejor rendimiento',
+            )
+        if not obj.pk:
+            return mark_safe('<span style="color:#aaa;font-size:11px">Guarda el registro primero</span>')
+        return format_html(
+            '<div style="padding:12px;background:#fff8e1;border-radius:5px;border:1px solid #f0d060;font-size:12px;color:#a07020">'
+            '⚠️ Sin imagen hero. Ingresa una URL arriba y usa "Subir imagen a Cloudinary".'
+            '</div>'
+        )
+
 
 class CurriculumItemImageInline(admin.TabularInline):
     model = CurriculumItemImage
-    extra = 2
-    fields = ['image', 'image_url', 'caption', 'order']
+    extra = 1
+    readonly_fields = ['img_thumb']
+    fields = ['img_thumb', 'image_url', 'caption', 'order']
+
+    def img_thumb(self, obj):
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            return format_html(
+                '<img src="{}" style="height:56px;width:84px;object-fit:cover;border-radius:4px;border:1px solid #ccc">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb;font-size:10px">Sin imagen</span>')
+    img_thumb.short_description = '📷'
 
 
 @admin.register(CurriculumItem)
@@ -962,12 +1084,19 @@ class CurriculumItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
     list_filter = ['category', 'is_active']
     ordering = ['category', 'order']
     readonly_fields = ['cloudinary_video_btn', 'inline_cloudinary_btns']
-    fields = [
-        'category', 'year', 'title', 'title_en', 'subtitle', 'subtitle_en',
-        'url', 'url_label', 'url_label_en',
-        'video_url', 'cloudinary_video_btn',
-        'inline_cloudinary_btns',
-        'order', 'is_active',
+    fieldsets = [
+        ('📝 Información', {'fields': [
+            'category', 'year', 'title', 'title_en', 'subtitle', 'subtitle_en',
+            'url', 'url_label', 'url_label_en',
+        ]}),
+        ('🎬 Video', {'fields': [
+            'video_url', 'cloudinary_video_btn',
+        ]}),
+        ('📸 Imágenes', {
+            'fields': ['inline_cloudinary_btns'],
+            'description': 'Las imágenes se gestionan en la galería de abajo. Los botones "Subir" aparecen junto a cada URL.',
+        }),
+        ('⚙️ Publicación', {'fields': ['order', 'is_active']}),
     ]
     actions = ['make_active', 'make_inactive']
 
@@ -982,8 +1111,24 @@ class CurriculumItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
 
 class MediaItemImageInline(admin.TabularInline):
     model = MediaItemImage
-    extra = 2
-    fields = ['image', 'image_url', 'caption', 'order']
+    extra = 1
+    readonly_fields = ['img_thumb']
+    fields = ['img_thumb', 'image_url', 'caption', 'order']
+
+    def img_thumb(self, obj):
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            return format_html(
+                '<img src="{}" style="height:56px;width:84px;object-fit:cover;border-radius:4px;border:1px solid #ccc">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb;font-size:10px">Sin imagen</span>')
+    img_thumb.short_description = '📷'
 
 
 class MediaItemSectionInline(admin.TabularInline):
@@ -1012,14 +1157,24 @@ class MediaItemAdmin(MediaEditorMixin, admin.ModelAdmin):
     list_display_links = ['img_preview', 'title']
     ordering = ['-year', 'order']
     readonly_fields = ['img_preview_large', 'cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn', 'inline_cloudinary_btns']
-    fields = [
-        'tipo', 'year', 'title', 'title_en',
-        'description', 'description_en',
-        'image', 'image_url', 'img_preview_large', 'cloudinary_image_btn', 'media_editor_btn',
-        'url', 'url_label', 'url_label_en',
-        'video_url', 'cloudinary_video_btn',
-        'inline_cloudinary_btns',
-        'order', 'is_active',
+    fieldsets = [
+        ('📝 Información', {'fields': [
+            'tipo', 'year', 'title', 'title_en',
+            'description', 'description_en',
+            'url', 'url_label', 'url_label_en',
+        ]}),
+        ('🖼️ Imagen de Portada', {'fields': [
+            'img_preview_large',
+            'image_url', 'cloudinary_image_btn', 'media_editor_btn',
+        ]}),
+        ('🎬 Video Principal', {'fields': [
+            'video_url', 'cloudinary_video_btn',
+        ]}),
+        ('📸 Galería de Imágenes', {
+            'fields': ['inline_cloudinary_btns'],
+            'description': 'Las imágenes de la galería se gestionan abajo. Los botones "Subir" aparecen junto a cada URL.',
+        }),
+        ('⚙️ Publicación', {'fields': ['order', 'is_active']}),
     ]
     actions = ['make_active', 'make_inactive']
 
@@ -1036,17 +1191,47 @@ class MediaItemAdmin(MediaEditorMixin, admin.ModelAdmin):
 
     @admin.display(description='Imagen')
     def img_preview(self, obj):
-        from django.utils.html import format_html
-        if obj.image:
-            return format_html('<img src="{}" style="height:40px;width:60px;object-fit:cover;border-radius:3px">', obj.image.url)
-        return '—'
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            return format_html(
+                '<img src="{}" style="height:40px;width:60px;object-fit:cover;border-radius:3px">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb">—</span>')
 
-    @admin.display(description='Vista previa')
+    @admin.display(description='Vista actual — Imagen de Portada')
     def img_preview_large(self, obj):
-        from django.utils.html import format_html
-        if obj.image:
-            return format_html('<img src="{}" style="max-height:200px;max-width:400px;object-fit:cover;border-radius:4px;margin-top:8px">', obj.image.url)
-        return '—'
+        src = (obj.image_url or '') if obj.pk else ''
+        if not src and obj.pk and obj.image:
+            try:
+                src = obj.image.url
+            except Exception:
+                pass
+        if src:
+            is_cld = 'res.cloudinary.com' in src
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="max-height:200px;max-width:480px;object-fit:cover;'
+                'border-radius:6px;border:1px solid #ddd;display:block">'
+                '<div style="margin-top:5px;font-size:11px;color:{}">{}</div>'
+                '</div>',
+                src,
+                '#40a060' if is_cld else '#e8a020',
+                '✅ En Cloudinary — usa Editor de Recorte para ajustar' if is_cld
+                else '⚠️ URL externa — sube a Cloudinary para mejor rendimiento',
+            )
+        if not obj.pk:
+            return mark_safe('<span style="color:#aaa;font-size:11px">Guarda el registro primero</span>')
+        return format_html(
+            '<div style="padding:12px;background:#fff8e1;border-radius:5px;border:1px solid #f0d060;font-size:12px;color:#a07020">'
+            '⚠️ Sin imagen. Ingresa una URL arriba y usa "Subir imagen a Cloudinary".'
+            '</div>'
+        )
 
 
 @admin.register(ContactSubmission)
