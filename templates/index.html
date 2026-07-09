@@ -5395,7 +5395,7 @@
       const _imgPanels = p.images.map((img, i) => {
         const narrow = i % 2 === 1;
         const num = String(i + 1).padStart(2, '0');
-        return `<div class="pd-panel-img${narrow ? ' narrow' : ''}"><img src="${img.url}" alt="${p.title}" loading="lazy"><div class="pd-img-caption">${num} / ${_total}</div></div>`;
+        return `<div class="pd-panel-img${narrow ? ' narrow' : ''}"><img src="${img.url}" alt="${p.title}"><div class="pd-img-caption">${num} / ${_total}</div></div>`;
       });
       const firstImgPanel = _imgPanels[0] || '';
       const restImgPanels = _imgPanels.slice(1).join('');

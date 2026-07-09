@@ -119,7 +119,7 @@ def _dropbox_zip_url(url: str) -> str:
 
 
 def _download_zip(url: str, stdout) -> io.BytesIO:
-    stdout.write(f'⬇️  Descargando ZIP desde Dropbox...')
+    stdout.write('Descargando ZIP desde Dropbox...')
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=300) as resp:
         data = resp.read()
@@ -252,7 +252,7 @@ class Command(BaseCommand):
             start_order = (last or 0) + 1
 
         if dry_run:
-            self.stdout.write(self.style.WARNING('\n--- MODO DRY-RUN: nada será creado ---\n'))
+            self.stdout.write(self.style.WARNING('\n--- MODO DRY-RUN: nada sera creado ---\n'))
 
         # Load project data
         if source.startswith('http'):
@@ -267,7 +267,7 @@ class Command(BaseCommand):
         if not projects:
             raise CommandError('No se encontraron carpetas de proyectos.')
 
-        self.stdout.write(f'\nEncontrados {len(projects)} proyectos.\n')
+        self.stdout.write(f'\nEncontrados {len(projects)} proyectos en el ZIP.\n')
 
         created = errors = 0
 
@@ -287,8 +287,8 @@ class Command(BaseCommand):
                 errors += 1
 
         self.stdout.write('')
-        msg = f'{created} proyectos {"serían importados" if dry_run else "creados"}, {errors} errores.'
-        self.stdout.write(self.style.SUCCESS(f'✅  {msg}') if not errors else self.style.WARNING(f'⚠️  {msg}'))
+        msg = f'{created} proyectos {"serian importados" if dry_run else "creados"}, {errors} errores.'
+        self.stdout.write(self.style.SUCCESS(f'OK  {msg}') if not errors else self.style.WARNING(f'WARN  {msg}'))
 
     def _process(self, folder_name, images, info_bytes, order, default_category, dry_run):
         # Parse metadata
@@ -310,13 +310,13 @@ class Command(BaseCommand):
         images_by_name = {n: d for n, d in images}
 
         self.stdout.write(
-            f'\n📁 {folder_name}\n'
-            f'   Título:    {title}\n'
-            f'   Año:       {year}\n'
-            f'   Ubicación: {location or "—"}\n'
-            f'   Categoría: {category.name if category else "— (sin categoría)"}\n'
-            f'   Hero:      {hero_name or "—"}\n'
-            f'   Galería:   {len(gallery_names)} imágenes\n'
+            f'\n[{folder_name}]\n'
+            f'   Titulo:    {title}\n'
+            f'   Anio:      {year}\n'
+            f'   Ubicacion: {location or "-"}\n'
+            f'   Categoria: {category.name if category else "- (sin categoria)"}\n'
+            f'   Hero:      {hero_name or "-"}\n'
+            f'   Galeria:   {len(gallery_names)} imagenes\n'
             f'   Orden:     {order}'
         )
 
@@ -326,7 +326,7 @@ class Command(BaseCommand):
         # Upload hero
         hero_url = ''
         if hero_name:
-            self.stdout.write(f'   📤 Hero: {hero_name}')
+            self.stdout.write(f'   Upload hero: {hero_name}')
             hero_url = _upload_bytes(images_by_name[hero_name], hero_name, dry_run)
 
         # Create project (is_active=False → review before publishing)
@@ -346,7 +346,7 @@ class Command(BaseCommand):
 
         # Upload gallery
         for j, gname in enumerate(gallery_names, 1):
-            self.stdout.write(f'   📤 [{j}/{len(gallery_names)}] {gname}')
+            self.stdout.write(f'   Upload [{j}/{len(gallery_names)}] {gname}')
             img_url = _upload_bytes(images_by_name[gname], gname, dry_run)
             PortfolioProjectImage.objects.create(
                 project=project,
@@ -354,4 +354,4 @@ class Command(BaseCommand):
                 order=j,
             )
 
-        self.stdout.write(self.style.SUCCESS(f'   ✅ Creado (id={project.pk})'))
+        self.stdout.write(self.style.SUCCESS(f'   OK Creado (id={project.pk})'))
