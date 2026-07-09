@@ -2876,6 +2876,36 @@
       color: var(--accent, #c9a96e);
       font-weight: 300;
     }
+    .pd-ficha {
+      margin: 0.5em 0 1.5em;
+      border-top: 1px solid var(--border);
+    }
+    .pd-ficha-row {
+      display: flex;
+      gap: 1.4em;
+      padding: 0.75em 0;
+      border-bottom: 1px solid var(--border);
+      align-items: baseline;
+    }
+    .pd-ficha dt {
+      font-family: 'Calibri', sans-serif;
+      font-size: 7.5px;
+      font-weight: 400;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted, rgba(255,255,255,0.4));
+      min-width: 130px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .pd-ficha dd {
+      font-family: 'Calibri', sans-serif;
+      font-weight: 300;
+      font-size: clamp(0.88rem, 1.25vw, 1.1rem);
+      line-height: 1.5;
+      color: var(--fg, rgba(255,255,255,0.85));
+      margin: 0;
+    }
     .pd-panel-next {
       width: 62vw;
       height: 100vh;
@@ -5406,37 +5436,82 @@
     /* PROJECT OVERLAY LOGIC (9to5 STUDIO STYLE - REAL MSRAA DATA) */
     const projectData = {{ project_data_json|safe }};
 
+    // Split a concatenated "KEY VALUE" ficha line into [key, value]
+    function _splitFichaLine(line) {
+      // S1: lowercase → uppercase boundary (e.g. "ArquitectoSchmidt")
+      let m = line.match(/^(.+?[a-záéíóúñ])([A-ZÁÉÍÓÚÑ].+)$/u);
+      if (m && m[1].length >= 2 && m[2].length >= 2) return [m[1].trim(), m[2].trim()];
+      // S2: text → digit (e.g. "TERRENO2000 M2", "CONSTRUCCIÓN2013")
+      m = line.match(/^([^\d]+?)\s*(\d.+)$/u);
+      if (m && m[1].trim().length >= 2) return [m[1].trim(), m[2].trim()];
+      // S3: all-caps key ending in Spanish suffix + all-caps value
+      m = line.match(/^([A-ZÁÉÍÓÚÑ ]+?(?:CIÓN|CION|IDAD|ORES|ERAS|ÓN|ION|AD|OR|OS|AS|LO|LA|TO|TE|DO|DA|RO|RA|IO|IA|AL))([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑA-Za-záéíóúñ ,.\d]+)$/u);
+      if (m && m[1].trim().length >= 3 && m[2].trim().length >= 2) return [m[1].trim(), m[2].trim()];
+      return [null, line];
+    }
+
     function _formatDesc(text) {
       if (!text) return '<p>—</p>';
-      // Expand inline list separators "texto.-Siguiente" → newline + dash
       let t = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      // Expand inline list separators "texto.-Siguiente" → newline + dash
       t = t.replace(/\s*\.-\s*/g, '\n- ');
       t = t.replace(/:\s*-\s+/g, ':\n- ');
-      // Split into lines; group by double-newline blocks first
       const lines = t.split('\n');
       const out = [];
       let inList = false;
+      let inFicha = false;
+      let fichaRows = [];
+
+      function _flushList() { if (inList) { out.push('</ul>'); inList = false; } }
+      function _flushFicha() {
+        if (!inFicha) return;
+        if (fichaRows.length) {
+          out.push('<dl class="pd-ficha">');
+          fichaRows.forEach(([k, v]) => {
+            out.push('<div class="pd-ficha-row"><dt>' + k + '</dt><dd>' + v + '</dd></div>');
+          });
+          out.push('</dl>');
+          fichaRows = [];
+        }
+        inFicha = false;
+      }
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) {
-          if (inList) { out.push('</ul>'); inList = false; }
+          _flushList();
           continue;
         }
         // List item
         if (/^[-•·]/.test(line)) {
+          _flushFicha();
           if (!inList) { out.push('<ul class="pd-list">'); inList = true; }
           out.push('<li>' + line.replace(/^[-•·]\s*/, '') + '</li>');
           continue;
         }
-        if (inList) { out.push('</ul>'); inList = false; }
-        // Short word/phrase (≤ 38 chars, no terminal period/comma) = section heading
-        if (line.length <= 38 && !/[.,;]$/.test(line) && lines.length > 1) {
+        _flushList();
+        // Section heading check (short, no terminal punctuation)
+        const isShort = line.length <= 40 && !/[.,;]$/.test(line);
+        if (isShort && lines.length > 1) {
+          // Detect "FICHA TÉCNICA" type headings → enter ficha mode
+          const isFichaHeading = /FICHA|TÉCNICA|TECNICA/i.test(line);
+          _flushFicha();
+          inFicha = isFichaHeading;
           out.push('<h3 class="pd-sec-head">' + line + '</h3>');
+          if (isFichaHeading) fichaRows = [];
           continue;
+        }
+        // In ficha mode: try to parse as key-value pair
+        if (inFicha) {
+          const [key, val] = _splitFichaLine(line);
+          if (key) { fichaRows.push([key, val]); continue; }
+          // Couldn't split → flush ficha and treat as normal paragraph
+          _flushFicha();
         }
         out.push('<p>' + line + '</p>');
       }
-      if (inList) out.push('</ul>');
+      _flushList();
+      _flushFicha();
       return out.join('') || '<p>—</p>';
     }
 
