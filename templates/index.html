@@ -2833,10 +2833,48 @@
       transform: translateY(15px);
     }
     .pd-panel-body p {
-      margin: 0 0 1.4em;
+      margin: 0 0 1.5em;
     }
-    .pd-panel-body p:last-child {
-      margin-bottom: 0;
+    .pd-panel-body p:last-child { margin-bottom: 0; }
+    .pd-panel-body p:first-child {
+      font-size: clamp(1.05rem, 1.7vw, 1.5rem);
+      line-height: 1.65;
+      color: var(--fg, #fff);
+      opacity: 0.92;
+    }
+    .pd-sec-head {
+      font-family: 'Calibri', sans-serif;
+      font-size: 8px;
+      font-weight: 400;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: var(--accent, #c9a96e);
+      margin: 2.4em 0 1em;
+      padding-top: 1.8em;
+      border-top: 1px solid var(--border);
+    }
+    .pd-sec-head:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .pd-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.5em;
+    }
+    .pd-list li {
+      position: relative;
+      padding-left: 1.4em;
+      margin-bottom: 0.55em;
+      font-family: 'Calibri', sans-serif;
+      font-weight: 300;
+      font-size: clamp(0.95rem, 1.45vw, 1.3rem);
+      line-height: 1.65;
+      color: var(--op-80);
+    }
+    .pd-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--accent, #c9a96e);
+      font-weight: 300;
     }
     .pd-panel-next {
       width: 62vw;
@@ -5368,6 +5406,40 @@
     /* PROJECT OVERLAY LOGIC (9to5 STUDIO STYLE - REAL MSRAA DATA) */
     const projectData = {{ project_data_json|safe }};
 
+    function _formatDesc(text) {
+      if (!text) return '<p>—</p>';
+      // Expand inline list separators "texto.-Siguiente" → newline + dash
+      let t = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      t = t.replace(/\s*\.-\s*/g, '\n- ');
+      t = t.replace(/:\s*-\s+/g, ':\n- ');
+      // Split into lines; group by double-newline blocks first
+      const lines = t.split('\n');
+      const out = [];
+      let inList = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) {
+          if (inList) { out.push('</ul>'); inList = false; }
+          continue;
+        }
+        // List item
+        if (/^[-•·]/.test(line)) {
+          if (!inList) { out.push('<ul class="pd-list">'); inList = true; }
+          out.push('<li>' + line.replace(/^[-•·]\s*/, '') + '</li>');
+          continue;
+        }
+        if (inList) { out.push('</ul>'); inList = false; }
+        // Short word/phrase (≤ 38 chars, no terminal period/comma) = section heading
+        if (line.length <= 38 && !/[.,;]$/.test(line) && lines.length > 1) {
+          out.push('<h3 class="pd-sec-head">' + line + '</h3>');
+          continue;
+        }
+        out.push('<p>' + line + '</p>');
+      }
+      if (inList) out.push('</ul>');
+      return out.join('') || '<p>—</p>';
+    }
+
     /* ===== PROJECT OVERLAY — 9to5 HORIZONTAL SCROLL ===== */
     const pdOverlay = document.getElementById('pdOverlay');
     const pdCloseBtn = document.getElementById('pdCloseBtn');
@@ -5398,8 +5470,8 @@
       const firstImgPanel = _imgPanels[0] || '';
       const restImgPanels = _imgPanels.slice(1).join('');
 
-      // Format description as HTML paragraphs
-      const _descHtml = (p.desc || '').split(/\n\n+/).filter(s => s.trim()).map(para => `<p>${para.trim()}</p>`).join('');
+      // Format description with smart parser (headings, lists, paragraphs)
+      const _descHtml = _formatDesc(p.desc || '');
 
       const videoPanel = p.videoUrl ? `
         <div class="pd-panel-video">
