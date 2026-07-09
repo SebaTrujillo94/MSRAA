@@ -4273,6 +4273,114 @@
     </div><!-- /.trust-sec -->
 
 
+
+    <!-- CURRICULUM SECTION -->
+    <section class="sc curriculum-sec" id="curriculum">
+      <div class="sc-label rv"><span>CURRICULUM</span></div>
+      <div class="curriculum-inner">
+        {% for cat_label, items in curriculum_groups %}
+        <div class="curriculum-block">
+          <div class="curriculum-cat">{{ cat_label }}</div>
+          <ul class="curriculum-list">
+            {% for item in items %}
+            <li class="curriculum-item">
+              <span class="curriculum-year">{{ item.year }}</span>
+              <div class="curriculum-detail">
+                <strong>{% tf item "title" %}</strong>
+                {% if item.subtitle %}<span>{% tf item "subtitle" %}</span>{% endif %}
+                {% if item.url %}
+                <a href="{{ item.url }}" class="curriculum-link hov-t" target="_blank" rel="noopener">
+                  {% tf item "url_label" %}{% if not item.url_label %}{{ ui.see_doc }}{% endif %} →
+                </a>
+                {% endif %}
+                {% if item.video_url or item.images.all %}
+                <div class="cv-media-row">
+                  {% if item.video_url %}
+                  <button class="cv-media-thumb cv-video-btn hov-t" onclick="openCvLightbox('video','{{ item.get_video_embed_url }}','')" title="Ver video">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+                    VIDEO
+                  </button>
+                  {% endif %}
+                  {% for img in item.images.all %}
+                  {% with img.get_image_src as img_src %}
+                  {% if img_src %}
+                  <button class="cv-media-thumb hov-t" onclick="openCvLightbox('img','{{ img_src }}','{{ img.caption }}')" title="{{ img.caption }}">
+                    <img src="{{ img_src }}" alt="{{ img.caption }}">
+                  </button>
+                  {% endif %}
+                  {% endwith %}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+        {% if not curriculum_groups %}
+        <p style="color:var(--op-40);font-size:13px;">Agrega ítems desde el admin → Ítems de Curriculum.</p>
+        {% endif %}
+      </div>
+    </section>
+
+
+    <!-- CONTACT SECTION -->
+    <div class="contact-sec" id="contacto">
+      <!-- LEFT -->
+      <div class="contact-left">
+        <div class="contact-left-content">
+          <div class="contact-lbl" data-i18n="contact_lbl">[CONTÁCTANOS]</div>
+          <div class="contact-title" data-i18n-html="contact_title">HABLEMOS<br>DE TU<br>PROYECTO</div>
+          <a href="mailto:{{ config.contact_email }}" class="contact-email-btn hov-t">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            {{ config.contact_email }}
+          </a>
+        </div>
+        <div class="contact-socials">
+          <a href="{{ config.instagram_url|default:'https://www.instagram.com/msraa__arquitectos/' }}" target="_blank" rel="noopener noreferrer" class="hov-t" aria-label="Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          </a>
+          <a href="#" class="hov-t" aria-label="LinkedIn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="contact-right">
+        <h3 data-i18n-html="form_title">¿Listo para construir algo<br>extraordinario?</h3>
+        <form onsubmit="return false;">
+          <div style="display:flex;flex-direction:column;gap:15px;">
+            <div class="form-row">
+              <div class="form-group">
+                <label data-i18n="f_name">Nombre</label>
+                <input type="text" data-i18n-ph="f_name_ph" placeholder="Tu nombre" id="contact-name">
+              </div>
+              <div class="form-group">
+                <label data-i18n="f_phone">Teléfono</label>
+                <input type="tel" placeholder="+56 9 1234 5678" id="contact-phone">
+              </div>
+            </div>
+            <div class="form-group">
+              <label data-i18n="f_email">Correo electrónico</label>
+              <input type="email" data-i18n-ph="f_email_ph" placeholder="tu@correo.com" id="contact-email">
+            </div>
+            <div class="form-group">
+              <label data-i18n="f_projtype">Tipo de proyecto</label>
+              <input type="text" data-i18n-ph="f_projtype_ph" placeholder="Ej. Residencial, Institucional..." id="contact-type">
+            </div>
+            <div class="form-group">
+              <label data-i18n="f_msg">Mensaje</label>
+              <textarea data-i18n-ph="f_msg_ph" placeholder="Cuéntanos sobre tu proyecto..." id="contact-msg"></textarea>
+            </div>
+            <button class="form-submit hov-t" data-i18n="f_submit">ENVIAR MENSAJE →</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
 <style>
     /* ===== CALCULADORA M2 SECTION ===== */
     .calc-section {
@@ -5045,112 +5153,6 @@
 
       </div>
     </section>
-
-    <!-- CURRICULUM SECTION -->
-    <section class="sc curriculum-sec" id="curriculum">
-      <div class="sc-label rv"><span>CURRICULUM</span></div>
-      <div class="curriculum-inner">
-        {% for cat_label, items in curriculum_groups %}
-        <div class="curriculum-block">
-          <div class="curriculum-cat">{{ cat_label }}</div>
-          <ul class="curriculum-list">
-            {% for item in items %}
-            <li class="curriculum-item">
-              <span class="curriculum-year">{{ item.year }}</span>
-              <div class="curriculum-detail">
-                <strong>{% tf item "title" %}</strong>
-                {% if item.subtitle %}<span>{% tf item "subtitle" %}</span>{% endif %}
-                {% if item.url %}
-                <a href="{{ item.url }}" class="curriculum-link hov-t" target="_blank" rel="noopener">
-                  {% tf item "url_label" %}{% if not item.url_label %}{{ ui.see_doc }}{% endif %} →
-                </a>
-                {% endif %}
-                {% if item.video_url or item.images.all %}
-                <div class="cv-media-row">
-                  {% if item.video_url %}
-                  <button class="cv-media-thumb cv-video-btn hov-t" onclick="openCvLightbox('video','{{ item.get_video_embed_url }}','')" title="Ver video">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-                    VIDEO
-                  </button>
-                  {% endif %}
-                  {% for img in item.images.all %}
-                  {% with img.get_image_src as img_src %}
-                  {% if img_src %}
-                  <button class="cv-media-thumb hov-t" onclick="openCvLightbox('img','{{ img_src }}','{{ img.caption }}')" title="{{ img.caption }}">
-                    <img src="{{ img_src }}" alt="{{ img.caption }}">
-                  </button>
-                  {% endif %}
-                  {% endwith %}
-                  {% endfor %}
-                </div>
-                {% endif %}
-              </div>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endfor %}
-        {% if not curriculum_groups %}
-        <p style="color:var(--op-40);font-size:13px;">Agrega ítems desde el admin → Ítems de Curriculum.</p>
-        {% endif %}
-      </div>
-    </section>
-
-
-    <!-- CONTACT SECTION -->
-    <div class="contact-sec" id="contacto">
-      <!-- LEFT -->
-      <div class="contact-left">
-        <div class="contact-left-content">
-          <div class="contact-lbl" data-i18n="contact_lbl">[CONTÁCTANOS]</div>
-          <div class="contact-title" data-i18n-html="contact_title">HABLEMOS<br>DE TU<br>PROYECTO</div>
-          <a href="mailto:{{ config.contact_email }}" class="contact-email-btn hov-t">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-            {{ config.contact_email }}
-          </a>
-        </div>
-        <div class="contact-socials">
-          <a href="{{ config.instagram_url|default:'https://www.instagram.com/msraa__arquitectos/' }}" target="_blank" rel="noopener noreferrer" class="hov-t" aria-label="Instagram">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-          </a>
-          <a href="#" class="hov-t" aria-label="LinkedIn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-          </a>
-        </div>
-      </div>
-
-      <!-- RIGHT -->
-      <div class="contact-right">
-        <h3 data-i18n-html="form_title">¿Listo para construir algo<br>extraordinario?</h3>
-        <form onsubmit="return false;">
-          <div style="display:flex;flex-direction:column;gap:15px;">
-            <div class="form-row">
-              <div class="form-group">
-                <label data-i18n="f_name">Nombre</label>
-                <input type="text" data-i18n-ph="f_name_ph" placeholder="Tu nombre" id="contact-name">
-              </div>
-              <div class="form-group">
-                <label data-i18n="f_phone">Teléfono</label>
-                <input type="tel" placeholder="+56 9 1234 5678" id="contact-phone">
-              </div>
-            </div>
-            <div class="form-group">
-              <label data-i18n="f_email">Correo electrónico</label>
-              <input type="email" data-i18n-ph="f_email_ph" placeholder="tu@correo.com" id="contact-email">
-            </div>
-            <div class="form-group">
-              <label data-i18n="f_projtype">Tipo de proyecto</label>
-              <input type="text" data-i18n-ph="f_projtype_ph" placeholder="Ej. Residencial, Institucional..." id="contact-type">
-            </div>
-            <div class="form-group">
-              <label data-i18n="f_msg">Mensaje</label>
-              <textarea data-i18n-ph="f_msg_ph" placeholder="Cuéntanos sobre tu proyecto..." id="contact-msg"></textarea>
-            </div>
-            <button class="form-submit hov-t" data-i18n="f_submit">ENVIAR MENSAJE →</button>
-          </div>
-        </form>
-      </div>
-    </div>
 
     <footer class="foot">
       <span class="foot-c" data-i18n="footer_copy">© 2026 MSRAA ESTUDIO DE ARQUITECTURA</span>
