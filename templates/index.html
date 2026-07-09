@@ -2832,7 +2832,12 @@
       color: var(--op-80);
       opacity: 0;
       transform: translateY(15px);
-      white-space: pre-wrap;
+    }
+    .pd-panel-body p {
+      margin: 0 0 1.4em;
+    }
+    .pd-panel-body p:last-child {
+      margin-bottom: 0;
     }
     .pd-panel-next {
       width: 62vw;
@@ -5385,10 +5390,19 @@
       const line1 = words.slice(0, half).join(' ');
       const line2 = words.slice(half).join(' ');
 
-      // Build panels
-      const img0 = p.images[0] ? `<div class="pd-panel-img"><img src="${p.images[0].url}" alt="${p.title}"><div class="pd-img-caption">01 / ${p.images.length}</div></div>` : '';
-      const img1 = p.images[1] ? `<div class="pd-panel-img narrow"><img src="${p.images[1].url}" alt="${p.title}"><div class="pd-img-caption">02 / ${p.images.length}</div></div>` : '';
-      const img2 = p.images[2] ? `<div class="pd-panel-img"><img src="${p.images[2].url}" alt="${p.title}"><div class="pd-img-caption">03 / ${p.images.length}</div></div>` : '';
+      // Build ALL image panels (alternating wide/narrow for visual rhythm)
+      const _total = p.images.length;
+      const _imgPanels = p.images.map((img, i) => {
+        const narrow = i % 2 === 1;
+        const num = String(i + 1).padStart(2, '0');
+        return `<div class="pd-panel-img${narrow ? ' narrow' : ''}"><img src="${img.url}" alt="${p.title}" loading="lazy"><div class="pd-img-caption">${num} / ${_total}</div></div>`;
+      });
+      const firstImgPanel = _imgPanels[0] || '';
+      const restImgPanels = _imgPanels.slice(1).join('');
+
+      // Format description as HTML paragraphs
+      const _descHtml = (p.desc || '').split(/\n\n+/).filter(s => s.trim()).map(para => `<p>${para.trim()}</p>`).join('');
+
       const videoPanel = p.videoUrl ? `
         <div class="pd-panel-video">
           ${videoTag(isDirectVideo(p.videoUrl) ? p.videoUrl : p.videoUrl+'?autoplay=0&rel=0&modestbranding=1', p.title)}
@@ -5417,16 +5431,15 @@
               </div>
             </div>
 
-            ${img0}
+            ${firstImgPanel}
 
             <div class="pd-panel-text">
               <div class="pd-panel-label">SOBRE EL PROYECTO</div>
-              <p class="pd-panel-body">${p.desc}</p>
+              <div class="pd-panel-body">${_descHtml || '<p>—</p>'}</div>
             </div>
 
-            ${img1}
+            ${restImgPanels}
             ${videoPanel}
-            ${img2}
 
             <div class="pd-panel-next hov-t" onclick="openProjectOverlay(${nextIdx})">
               <div class="pd-next-info">
