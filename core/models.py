@@ -596,8 +596,13 @@ class PortfolioProject(models.Model):
         PortfolioCategory, on_delete=models.SET_NULL, null=True, related_name='projects',
         verbose_name='Categoría'
     )
-    description = models.TextField(verbose_name='Descripción')
-    description_en = models.TextField(blank=True, verbose_name='Descripción (EN)')
+    summary = models.TextField(
+        blank=True, verbose_name='Resumen (tarjeta)',
+        help_text='Texto corto que aparece en la tarjeta del portafolio. Si se deja vacío se usan los primeros 280 caracteres de la descripción.',
+    )
+    summary_en = models.TextField(blank=True, verbose_name='Resumen (tarjeta EN)')
+    description = models.TextField(verbose_name='Descripción completa')
+    description_en = models.TextField(blank=True, verbose_name='Descripción completa (EN)')
     year = models.CharField(max_length=10, verbose_name='Año')
     location = models.CharField(max_length=200, blank=True, verbose_name='Ubicación')
     location_en = models.CharField(max_length=200, blank=True, verbose_name='Ubicación (EN)')
@@ -665,6 +670,15 @@ class PortfolioProject(models.Model):
 
     def get_category_name(self):
         return self.category.name if self.category else ""
+
+    def get_summary(self):
+        if self.summary:
+            return self.summary
+        desc = self.description or ''
+        if len(desc) <= 280:
+            return desc
+        cut = desc[:280].rfind(' ')
+        return desc[:cut] + '…' if cut > 0 else desc[:280] + '…'
 
     def get_hero_image_src(self):
         if self.hero_image_url:

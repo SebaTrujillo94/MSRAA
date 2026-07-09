@@ -992,6 +992,7 @@ class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
     fieldsets = [
         ('📝 Información', {'fields': [
             'title', 'title_en', 'category', 'year', 'location', 'location_en',
+            'summary', 'summary_en',
             'description', 'description_en',
         ]}),
         ('🖼️ Imagen Principal (Hero)', {'fields': [

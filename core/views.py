@@ -153,6 +153,7 @@ def index(request):
             'year': p.year,
             'location': _tf(p, 'location', is_en),
             'heroImg': p.get_hero_image_src(),
+            'summary': _tf(p, 'summary', is_en) or p.get_summary(),
             'desc': _tf(p, 'description', is_en),
             'videoUrl': p.get_video_embed_url(),
             'images': [
