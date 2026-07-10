@@ -19,13 +19,13 @@ def _resolve_media_url(url):
     return url
 
 
-def _cloudinary_h264(url):
-    """Add H.264 + 1080p transformation to a Cloudinary video URL for mobile compatibility."""
+def _cloudinary_h264(url, max_w=1920, max_h=1080):
+    """Add H.264 transformation to a Cloudinary video URL, capped at max_w/max_h (scale down only)."""
     if not url or 'res.cloudinary.com' not in url or '/upload/' not in url:
         return url
     if 'vc_h264' in url:
         return url
-    return url.replace('/upload/', '/upload/vc_h264,ac_aac,q_auto:good,w_1920,h_1080,c_limit/', 1)
+    return url.replace('/upload/', f'/upload/vc_h264,ac_aac,q_auto:good,w_{max_w},h_{max_h},c_limit/', 1)
 
 
 _GRAVITY_CHOICES = [
@@ -557,6 +557,11 @@ class HeroVideo(models.Model):
         if self.video_file:
             return self.video_file.url
         return _cloudinary_h264(_resolve_media_url(self.video_url))
+
+    def get_video_url_hd(self):
+        if self.video_file:
+            return self.video_file.url
+        return _cloudinary_h264(_resolve_media_url(self.video_url), max_w=3840, max_h=2160)
 
 
 class ClientLogo(models.Model):

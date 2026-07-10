@@ -3481,9 +3481,16 @@
 
     <!-- CENTER IMAGE -->
     <main class="main-hero">
-      {% with hv_url=hero_videos.0.get_video_url %}
+      {% with hv_url=hero_videos.0.get_video_url hv_url_hd=hero_videos.0.get_video_url_hd %}
       <video class="hero-img" id="heroVideoA" autoplay muted playsinline loop
-        src="{% if hv_url %}{{ hv_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}"></video>
+        data-src-sd="{% if hv_url %}{{ hv_url }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}"
+        data-src-hd="{% if hv_url_hd %}{{ hv_url_hd }}{% else %}{% static 'videos/toma 1.mp4' %}{% endif %}"></video>
+      <script>
+        (function() {
+          var v = document.getElementById('heroVideoA');
+          if (v) v.src = window.innerWidth > 992 ? v.dataset.srcHd : v.dataset.srcSd;
+        })();
+      </script>
       {% endwith %}
       <video class="hero-img" id="heroVideoB" muted playsinline loop style="opacity:0"></video>
       <div class="hero-overlay"></div>
@@ -5564,7 +5571,8 @@
           heroTitleWrap.style.visibility = 'hidden';
         }
         if (slides[i].vid) {
-          crossfadeVideo(slides[i].vid, () => { cur = i; anim = false; startAuto(); });
+          const src = window.innerWidth > 992 ? (slides[i].vidHd || slides[i].vid) : slides[i].vid;
+          crossfadeVideo(src, () => { cur = i; anim = false; startAuto(); });
         } else {
           cur = i; anim = false; startAuto();
         }

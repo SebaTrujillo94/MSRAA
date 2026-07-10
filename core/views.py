@@ -169,6 +169,7 @@ def index(request):
     for v in hero_videos:
         slides_data.append({
             'vid': v.get_video_url(),
+            'vidHd': v.get_video_url_hd(),
             't1': _tf(v, 'title_line1', is_en),
             't2': _tf(v, 'title_line2', is_en),
         })
