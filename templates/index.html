@@ -496,6 +496,40 @@
       border-color: var(--gold);
     }
 
+    .por-search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .por-search-wrap svg {
+      position: absolute;
+      left: 10px;
+      pointer-events: none;
+      color: var(--op-40);
+      transition: color .25s;
+    }
+    .por-search-input {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--white);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 7px 14px 7px 32px;
+      width: 180px;
+      outline: none;
+      transition: border-color .25s, width .3s;
+    }
+    .por-search-input::placeholder { color: var(--op-40); }
+    .por-search-input:focus { border-color: var(--gold); width: 220px; }
+    .por-search-input:focus + svg,
+    .por-search-wrap:focus-within svg { color: var(--gold); }
+    body[data-theme="light"] .por-search-input { color: #1a1a1a; border-color: rgba(0,0,0,0.15); }
+    body[data-theme="light"] .por-search-input:focus { border-color: var(--gold); }
+    body[data-theme="yellow"] .por-search-input { color: #000; border-color: rgba(0,0,0,0.20); }
+    body[data-theme="yellow"] .por-search-input:focus { border-color: #000; }
+
     /* CENTER */
     .main-hero {
       flex: 1;
@@ -4118,11 +4152,17 @@
     <section class="por-sec" id="portfolioMain">
       <div style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:40px;">
         <div class="sc-label rv" style="margin-bottom:0"><span data-i18n="port_label">PORTAFOLIO</span></div>
-        <div class="por-filter-bar" id="porFilterBar" style="padding:0; margin-bottom:0;">
-          <button class="por-filter-btn active" data-filter="" data-i18n="filter_all">TODOS</button>
-          {% for cat in categories %}
-          <button class="por-filter-btn" data-filter="{{ cat.name }}">{% tf cat "name" %}</button>
-          {% endfor %}
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div class="por-search-wrap">
+            <input type="search" id="porSearchInput" class="por-search-input" placeholder="Buscar..." autocomplete="off" spellcheck="false">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="por-filter-bar" id="porFilterBar" style="padding:0; margin-bottom:0;">
+            <button class="por-filter-btn active" data-filter="" data-i18n="filter_all">TODOS</button>
+            {% for cat in categories %}
+            <button class="por-filter-btn" data-filter="{{ cat.name }}">{% tf cat "name" %}</button>
+            {% endfor %}
+          </div>
         </div>
       </div>
       <div class="por-grid" style="margin-top:0;">
@@ -6124,34 +6164,49 @@
   <!-- NAV NAVIGATION + PORTFOLIO FILTER -->
   <script>
     (function () {
+      let _activeCat = '';
+
       function filterPortfolio(cat) {
+        _activeCat = cat;
+        const q = (document.getElementById('porSearchInput').value || '').trim().toLowerCase();
+        _applyFilter(cat, q);
+      }
+
+      function _applyFilter(cat, q) {
         const items = document.querySelectorAll('#portfolioMain .por-item');
 
-        // Update filter bar active state
         document.querySelectorAll('.por-filter-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.filter === cat);
         });
 
-        // First fade out ALL items
         gsap.to(items, {
           opacity: 0, y: 12, duration: 0.25, ease: 'power2.in',
           onComplete: () => {
-            // Reflow: show/hide items so grid reflowes
             items.forEach(item => {
-              const match = !cat || item.dataset.cat === cat;
+              const catMatch = !cat || item.dataset.cat === cat;
+              const title = (item.querySelector('.por-title') || {}).textContent || '';
+              const qMatch = !q || title.toLowerCase().includes(q);
+              const match = catMatch && qMatch;
               item.style.display = match ? '' : 'none';
-              if (match) {
-                item.style.opacity = '0';
-                item.style.transform = 'translateY(16px)';
-              }
+              if (match) { item.style.opacity = '0'; item.style.transform = 'translateY(16px)'; }
             });
-            // Stagger fade in matching items
             const visible = [...items].filter(i => i.style.display !== 'none');
             gsap.to(visible, {
               opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: 'power3.out',
               clearProps: 'transform'
             });
           }
+        });
+      }
+
+      const _porSearch = document.getElementById('porSearchInput');
+      if (_porSearch) {
+        let _searchTimer;
+        _porSearch.addEventListener('input', () => {
+          clearTimeout(_searchTimer);
+          _searchTimer = setTimeout(() => {
+            _applyFilter(_activeCat, _porSearch.value.trim().toLowerCase());
+          }, 180);
         });
       }
 
