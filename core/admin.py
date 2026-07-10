@@ -941,8 +941,9 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
             import urllib.request as ureq
             from django.conf import settings
             site_url = getattr(settings, 'SITE_URL', 'https://msraa.vercel.app')
+            req = ureq.Request(site_url, headers={'User-Agent': 'MSRAA-Monitor/1.0'})
             t0 = time.time()
-            r = ureq.urlopen(site_url, timeout=10)
+            r = ureq.urlopen(req, timeout=10)
             ping_ms = int((time.time() - t0) * 1000)
             data['perf'] = {'status': r.status, 'ping_ms': ping_ms, 'error': None}
         except Exception as e:

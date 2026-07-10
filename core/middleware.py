@@ -16,6 +16,7 @@ class TrafficMiddleware:
     """Record daily page visit counts. Skips admin, static, and media paths."""
 
     SKIP_PREFIXES = ('/admin/', '/static/', '/media/', '/favicon', '/__debug__/')
+    SKIP_AGENTS = ('MSRAA-Monitor',)
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -23,9 +24,11 @@ class TrafficMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         path = request.path
+        ua = request.META.get('HTTP_USER_AGENT', '')
         if (response.status_code == 200
                 and request.method == 'GET'
-                and not any(path.startswith(p) for p in self.SKIP_PREFIXES)):
+                and not any(path.startswith(p) for p in self.SKIP_PREFIXES)
+                and not any(a in ua for a in self.SKIP_AGENTS)):
             try:
                 from django.utils import timezone
                 from django.db.models import F
