@@ -64,6 +64,7 @@
   <style>
     :root {
       --gold: {{ config.color_gold }};
+      --white: {{ config.color_text }};
       --black: #1e1e1f;
       --bg: #1e1e1f;
       --sb-bg: #1e1e1f;
@@ -89,9 +90,9 @@
       --gold: {{ config.color_gold_light }};
       --highlight-color: {{ config.color_gold_light }};
     }
-    /* Carlito = metric-compatible Calibri substitute for non-Windows platforms */
+    /* Tipografía — configurable desde admin (Carlito = metric-compatible Calibri para no-Windows) */
     *, *::before, *::after {
-      font-family: 'Calibri', 'Carlito', sans-serif !important;
+      font-family: {{ config.font_family }}, 'Carlito', sans-serif !important;
     }
     /* Hero layout — sidebar izquierda más angosta, video central más grande */
     .sb-left {
@@ -6150,8 +6151,13 @@
 
     /* ── TIPOGRAFÍA ─────────────────────────────────────── */
 
+    // Defaults from DB (admin-configurable)
+    var DB_FONT_SIZE = {{ config.font_size_base }};
+    var DB_FONT_FAMILY = "{{ config.font_family }}";
+    var DB_TEXT_COLOR = "{{ config.color_text }}";
+
     // Font Size
-    var DEFAULT_FS = {{ config.font_size_base }};
+    var DEFAULT_FS = DB_FONT_SIZE;
     var curFontSize = parseInt(localStorage.getItem('msraa_font_size') || DEFAULT_FS);
     var fontSizeVal = document.getElementById('fontSizeVal');
 
@@ -6197,9 +6203,16 @@
       btn.addEventListener('click', () => applyFontFamily(btn.dataset.font, true));
     });
 
+    // reset: clear localStorage → DB value re-applies on next load
+    document.getElementById('fontFamilyReset') && document.getElementById('fontFamilyReset').addEventListener('click', () => {
+      localStorage.removeItem('msraa_font_family');
+      applyFontFamily(null, false);
+    });
+
     // Text Color
     var textColorPicker = document.getElementById('textColorPicker');
     var resetTextColorBtn = document.getElementById('resetTextColorBtn');
+    textColorPicker.value = DB_TEXT_COLOR;
 
     function applyTextColor(color, save) {
       if (color) {
@@ -6207,9 +6220,9 @@
         textColorPicker.value = color;
         if (save) localStorage.setItem('msraa_text_color', color);
       } else {
+        // Remove inline override → CSS from DB re-applies
         document.documentElement.style.removeProperty('--white');
-        var theme = document.body.getAttribute('data-theme') || 'dark';
-        textColorPicker.value = theme === 'light' ? '#1a1a1a' : '#f0ede8';
+        textColorPicker.value = DB_TEXT_COLOR;
         localStorage.removeItem('msraa_text_color');
       }
     }

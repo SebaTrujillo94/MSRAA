@@ -143,11 +143,22 @@ class SiteConfiguration(SingletonModel):
 
     font_size_base = models.PositiveIntegerField(
         default=16,
-        verbose_name="Tamaño de fuente base",
+        verbose_name="Tamaño de fuente base (px)",
         validators=[MinValueValidator(12), MaxValueValidator(24)],
-        help_text="Tamaño base de fuente en px (12–24)"
+        help_text="Tamaño base de fuente en px (12–24). Los visitantes pueden sobrescribirlo en el panel de Apariencia."
     )
-    font_family = models.CharField(max_length=100, default="Calibri, sans-serif", verbose_name="Familia tipográfica")
+    font_family = models.CharField(
+        max_length=200,
+        default="Calibri, sans-serif",
+        verbose_name="Familia tipográfica",
+        help_text="Ej: 'Calibri, sans-serif' o 'Georgia, serif' o 'Helvetica Neue, Helvetica, sans-serif'"
+    )
+    color_text = models.CharField(
+        max_length=20,
+        default="#f0ede8",
+        verbose_name="Color de texto principal",
+        help_text="Color del texto en tema oscuro (CSS --white). Ej: #f0ede8 (crema), #ffffff (blanco puro)"
+    )
 
     # Contact
     contact_email = models.EmailField(default="contacto@msraa.cl", verbose_name="Correo de contacto")

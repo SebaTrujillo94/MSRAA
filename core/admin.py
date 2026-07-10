@@ -760,7 +760,15 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
     readonly_fields = ('cloudinary_status_link', 'mantenedor_link')
     fieldsets = (
         ('General', {
-            'fields': ('site_title', 'tagline', 'logo_main', 'font_size_base', 'font_family'),
+            'fields': ('site_title', 'tagline', 'logo_main'),
+        }),
+        ('🔤 Tipografía', {
+            'fields': ('font_size_base', 'font_family', 'color_text'),
+            'description': (
+                'Valores por defecto del sitio. Los visitantes pueden sobrescribirlos temporalmente '
+                'desde el panel de Apariencia (icono ⚙️ en el sidebar). '
+                'Fuentes disponibles: Calibri, Georgia, "Helvetica Neue", "Times New Roman", "Courier New".'
+            ),
         }),
         ('Colores', {
             'fields': ('color_gold', 'color_gold_light', 'logo_sidebar_color'),
