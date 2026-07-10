@@ -757,7 +757,7 @@ class PortfolioProjectImageInline(admin.TabularInline):
 
 @admin.register(SiteConfiguration)
 class SiteConfigurationAdmin(SingletonModelAdmin):
-    readonly_fields = ('cloudinary_status_link',)
+    readonly_fields = ('cloudinary_status_link', 'mantenedor_link')
     fieldsets = (
         ('General', {
             'fields': ('site_title', 'tagline', 'logo_main', 'font_size_base', 'font_family'),
@@ -796,6 +796,10 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
             'fields': ('cloudinary_status_link',),
             'description': 'Plan Free: 25 GB storage + 25 GB bandwidth/mes.',
         }),
+        ('Mantenedor del Sitio', {
+            'fields': ('mantenedor_link',),
+            'description': 'Tráfico, almacenamiento, rendimiento y alertas.',
+        }),
     )
 
     @admin.display(description='Estado de uso')
@@ -803,6 +807,13 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
         return format_html(
             '<a href="cloudinary/" class="button" style="padding:8px 16px;background:#0073aa;color:#fff;'
             'border-radius:4px;text-decoration:none;font-size:13px;">📊 Ver uso de Cloudinary</a>'
+        )
+
+    @admin.display(description='Panel de control')
+    def mantenedor_link(self, obj):
+        return format_html(
+            '<a href="mantenedor/" class="button" style="padding:8px 16px;background:#1a5276;color:#fff;'
+            'border-radius:4px;text-decoration:none;font-size:13px;">🛠️ Abrir Mantenedor</a>'
         )
 
     def get_urls(self):
@@ -848,15 +859,20 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
     # ── Mantenedor ─────────────────────────────────────────────────────────
 
     def _mantenedor_view(self, request):
-        from django.http import JsonResponse
-        alerts = list(MonitorAlert.objects.all().values(
-            'id', 'name', 'metric', 'condition', 'threshold',
-            'is_active', 'last_status', 'last_checked', 'email_notify',
-        ))
+        try:
+            alerts = list(MonitorAlert.objects.all().values(
+                'id', 'name', 'metric', 'condition', 'threshold',
+                'is_active', 'last_status', 'last_checked', 'email_notify',
+            ))
+            db_error = None
+        except Exception as e:
+            alerts = []
+            db_error = str(e)
         ctx = dict(
             self.admin_site.each_context(request),
             title='Mantenedor del Sitio',
             alerts=alerts,
+            db_error=db_error,
         )
         return TemplateResponse(request, 'admin/mantenedor.html', ctx)
 

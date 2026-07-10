@@ -106,6 +106,14 @@
 
 {% block content %}
 <div class="mnt">
+  {% if db_error %}
+  <div style="background:#fff0f0;border:1px solid #f5c6cb;border-radius:6px;padding:16px 20px;margin-bottom:20px;color:#721c24;font-size:13px;">
+    <strong>Error de base de datos:</strong> {{ db_error }}<br>
+    <span style="font-size:11px;color:#856404;margin-top:6px;display:block">
+      Puede que las migraciones no se hayan aplicado. Intenta redesplegar en Vercel para que <code>migrate --noinput</code> se ejecute.
+    </span>
+  </div>
+  {% endif %}
   <div class="mnt-top">
     <h1>Mantenedor del Sitio</h1>
     <div class="mnt-refresh">
