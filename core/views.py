@@ -8,7 +8,7 @@ from django.conf import settings
 from .models import (
     SiteConfiguration, MenuItem, HeroVideo,
     ClientLogo, PortfolioCategory, PortfolioProject, CurriculumItem, MediaItem,
-    ContactSubmission,
+    ContactSubmission, TeamMember,
 )
 
 
@@ -143,6 +143,8 @@ def index(request):
         if cat in _cv_groups
     ]
 
+    team_members = list(TeamMember.objects.filter(is_active=True))
+
     project_data = []
     for p in projects:
         cat = p.category
@@ -204,6 +206,7 @@ def index(request):
         'hero_slide_duration': config.hero_slide_duration,
         'menu_items_by_section': _group_menu_items(menu_items),
         'curriculum_groups': curriculum_groups,
+        'team_members': team_members,
         'media_items': media_items,
         'media_data_json': media_data_json,
         'nav_section_labels': _NAV_LABELS[lang_key],

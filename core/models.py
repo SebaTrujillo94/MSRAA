@@ -813,3 +813,45 @@ class MonitorAlert(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_metric_display()} {self.condition} {self.threshold})"
+
+
+# ─── Equipo / Team ────────────────────────────────────────────────────────────
+
+class TeamMember(models.Model):
+    name       = models.CharField(max_length=200, verbose_name='Nombre')
+    role       = models.CharField(max_length=200, blank=True, verbose_name='Cargo')
+    role_en    = models.CharField(max_length=200, blank=True, verbose_name='Cargo (EN)')
+    bio        = models.TextField(blank=True, verbose_name='Descripción breve')
+    bio_en     = models.TextField(blank=True, verbose_name='Descripción breve (EN)')
+    image_url  = models.URLField(blank=True, max_length=500, verbose_name='Foto (URL Cloudinary)')
+    img_gravity = models.CharField(max_length=20, choices=_GRAVITY_CHOICES, default='face', blank=True, verbose_name='Punto de enfoque')
+    img_ratio   = models.CharField(max_length=10, choices=_RATIO_CHOICES, default='1:1', blank=True, verbose_name='Proporción')
+    img_x       = models.IntegerField(default=0, blank=True, verbose_name='Ajuste X')
+    img_y       = models.IntegerField(default=0, blank=True, verbose_name='Ajuste Y')
+    img_crop_w  = models.PositiveIntegerField(default=0, blank=True, verbose_name='Recorte ancho px')
+    img_crop_h  = models.PositiveIntegerField(default=0, blank=True, verbose_name='Recorte alto px')
+    img_crop    = models.CharField(max_length=10, choices=_CROP_MODE_CHOICES, default='fill', blank=True, verbose_name='Modo de recorte')
+    img_bg      = models.CharField(max_length=30, default='', blank=True, verbose_name='Color de fondo')
+    order      = models.PositiveIntegerField(default=0, verbose_name='Orden')
+    is_active  = models.BooleanField(default=True, verbose_name='Activo')
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name = 'Colaborador'
+        verbose_name_plural = 'Colaboradores'
+
+    def __str__(self):
+        return self.name
+
+    def get_image_src(self):
+        if not self.image_url:
+            return ''
+        return _cloudinary_img(
+            _resolve_media_url(self.image_url),
+            gravity=self.img_gravity or 'face',
+            ratio=self.img_ratio or '1:1',
+            x=self.img_x or 0,
+            y=self.img_y or 0,
+            crop=self.img_crop or 'fill',
+            bg=self.img_bg or '',
+        )

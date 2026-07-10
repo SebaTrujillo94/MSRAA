@@ -4112,6 +4112,83 @@
       }
     }
 
+    /* QUIÉNES SOMOS — team members inside curriculum */
+    .team-block {
+      margin-bottom: 56px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .team-label {
+      font-family: 'Calibri', sans-serif;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .team-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+    }
+    .team-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 130px;
+    }
+    .team-photo {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: var(--op-05);
+      display: block;
+    }
+    .team-photo-placeholder {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--op-05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--op-40);
+      font-size: 32px;
+    }
+    .team-info { text-align: center; }
+    .team-name {
+      font-family: 'Calibri', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--white);
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+    .team-role {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--op-40);
+      text-transform: uppercase;
+    }
+    .team-bio {
+      font-family: 'Calibri', sans-serif;
+      font-size: 11px;
+      color: var(--op-40);
+      text-align: center;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    @media (max-width: 600px) {
+      .team-grid { gap: 28px; }
+      .team-card { width: 100px; }
+      .team-photo, .team-photo-placeholder { width: 80px; height: 80px; }
+    }
+
     /* TUNNEL OVERLAY */
     #tunnelOverlay {
       position: fixed;
@@ -4317,6 +4394,39 @@
     <!-- CURRICULUM SECTION -->
     <section class="sc curriculum-sec" id="curriculum">
       <div class="sc-label rv"><span>CURRICULUM</span></div>
+
+      {% if team_members %}
+      <div class="team-block">
+        <div class="team-label">QUIÉNES SOMOS</div>
+        <div class="team-grid">
+          {% for member in team_members %}
+          <div class="team-card">
+            {% with member.get_image_src as photo %}
+            {% if photo %}
+            <img class="team-photo" src="{{ photo }}" alt="{{ member.name }}" loading="lazy">
+            {% else %}
+            <div class="team-photo-placeholder">👤</div>
+            {% endif %}
+            {% endwith %}
+            <div class="team-info">
+              <div class="team-name">{{ member.name }}</div>
+              {% if is_en and member.role_en %}
+              <div class="team-role">{{ member.role_en }}</div>
+              {% elif member.role %}
+              <div class="team-role">{{ member.role }}</div>
+              {% endif %}
+              {% if is_en and member.bio_en %}
+              <div class="team-bio">{{ member.bio_en }}</div>
+              {% elif member.bio %}
+              <div class="team-bio">{{ member.bio }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
       <div class="curriculum-inner">
         {% for cat_label, items in curriculum_groups %}
         <div class="curriculum-block">

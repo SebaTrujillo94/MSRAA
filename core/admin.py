@@ -11,7 +11,7 @@ from .models import (
     ClientLogo, PortfolioCategory, PortfolioProject, PortfolioProjectImage,
     CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage,
     MediaItemSection, MediaItemVideo,
-    ContactSubmission, SiteVisit, MonitorAlert,
+    ContactSubmission, SiteVisit, MonitorAlert, TeamMember,
 )
 
 
@@ -1444,3 +1444,73 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
     @admin.action(description='Marcar como no leído')
     def mark_unread(self, request, queryset):
         queryset.update(is_read=False)
+
+
+@admin.register(TeamMember)
+class TeamMemberAdmin(MediaEditorMixin, admin.ModelAdmin):
+    cld_image_field = 'image_url'
+    cld_video_field = None
+    cld_folder = 'msraa/team'
+    editor_image_field = 'image_url'
+    editor_video_field = None
+    list_display = ['photo_thumb', 'name', 'role', 'order', 'is_active']
+    list_editable = ['order', 'is_active']
+    list_display_links = ['photo_thumb', 'name']
+    ordering = ['order', 'name']
+    readonly_fields = ['photo_preview', 'cloudinary_image_btn', 'media_editor_btn']
+    fieldsets = [
+        ('👤 Datos personales', {'fields': [
+            'name', 'role', 'role_en',
+            'bio', 'bio_en',
+        ]}),
+        ('🖼️ Foto', {'fields': [
+            'photo_preview',
+            'image_url', 'cloudinary_image_btn', 'media_editor_btn',
+        ]}),
+        ('⚙️ Publicación', {'fields': ['order', 'is_active']}),
+    ]
+    actions = ['make_active', 'make_inactive']
+
+    def save_model(self, request, obj, form, change):
+        _safe_save(self, request, obj, form, change)
+
+    @admin.action(description='✅ Activar seleccionados')
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='🚫 Desactivar seleccionados')
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
+
+    @admin.display(description='📷')
+    def photo_thumb(self, obj):
+        src = obj.image_url or ''
+        if src:
+            return format_html(
+                '<img src="{}" style="height:40px;width:40px;object-fit:cover;border-radius:50%;border:1px solid #ccc">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb">—</span>')
+
+    @admin.display(description='Vista actual — Foto')
+    def photo_preview(self, obj):
+        src = (obj.image_url or '') if obj.pk else ''
+        if src:
+            is_cld = 'res.cloudinary.com' in src
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="height:120px;width:120px;object-fit:cover;'
+                'border-radius:50%;border:2px solid #ddd;display:block">'
+                '<div style="margin-top:5px;font-size:11px;color:{}">{}</div>'
+                '</div>',
+                src,
+                '#40a060' if is_cld else '#e8a020',
+                '✅ En Cloudinary' if is_cld else '⚠️ URL externa',
+            )
+        if not obj.pk:
+            return mark_safe('<span style="color:#aaa;font-size:11px">Guarda el registro primero</span>')
+        return format_html(
+            '<div style="padding:10px;background:#fff8e1;border-radius:4px;border:1px solid #f0d060;font-size:12px;color:#a07020">'
+            '⚠️ Sin foto. Ingresa URL y sube a Cloudinary.'
+            '</div>'
+        )
