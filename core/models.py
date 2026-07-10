@@ -25,7 +25,7 @@ def _cloudinary_h264(url):
         return url
     if 'vc_h264' in url:
         return url
-    return url.replace('/upload/', '/upload/vc_h264,ac_aac,q_auto:good/', 1)
+    return url.replace('/upload/', '/upload/vc_h264,ac_aac,q_auto:good,w_1920,h_1080,c_limit/', 1)
 
 
 _GRAVITY_CHOICES = [
