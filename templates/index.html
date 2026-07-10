@@ -17,9 +17,9 @@
     (function(){
       var t = localStorage.getItem('msraa_theme') || 'dark';
       var l = localStorage.getItem('msraa_logo') || 'default';
-      var fs = localStorage.getItem('msraa_font_size');
-      var tc = localStorage.getItem('msraa_text_color');
-      var ff = localStorage.getItem('msraa_font_family');
+      var fs = localStorage.getItem('msraa_font_size') || '{{ config.font_size_base }}';
+      var tc = localStorage.getItem('msraa_text_color') || '{{ config.color_text }}';
+      var ff = localStorage.getItem('msraa_font_family') || '{{ config.font_family }}';
       document.documentElement.setAttribute('data-theme-init', t);
       if (fs) document.documentElement.style.fontSize = fs + 'px';
       if (tc) document.documentElement.style.setProperty('--white', tc);
