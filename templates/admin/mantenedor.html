@@ -1,0 +1,506 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Mantenedor — Admin{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<style>
+:root { --ok:#22c55e; --warn:#f59e0b; --crit:#ef4444; --unk:#94a3b8; }
+.mnt { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.mnt-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:28px; }
+.mnt-top h1 { margin:0; font-size:20px; font-weight:700; }
+.mnt-refresh { display:flex; align-items:center; gap:10px; }
+.mnt-ts { font-size:11px; color:#888; }
+.mnt-btn { background:#0073aa; color:#fff; border:none; border-radius:4px; padding:8px 16px; font-size:12px; font-weight:600; cursor:pointer; }
+.mnt-btn:hover { background:#005a87; }
+.mnt-btn-sm { padding:5px 10px; font-size:11px; }
+.mnt-btn-ghost { background:transparent; border:1px solid #ccc; color:#333; }
+.mnt-btn-ghost:hover { background:#f5f5f5; }
+.mnt-btn-danger { background:#ef4444; }
+.mnt-btn-danger:hover { background:#dc2626; }
+
+/* Grid */
+.mnt-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:20px; margin-bottom:24px; }
+.mnt-card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:22px 24px; }
+.mnt-card-title { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#666; margin:0 0 18px; display:flex; align-items:center; gap:8px; }
+.mnt-card-title svg { flex-shrink:0; }
+
+/* Stat row */
+.mnt-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+.mnt-stat { text-align:center; background:#f8f9fa; border-radius:6px; padding:12px 8px; }
+.mnt-stat-n { font-size:22px; font-weight:700; color:#1a1a1a; line-height:1; }
+.mnt-stat-l { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+
+/* Bar */
+.mnt-bar-wrap { margin-bottom:14px; }
+.mnt-bar-hd { display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:6px; }
+.mnt-bar-bg { height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden; }
+.mnt-bar-fill { height:100%; border-radius:4px; transition:width .5s ease; }
+.bar-ok   { background:var(--ok); }
+.bar-warn { background:var(--warn); }
+.bar-crit { background:var(--crit); }
+
+/* Traffic table */
+.mnt-table { width:100%; border-collapse:collapse; font-size:12px; }
+.mnt-table th { text-align:left; color:#888; font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:1px; padding:4px 0; border-bottom:1px solid #eee; }
+.mnt-table td { padding:5px 0; border-bottom:1px solid #f5f5f5; color:#333; }
+.mnt-table td:last-child { text-align:right; font-weight:600; color:#1a1a1a; }
+.mnt-path { max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#555; }
+
+/* Chart */
+.mnt-chart { display:flex; align-items:flex-end; gap:3px; height:60px; margin:12px 0 4px; }
+.mnt-bar-chart { flex:1; background:#e0e7ff; border-radius:2px 2px 0 0; transition:height .4s ease; min-height:2px; position:relative; }
+.mnt-bar-chart:hover::after { content:attr(data-label); position:absolute; bottom:105%; left:50%; transform:translateX(-50%); background:#1a1a1a; color:#fff; font-size:10px; padding:2px 6px; border-radius:3px; white-space:nowrap; pointer-events:none; }
+.mnt-chart-labels { display:flex; gap:3px; font-size:9px; color:#aaa; }
+.mnt-chart-labels span { flex:1; text-align:center; overflow:hidden; }
+
+/* Status dot */
+.mnt-dot { display:inline-block; width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dot-ok   { background:var(--ok); }
+.dot-warn { background:var(--warn); }
+.dot-crit { background:var(--crit); box-shadow:0 0 0 3px rgba(239,68,68,.2); }
+.dot-unknown { background:var(--unk); }
+
+/* Ping */
+.mnt-ping { display:flex; align-items:center; gap:10px; background:#f8f9fa; border-radius:6px; padding:14px; }
+.mnt-ping-ms { font-size:28px; font-weight:700; color:#1a1a1a; }
+.mnt-ping-lbl { font-size:11px; color:#888; }
+
+/* Alerts */
+.mnt-alert-list { display:flex; flex-direction:column; gap:8px; }
+.mnt-alert-row { display:flex; align-items:center; gap:10px; background:#f8f9fa; border-radius:6px; padding:10px 12px; }
+.mnt-alert-name { font-size:13px; font-weight:600; flex:1; }
+.mnt-alert-meta { font-size:11px; color:#777; }
+.mnt-alert-status { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:.5px; }
+.st-ok   { background:#dcfce7; color:#15803d; }
+.st-warn { background:#fef3c7; color:#92400e; }
+.st-crit { background:#fee2e2; color:#991b1b; }
+.st-unknown { background:#f1f5f9; color:#64748b; }
+
+/* Alert form */
+.mnt-form { background:#f8f9fa; border:1px solid #e5e7eb; border-radius:8px; padding:18px; margin-top:14px; display:none; }
+.mnt-form.open { display:block; }
+.mnt-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.mnt-form label { font-size:11px; font-weight:600; color:#555; display:block; margin-bottom:4px; }
+.mnt-form input, .mnt-form select { width:100%; padding:7px 10px; border:1px solid #d1d5db; border-radius:4px; font-size:13px; box-sizing:border-box; }
+.mnt-form-actions { display:flex; gap:8px; }
+
+/* DB badges */
+.mnt-db-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.mnt-db-item { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8f9fa; border-radius:5px; font-size:12px; }
+.mnt-db-item span:first-child { color:#555; }
+.mnt-db-item span:last-child { font-weight:700; color:#1a1a1a; }
+
+/* Spinner */
+.mnt-spin { display:inline-block; width:14px; height:14px; border:2px solid #e5e7eb; border-top-color:#0073aa; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Error */
+.mnt-err { background:#fee2e2; border:1px solid #fca5a5; border-radius:5px; padding:10px 14px; font-size:12px; color:#7f1d1d; }
+
+@media(max-width:600px) {
+  .mnt-grid { grid-template-columns:1fr; }
+  .mnt-stats { grid-template-columns:repeat(3,1fr); }
+  .mnt-form-grid { grid-template-columns:1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mnt">
+  <div class="mnt-top">
+    <h1>Mantenedor del Sitio</h1>
+    <div class="mnt-refresh">
+      <span class="mnt-ts" id="mntTs">Cargando...</span>
+      <button class="mnt-btn" onclick="mntLoad()"><span id="mntSpinBtn"></span> Actualizar</button>
+    </div>
+  </div>
+
+  <!-- Row 1: Traffic + Storage -->
+  <div class="mnt-grid">
+
+    <!-- Tráfico -->
+    <div class="mnt-card" style="grid-column: span 2;">
+      <div class="mnt-card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Tráfico
+      </div>
+      <div class="mnt-stats" id="mntTrafficStats">
+        <div class="mnt-stat"><div class="mnt-stat-n">—</div><div class="mnt-stat-l">Hoy</div></div>
+        <div class="mnt-stat"><div class="mnt-stat-n">—</div><div class="mnt-stat-l">7 días</div></div>
+        <div class="mnt-stat"><div class="mnt-stat-n">—</div><div class="mnt-stat-l">30 días</div></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div>
+          <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Páginas más visitadas (30 días)</div>
+          <table class="mnt-table" id="mntTopPages">
+            <tr><th>Página</th><th>Visitas</th></tr>
+            <tr><td colspan="2" style="color:#aaa;">Cargando...</td></tr>
+          </table>
+        </div>
+        <div>
+          <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Últimos 14 días</div>
+          <div class="mnt-chart" id="mntChart"></div>
+          <div class="mnt-chart-labels" id="mntChartLabels"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cloudinary -->
+    <div class="mnt-card">
+      <div class="mnt-card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        Almacenamiento Cloudinary
+      </div>
+      <div id="mntCldContent">
+        <div class="mnt-bar-wrap">
+          <div class="mnt-bar-hd"><span>Almacenamiento</span><span id="mntCldStorageVal">—</span></div>
+          <div class="mnt-bar-bg"><div class="mnt-bar-fill bar-ok" id="mntCldStorageBar" style="width:0%"></div></div>
+        </div>
+        <div class="mnt-bar-wrap">
+          <div class="mnt-bar-hd"><span>Bandwidth (mes)</span><span id="mntCldBwVal">—</span></div>
+          <div class="mnt-bar-bg"><div class="mnt-bar-fill bar-ok" id="mntCldBwBar" style="width:0%"></div></div>
+        </div>
+        <div class="mnt-stats">
+          <div class="mnt-stat"><div class="mnt-stat-n" id="mntCldFiles">—</div><div class="mnt-stat-l">Archivos</div></div>
+          <div class="mnt-stat"><div class="mnt-stat-n" id="mntCldTransf">—</div><div class="mnt-stat-l">Transf.</div></div>
+          <div class="mnt-stat"><div class="mnt-stat-n" id="mntCldReq">—</div><div class="mnt-stat-l">Solicitudes</div></div>
+        </div>
+        <div style="margin-top:8px;">
+          <a href="../cloudinary/" style="font-size:12px;color:#0073aa;">Ver detalle completo</a>
+          <span style="margin:0 8px;color:#ddd;">|</span>
+          <a href="https://cloudinary.com/console" target="_blank" rel="noopener" style="font-size:12px;color:#0073aa;">Consola Cloudinary</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rendimiento -->
+    <div class="mnt-card">
+      <div class="mnt-card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Rendimiento
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Tiempo de respuesta (ping)</div>
+        <div class="mnt-ping">
+          <div>
+            <div class="mnt-ping-ms" id="mntPingMs">—</div>
+            <div class="mnt-ping-lbl">ms</div>
+          </div>
+          <div style="flex:1;">
+            <div id="mntPingStatus" style="font-size:12px;color:#555;">—</div>
+            <div style="font-size:11px;color:#aaa;margin-top:4px;">msraa.vercel.app</div>
+          </div>
+          <span class="mnt-dot dot-unknown" id="mntPingDot"></span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Cloudinary API</div>
+        <div class="mnt-ping" style="padding:10px 14px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;" id="mntCldApiMs">—</div>
+            <div class="mnt-ping-lbl">ms</div>
+          </div>
+          <div style="flex:1;font-size:12px;color:#555;" id="mntCldApiStatus">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Base de Datos -->
+    <div class="mnt-card">
+      <div class="mnt-card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Base de Datos
+      </div>
+      <div class="mnt-db-grid" id="mntDbGrid">
+        <div class="mnt-db-item"><span>Cargando...</span><span>—</span></div>
+      </div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="mnt-card" style="grid-column: span 2;">
+      <div class="mnt-card-title" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Alertas
+        </span>
+        <button class="mnt-btn mnt-btn-sm" onclick="mntAlertNew()">+ Nueva alerta</button>
+      </div>
+
+      <div class="mnt-alert-list" id="mntAlertList">
+        {% if alerts %}
+          {% for a in alerts %}
+          <div class="mnt-alert-row" id="mnt-alert-{{a.id}}">
+            <span class="mnt-dot dot-{{a.last_status|default:'unknown'}}" id="mnt-adot-{{a.id}}"></span>
+            <div style="flex:1;">
+              <div class="mnt-alert-name">{{a.name}}</div>
+              <div class="mnt-alert-meta">{{a.metric}} {{a.condition}} {{a.threshold}}</div>
+            </div>
+            <span class="mnt-alert-status st-{{a.last_status|default:'unknown'}}" id="mnt-ast-{{a.id}}">{{a.last_status|default:"sin datos"}}</span>
+            <button class="mnt-btn mnt-btn-sm mnt-btn-ghost" onclick="mntAlertEdit({{a.id}}, '{{a.name}}', '{{a.metric}}', '{{a.condition}}', {{a.threshold}}, {{a.is_active|yesno:'true,false'}}, '{{a.email_notify}}')">Editar</button>
+            <button class="mnt-btn mnt-btn-sm mnt-btn-danger" onclick="mntAlertDel({{a.id}})">X</button>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="color:#aaa;font-size:13px;padding:10px 0;" id="mntNoAlerts">Sin alertas configuradas.</div>
+        {% endif %}
+      </div>
+
+      <div class="mnt-form" id="mntAlertForm">
+        <input type="hidden" id="mntAlertId" value="">
+        <div class="mnt-form-grid">
+          <div>
+            <label>Nombre</label>
+            <input type="text" id="mntAlertName" placeholder="Ej. Almacenamiento alto">
+          </div>
+          <div>
+            <label>Métrica</label>
+            <select id="mntAlertMetric">
+              <option value="storage_pct">Almacenamiento Cloudinary (%)</option>
+              <option value="bandwidth_pct">Ancho de banda Cloudinary (%)</option>
+              <option value="response_ms">Tiempo de respuesta (ms)</option>
+            </select>
+          </div>
+          <div>
+            <label>Condición</label>
+            <select id="mntAlertCond">
+              <option value="gt">Mayor que (&gt;)</option>
+              <option value="lt">Menor que (&lt;)</option>
+            </select>
+          </div>
+          <div>
+            <label>Umbral</label>
+            <input type="number" id="mntAlertThresh" placeholder="80">
+          </div>
+          <div>
+            <label>Email notificación (opcional)</label>
+            <input type="email" id="mntAlertEmail" placeholder="tu@correo.com">
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="mntAlertActive" checked> Activa
+            </label>
+          </div>
+        </div>
+        <div class="mnt-form-actions">
+          <button class="mnt-btn" onclick="mntAlertSave()">Guardar</button>
+          <button class="mnt-btn mnt-btn-ghost" onclick="mntAlertFormClose()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mnt-grid -->
+</div><!-- /mnt -->
+
+<script>
+(function() {
+  var STATS_URL = '{% url "admin:mantenedor_stats" %}';
+  var SAVE_URL  = '{% url "admin:mantenedor_alert_save" %}';
+  var DEL_URL   = '{% url "admin:mantenedor_alert_delete" %}';
+  var CSRF      = '{{ csrf_token }}';
+
+  function fmt(n) {
+    if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return (n/1000).toFixed(1) + 'K';
+    return n;
+  }
+  function barClass(pct) {
+    return pct >= 80 ? 'bar-crit' : pct >= 60 ? 'bar-warn' : 'bar-ok';
+  }
+  function dotClass(status) {
+    return 'dot-' + (status || 'unknown');
+  }
+  function stClass(status) {
+    return 'st-' + (status || 'unknown');
+  }
+
+  window.mntLoad = function() {
+    document.getElementById('mntSpinBtn').innerHTML = '<span class="mnt-spin"></span> ';
+    document.getElementById('mntTs').textContent = 'Actualizando...';
+    fetch(STATS_URL).then(r => r.json()).then(d => {
+      renderAll(d);
+      document.getElementById('mntSpinBtn').innerHTML = '';
+    }).catch(err => {
+      document.getElementById('mntTs').textContent = 'Error: ' + err;
+      document.getElementById('mntSpinBtn').innerHTML = '';
+    });
+  };
+
+  function renderAll(d) {
+    document.getElementById('mntTs').textContent = 'Actualizado: ' + d.now;
+    renderTraffic(d.traffic);
+    renderCloudinary(d.cloudinary);
+    renderPerf(d.perf, d.cloudinary);
+    renderDb(d.db);
+    renderAlerts(d.alerts);
+  }
+
+  function renderTraffic(t) {
+    if (!t) return;
+    var cells = document.querySelectorAll('#mntTrafficStats .mnt-stat-n');
+    if (cells[0]) cells[0].textContent = fmt(t.today);
+    if (cells[1]) cells[1].textContent = fmt(t.week);
+    if (cells[2]) cells[2].textContent = fmt(t.month);
+    // Top pages
+    var tb = document.getElementById('mntTopPages');
+    var rows = '<tr><th>Página</th><th>Visitas</th></tr>';
+    if (t.top_pages && t.top_pages.length) {
+      t.top_pages.forEach(function(p) {
+        rows += '<tr><td class="mnt-path">' + p.path + '</td><td>' + fmt(p.total) + '</td></tr>';
+      });
+    } else {
+      rows += '<tr><td colspan="2" style="color:#aaa">Sin datos aún</td></tr>';
+    }
+    tb.innerHTML = rows;
+    // Chart
+    var chart = document.getElementById('mntChart');
+    var labels = document.getElementById('mntChartLabels');
+    if (t.chart && t.chart.length) {
+      var max = Math.max.apply(null, t.chart.map(function(c){ return c.count; })) || 1;
+      chart.innerHTML = t.chart.map(function(c) {
+        var h = Math.max(Math.round((c.count / max) * 100), 2);
+        return '<div class="mnt-bar-chart" style="height:' + h + '%" data-label="' + c.date + ': ' + c.count + '"></div>';
+      }).join('');
+      labels.innerHTML = t.chart.map(function(c, i) {
+        var d = new Date(c.date); var lbl = (i % 3 === 0) ? (d.getDate() + '/' + (d.getMonth()+1)) : '';
+        return '<span>' + lbl + '</span>';
+      }).join('');
+    }
+  }
+
+  function renderCloudinary(c) {
+    if (!c || c.error) return;
+    var sb = document.getElementById('mntCldStorageBar');
+    var sv = document.getElementById('mntCldStorageVal');
+    var bb = document.getElementById('mntCldBwBar');
+    var bv = document.getElementById('mntCldBwVal');
+    if (sb) {
+      sb.style.width = c.storage_pct + '%';
+      sb.className = 'mnt-bar-fill ' + barClass(c.storage_pct);
+      sv.textContent = c.storage_gb.toFixed(2) + ' GB / 25 GB (' + c.storage_pct + '%)';
+    }
+    if (bb) {
+      bb.style.width = c.bandwidth_pct + '%';
+      bb.className = 'mnt-bar-fill ' + barClass(c.bandwidth_pct);
+      bv.textContent = c.bandwidth_gb.toFixed(2) + ' GB / 25 GB (' + c.bandwidth_pct + '%)';
+    }
+    var f = document.getElementById('mntCldFiles');
+    var t = document.getElementById('mntCldTransf');
+    var r = document.getElementById('mntCldReq');
+    if (f) f.textContent = fmt(c.resources);
+    if (t) t.textContent = fmt(c.transformations);
+    if (r) r.textContent = fmt(c.requests);
+    var apiMs = document.getElementById('mntCldApiMs');
+    if (apiMs) apiMs.textContent = c.api_ms || '—';
+    var apiSt = document.getElementById('mntCldApiStatus');
+    if (apiSt) apiSt.textContent = c.error ? 'Error: ' + c.error : 'OK';
+  }
+
+  function renderPerf(p, c) {
+    var ms = document.getElementById('mntPingMs');
+    var st = document.getElementById('mntPingStatus');
+    var dot = document.getElementById('mntPingDot');
+    if (!p) return;
+    if (p.error) {
+      if (ms) ms.textContent = '—';
+      if (st) st.textContent = 'Error: ' + p.error;
+      if (dot) { dot.className = 'mnt-dot dot-crit'; }
+      return;
+    }
+    if (ms) ms.textContent = p.ping_ms;
+    var cls = p.ping_ms < 500 ? 'ok' : p.ping_ms < 1500 ? 'warn' : 'crit';
+    if (st) st.textContent = p.ping_ms < 500 ? 'Excelente' : p.ping_ms < 1500 ? 'Normal' : 'Lento';
+    if (dot) dot.className = 'mnt-dot dot-' + cls;
+    if (c && !c.error) {
+      var apiSt = document.getElementById('mntCldApiStatus');
+      if (apiSt) apiSt.textContent = c.api_ms < 1000 ? 'Rapido (' + c.api_ms + 'ms)' : 'Lento (' + c.api_ms + 'ms)';
+    }
+  }
+
+  function renderDb(db) {
+    if (!db) return;
+    var labels = {
+      projects: 'Proyectos', projects_active: 'Proyectos activos',
+      project_images: 'Imágenes portfolio', media_items: 'Medios',
+      media_images: 'Imágenes medios', curriculum: 'Curriculum',
+      logos: 'Logos clientes', submissions: 'Formularios recibidos',
+    };
+    var g = document.getElementById('mntDbGrid');
+    g.innerHTML = Object.keys(db).map(function(k) {
+      return '<div class="mnt-db-item"><span>' + (labels[k] || k) + '</span><span>' + db[k] + '</span></div>';
+    }).join('');
+  }
+
+  function renderAlerts(alerts) {
+    if (!alerts) return;
+    alerts.forEach(function(a) {
+      var dot = document.getElementById('mnt-adot-' + a.id);
+      var st  = document.getElementById('mnt-ast-'  + a.id);
+      if (dot) dot.className = 'mnt-dot ' + dotClass(a.status);
+      if (st)  { st.className = 'mnt-alert-status ' + stClass(a.status); st.textContent = a.status; }
+    });
+  }
+
+  // ── Alert CRUD ──────────────────────────────────────────────────────────
+  window.mntAlertNew = function() {
+    document.getElementById('mntAlertId').value = '';
+    document.getElementById('mntAlertName').value = '';
+    document.getElementById('mntAlertMetric').value = 'storage_pct';
+    document.getElementById('mntAlertCond').value = 'gt';
+    document.getElementById('mntAlertThresh').value = '80';
+    document.getElementById('mntAlertEmail').value = '';
+    document.getElementById('mntAlertActive').checked = true;
+    document.getElementById('mntAlertForm').classList.add('open');
+  };
+
+  window.mntAlertEdit = function(id, name, metric, cond, thresh, active, email) {
+    document.getElementById('mntAlertId').value = id;
+    document.getElementById('mntAlertName').value = name;
+    document.getElementById('mntAlertMetric').value = metric;
+    document.getElementById('mntAlertCond').value = cond;
+    document.getElementById('mntAlertThresh').value = thresh;
+    document.getElementById('mntAlertEmail').value = email;
+    document.getElementById('mntAlertActive').checked = active;
+    document.getElementById('mntAlertForm').classList.add('open');
+  };
+
+  window.mntAlertFormClose = function() {
+    document.getElementById('mntAlertForm').classList.remove('open');
+  };
+
+  window.mntAlertSave = function() {
+    var payload = {
+      id: document.getElementById('mntAlertId').value || null,
+      name: document.getElementById('mntAlertName').value,
+      metric: document.getElementById('mntAlertMetric').value,
+      condition: document.getElementById('mntAlertCond').value,
+      threshold: parseFloat(document.getElementById('mntAlertThresh').value) || 80,
+      is_active: document.getElementById('mntAlertActive').checked,
+      email_notify: document.getElementById('mntAlertEmail').value,
+    };
+    fetch(SAVE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify(payload),
+    }).then(r => r.json()).then(function(res) {
+      mntAlertFormClose();
+      mntLoad(); // refresh everything
+    });
+  };
+
+  window.mntAlertDel = function(id) {
+    if (!confirm('Eliminar esta alerta?')) return;
+    fetch(DEL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ id: id }),
+    }).then(function() {
+      var el = document.getElementById('mnt-alert-' + id);
+      if (el) el.remove();
+    });
+  };
+
+  // Load on page open + auto-refresh every 5 min
+  mntLoad();
+  setInterval(mntLoad, 300000);
+})();
+</script>
+{% endblock %}

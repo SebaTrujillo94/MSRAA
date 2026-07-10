@@ -11,7 +11,7 @@ from .models import (
     ClientLogo, PortfolioCategory, PortfolioProject, PortfolioProjectImage,
     CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage,
     MediaItemSection, MediaItemVideo,
-    ContactSubmission,
+    ContactSubmission, SiteVisit, MonitorAlert,
 )
 
 
@@ -809,6 +809,10 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
         urls = super().get_urls()
         custom = [
             path('cloudinary/', self.admin_site.admin_view(self._cloudinary_usage_view), name='cloudinary_usage'),
+            path('mantenedor/', self.admin_site.admin_view(self._mantenedor_view), name='mantenedor'),
+            path('mantenedor/stats/', self.admin_site.admin_view(self._mantenedor_stats_api), name='mantenedor_stats'),
+            path('mantenedor/alerts/save/', self.admin_site.admin_view(self._mantenedor_alert_save), name='mantenedor_alert_save'),
+            path('mantenedor/alerts/delete/', self.admin_site.admin_view(self._mantenedor_alert_delete), name='mantenedor_alert_delete'),
         ]
         return custom + urls
 
@@ -840,6 +844,171 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
                         'bandwidth_gb': 0, 'bandwidth_pct': 0,
                         'transformations': 0, 'requests': 0, 'resources': 0, 'now': ''})
         return TemplateResponse(request, 'admin/cloudinary_usage.html', ctx)
+
+    # ── Mantenedor ─────────────────────────────────────────────────────────
+
+    def _mantenedor_view(self, request):
+        from django.http import JsonResponse
+        alerts = list(MonitorAlert.objects.all().values(
+            'id', 'name', 'metric', 'condition', 'threshold',
+            'is_active', 'last_status', 'last_checked', 'email_notify',
+        ))
+        ctx = dict(
+            self.admin_site.each_context(request),
+            title='Mantenedor del Sitio',
+            alerts=alerts,
+        )
+        return TemplateResponse(request, 'admin/mantenedor.html', ctx)
+
+    def _mantenedor_stats_api(self, request):
+        import json, time
+        from django.http import JsonResponse
+        from django.db.models import Sum
+        from datetime import date, timedelta
+        data = {}
+
+        # ── Cloudinary ──────────────────────────────────────────
+        try:
+            import cloudinary.api
+            _cld_init()
+            t0 = time.time()
+            usage = cloudinary.api.usage()
+            cld_ms = int((time.time() - t0) * 1000)
+            GB = 1024 ** 3; FREE = 25
+            storage_bytes = usage.get('storage', {}).get('usage', 0)
+            bw_bytes = usage.get('bandwidth', {}).get('usage', 0)
+            data['cloudinary'] = {
+                'storage_gb': round(storage_bytes / GB, 3),
+                'storage_pct': round(min(storage_bytes / GB / FREE * 100, 100), 1),
+                'bandwidth_gb': round(bw_bytes / GB, 3),
+                'bandwidth_pct': round(min(bw_bytes / GB / FREE * 100, 100), 1),
+                'transformations': usage.get('transformations', {}).get('usage', 0),
+                'requests': usage.get('requests', 0),
+                'resources': usage.get('resources', 0),
+                'api_ms': cld_ms,
+                'error': None,
+            }
+        except Exception as e:
+            data['cloudinary'] = {'error': str(e)}
+
+        # ── Base de datos ────────────────────────────────────────
+        from core.models import (
+            PortfolioProject, PortfolioProjectImage,
+            MediaItem, MediaItemImage, CurriculumItem, ClientLogo,
+            SiteConfiguration, ContactSubmission,
+        )
+        data['db'] = {
+            'projects': PortfolioProject.objects.count(),
+            'projects_active': PortfolioProject.objects.filter(is_active=True).count(),
+            'project_images': PortfolioProjectImage.objects.count(),
+            'media_items': MediaItem.objects.count(),
+            'media_images': MediaItemImage.objects.count(),
+            'curriculum': CurriculumItem.objects.count(),
+            'logos': ClientLogo.objects.count(),
+            'submissions': ContactSubmission.objects.count(),
+        }
+
+        # ── Tráfico ──────────────────────────────────────────────
+        today = date.today()
+        week_ago = today - timedelta(days=7)
+        month_ago = today - timedelta(days=30)
+        visits_today = SiteVisit.objects.filter(date=today).aggregate(t=Sum('count'))['t'] or 0
+        visits_week = SiteVisit.objects.filter(date__gte=week_ago).aggregate(t=Sum('count'))['t'] or 0
+        visits_month = SiteVisit.objects.filter(date__gte=month_ago).aggregate(t=Sum('count'))['t'] or 0
+        top_pages = list(
+            SiteVisit.objects.filter(date__gte=month_ago)
+            .values('path')
+            .annotate(total=Sum('count'))
+            .order_by('-total')[:8]
+        )
+        # Daily chart last 14 days
+        daily = {}
+        for v in SiteVisit.objects.filter(date__gte=today - timedelta(days=13)).values('date', 'count'):
+            k = str(v['date'])
+            daily[k] = daily.get(k, 0) + v['count']
+        chart = [{'date': str(today - timedelta(days=i)), 'count': daily.get(str(today - timedelta(days=i)), 0)}
+                 for i in range(13, -1, -1)]
+        data['traffic'] = {
+            'today': visits_today,
+            'week': visits_week,
+            'month': visits_month,
+            'top_pages': top_pages,
+            'chart': chart,
+        }
+
+        # ── Rendimiento (ping) ───────────────────────────────────
+        try:
+            import urllib.request as ureq
+            from django.conf import settings
+            site_url = getattr(settings, 'SITE_URL', 'https://msraa.vercel.app')
+            t0 = time.time()
+            r = ureq.urlopen(site_url, timeout=10)
+            ping_ms = int((time.time() - t0) * 1000)
+            data['perf'] = {'status': r.status, 'ping_ms': ping_ms, 'error': None}
+        except Exception as e:
+            data['perf'] = {'status': 0, 'ping_ms': -1, 'error': str(e)}
+
+        # ── Alertas ──────────────────────────────────────────────
+        cld = data.get('cloudinary', {})
+        perf = data.get('perf', {})
+        metric_vals = {
+            'storage_pct': cld.get('storage_pct', 0),
+            'bandwidth_pct': cld.get('bandwidth_pct', 0),
+            'response_ms': perf.get('ping_ms', -1),
+        }
+        alert_results = []
+        for alert in MonitorAlert.objects.filter(is_active=True):
+            val = metric_vals.get(alert.metric)
+            if val is None or val < 0:
+                status = 'unknown'
+            else:
+                triggered = (alert.condition == 'gt' and val > alert.threshold) or \
+                            (alert.condition == 'lt' and val < alert.threshold)
+                status = 'crit' if triggered else 'ok'
+            MonitorAlert.objects.filter(pk=alert.pk).update(
+                last_status=status, last_checked=timezone.now()
+            )
+            alert_results.append({
+                'id': alert.pk, 'name': alert.name,
+                'metric': alert.get_metric_display(),
+                'condition': alert.condition,
+                'threshold': alert.threshold,
+                'value': val, 'status': status,
+            })
+        data['alerts'] = alert_results
+        data['now'] = timezone.now().strftime('%d/%m/%Y %H:%M:%S')
+        return JsonResponse(data)
+
+    def _mantenedor_alert_save(self, request):
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST required'}, status=405)
+        import json
+        body = json.loads(request.body)
+        pk = body.get('id')
+        fields = {
+            'name': body.get('name', ''),
+            'metric': body.get('metric', 'storage_pct'),
+            'condition': body.get('condition', 'gt'),
+            'threshold': float(body.get('threshold', 80)),
+            'is_active': bool(body.get('is_active', True)),
+            'email_notify': body.get('email_notify', ''),
+        }
+        if pk:
+            MonitorAlert.objects.filter(pk=pk).update(**fields)
+            obj = MonitorAlert.objects.get(pk=pk)
+        else:
+            obj = MonitorAlert.objects.create(**fields)
+        return JsonResponse({'id': obj.pk, 'name': obj.name})
+
+    def _mantenedor_alert_delete(self, request):
+        from django.http import JsonResponse
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST required'}, status=405)
+        import json
+        pk = json.loads(request.body).get('id')
+        MonitorAlert.objects.filter(pk=pk).delete()
+        return JsonResponse({'ok': True})
 
 
 @admin.register(MenuItem)

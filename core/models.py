@@ -760,3 +760,56 @@ class PortfolioProjectImage(models.Model):
 
     def __str__(self):
         return f"{self.project.title} — imagen {self.order}"
+
+
+# ─── Mantenedor / Monitoring ─────────────────────────────────────────────────
+
+class SiteVisit(models.Model):
+    """Daily aggregated page visit counter."""
+    date = models.DateField(db_index=True)
+    path = models.CharField(max_length=300, db_index=True)
+    count = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        unique_together = [('date', 'path')]
+        ordering = ['-date', '-count']
+        verbose_name = 'Visita'
+        verbose_name_plural = 'Visitas'
+
+    def __str__(self):
+        return f"{self.date} {self.path} ({self.count})"
+
+
+class MonitorAlert(models.Model):
+    METRIC_CHOICES = [
+        ('storage_pct',   'Almacenamiento Cloudinary (%)'),
+        ('bandwidth_pct', 'Ancho de banda Cloudinary (%)'),
+        ('response_ms',   'Tiempo de respuesta sitio (ms)'),
+    ]
+    CONDITION_CHOICES = [
+        ('gt', '>  Mayor que'),
+        ('lt', '<  Menor que'),
+    ]
+    STATUS_CHOICES = [
+        ('ok',      'OK'),
+        ('warn',    'Advertencia'),
+        ('crit',    'Critico'),
+        ('unknown', 'Sin datos'),
+    ]
+
+    name        = models.CharField(max_length=100, verbose_name='Nombre')
+    metric      = models.CharField(max_length=30, choices=METRIC_CHOICES, verbose_name='Metrica')
+    condition   = models.CharField(max_length=5, choices=CONDITION_CHOICES, default='gt', verbose_name='Condicion')
+    threshold   = models.FloatField(verbose_name='Umbral')
+    is_active   = models.BooleanField(default=True, verbose_name='Activa')
+    last_checked = models.DateTimeField(null=True, blank=True, verbose_name='Ultimo chequeo')
+    last_status  = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unknown', verbose_name='Estado')
+    email_notify = models.EmailField(blank=True, verbose_name='Email notificacion')
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Alerta'
+        verbose_name_plural = 'Alertas'
+
+    def __str__(self):
+        return f"{self.name} ({self.get_metric_display()} {self.condition} {self.threshold})"
