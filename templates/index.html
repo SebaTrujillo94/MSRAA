@@ -13,11 +13,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   
   <script>
-    // Apply saved theme/logo before paint to avoid flash
+    // Apply saved theme/logo/typography before paint to avoid flash
     (function(){
       var t = localStorage.getItem('msraa_theme') || 'dark';
       var l = localStorage.getItem('msraa_logo') || 'default';
+      var fs = localStorage.getItem('msraa_font_size');
+      var tc = localStorage.getItem('msraa_text_color');
+      var ff = localStorage.getItem('msraa_font_family');
       document.documentElement.setAttribute('data-theme-init', t);
+      if (fs) document.documentElement.style.fontSize = fs + 'px';
+      if (tc) document.documentElement.style.setProperty('--white', tc);
+      if (ff) {
+        var s = document.createElement('style');
+        s.id = 'typo-font-style';
+        s.textContent = '*, *::before, *::after { font-family: ' + ff + ', sans-serif !important; }';
+        document.head.appendChild(s);
+      }
       document.addEventListener('DOMContentLoaded', function(){
         document.body.setAttribute('data-theme', t);
         document.body.setAttribute('data-logo', l);
@@ -1693,6 +1704,29 @@
       display: flex;
       flex-direction: column;
       gap: 8px
+    }
+
+    .set-sub-label {
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--op-40);
+      margin-top: 14px;
+      display: block;
+    }
+    .font-size-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .font-size-row .set-btn { width: 40px; flex-shrink: 0; text-align: center; }
+    .font-size-val {
+      min-width: 38px;
+      text-align: center;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      color: var(--white);
     }
 
     .set-btn {
@@ -3405,6 +3439,35 @@
           <div class="lang-toggle-labels">
             <span>Español</span><span>English</span>
           </div>
+        </div>
+      </div>
+
+      <!-- TIPOGRAFÍA -->
+      <div class="set-grp">
+        <label>TIPOGRAFÍA</label>
+
+        <span class="set-sub-label">TAMAÑO DE LETRA</span>
+        <div class="font-size-row">
+          <button class="set-btn hov-t" id="fontSizeMinus">A−</button>
+          <span class="font-size-val" id="fontSizeVal">16px</span>
+          <button class="set-btn hov-t" id="fontSizePlus">A+</button>
+          <button class="set-btn hov-t" id="fontSizeReset" style="flex:1">↺ RESET</button>
+        </div>
+
+        <span class="set-sub-label">TIPO DE LETRA</span>
+        <div class="set-opts" style="margin-top:8px">
+          <button class="set-btn font-btn active hov-t" data-font="Calibri">CALIBRI (DEFAULT)</button>
+          <button class="set-btn font-btn hov-t" data-font="Georgia">GEORGIA</button>
+          <button class="set-btn font-btn hov-t" data-font="'Helvetica Neue', Helvetica">HELVETICA</button>
+          <button class="set-btn font-btn hov-t" data-font="'Times New Roman', Times">TIMES NEW ROMAN</button>
+          <button class="set-btn font-btn hov-t" data-font="'Courier New', Courier">COURIER</button>
+        </div>
+
+        <span class="set-sub-label">COLOR DE TEXTO</span>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+          <input type="color" id="textColorPicker" value="#f0ede8"
+            style="cursor:pointer;width:40px;height:40px;padding:0;border:1px solid rgba(255,255,255,0.2);background:none;border-radius:4px;flex-shrink:0">
+          <button class="set-btn hov-t" id="resetTextColorBtn" style="flex:1">RESETEAR</button>
         </div>
       </div>
     </div>
@@ -6084,6 +6147,77 @@
     resetDotsColorBtn.addEventListener('click', () => {
       applyDotColors(null, null);
     });
+
+    /* ── TIPOGRAFÍA ─────────────────────────────────────── */
+
+    // Font Size
+    var DEFAULT_FS = {{ config.font_size_base }};
+    var curFontSize = parseInt(localStorage.getItem('msraa_font_size') || DEFAULT_FS);
+    var fontSizeVal = document.getElementById('fontSizeVal');
+
+    function applyFontSize(size, save) {
+      size = Math.min(22, Math.max(12, size));
+      curFontSize = size;
+      document.documentElement.style.fontSize = size + 'px';
+      fontSizeVal.textContent = size + 'px';
+      if (save) localStorage.setItem('msraa_font_size', size);
+    }
+    applyFontSize(curFontSize, false);
+
+    document.getElementById('fontSizeMinus').addEventListener('click', () => applyFontSize(curFontSize - 1, true));
+    document.getElementById('fontSizePlus').addEventListener('click', () => applyFontSize(curFontSize + 1, true));
+    document.getElementById('fontSizeReset').addEventListener('click', () => {
+      localStorage.removeItem('msraa_font_size');
+      applyFontSize(DEFAULT_FS, false);
+    });
+
+    // Font Family — inject/update a style tag to beat the existing !important rule
+    var typoStyleEl = document.getElementById('typo-font-style');
+    if (!typoStyleEl) {
+      typoStyleEl = document.createElement('style');
+      typoStyleEl.id = 'typo-font-style';
+      document.head.appendChild(typoStyleEl);
+    }
+
+    function applyFontFamily(family, save) {
+      if (family) {
+        typoStyleEl.textContent = '*, *::before, *::after { font-family: ' + family + ', sans-serif !important; }';
+        if (save) localStorage.setItem('msraa_font_family', family);
+      } else {
+        typoStyleEl.textContent = '';
+        family = 'Calibri';
+        localStorage.removeItem('msraa_font_family');
+      }
+      document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b.dataset.font === family));
+    }
+    var savedFF = localStorage.getItem('msraa_font_family');
+    applyFontFamily(savedFF || null, false);
+
+    document.querySelectorAll('.font-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyFontFamily(btn.dataset.font, true));
+    });
+
+    // Text Color
+    var textColorPicker = document.getElementById('textColorPicker');
+    var resetTextColorBtn = document.getElementById('resetTextColorBtn');
+
+    function applyTextColor(color, save) {
+      if (color) {
+        document.documentElement.style.setProperty('--white', color);
+        textColorPicker.value = color;
+        if (save) localStorage.setItem('msraa_text_color', color);
+      } else {
+        document.documentElement.style.removeProperty('--white');
+        var theme = document.body.getAttribute('data-theme') || 'dark';
+        textColorPicker.value = theme === 'light' ? '#1a1a1a' : '#f0ede8';
+        localStorage.removeItem('msraa_text_color');
+      }
+    }
+    var savedTC = localStorage.getItem('msraa_text_color');
+    if (savedTC) applyTextColor(savedTC, false);
+
+    textColorPicker.addEventListener('input', e => applyTextColor(e.target.value, true));
+    resetTextColorBtn.addEventListener('click', () => applyTextColor(null, false));
 
     /* GLASS LANGUAGE TOGGLE */
     (function() {
