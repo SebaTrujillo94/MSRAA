@@ -748,14 +748,23 @@
     /* NARROW SIDEBAR — hidden, replaced by float-logo */
     .sb-narrow { display: none !important; }
 
-    /* Floating logo below burger button */
-    .float-logo {
+    /* Container that keeps burger + logo aligned top-left */
+    .float-corner {
       position: fixed;
+      top: 30px;
       left: 25px;
-      bottom: 36px;
       z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    /* Floating logo sits just below burger */
+    .float-logo {
       width: 32px;
       height: 32px;
+      padding-left: 10px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s 0.6s;
@@ -795,9 +804,9 @@
       margin-left: -320px;
     }
 
-    /* DESKTOP: float-menu hidden when sidebar open; X button always visible */
+    /* DESKTOP: float-corner hidden when sidebar open; X button always visible */
     @media (min-width: 993px) {
-      body:not(.sidebars-hidden) .float-menu { display: none !important; }
+      body:not(.sidebars-hidden) .float-corner { display: none !important; }
       .toggle-left-btn { display: flex !important; }
     }
     /* Mobile: X button visible and well positioned */
@@ -874,10 +883,6 @@
 
     /* FLOATING MENU BUTTON (Visible when sidebars are hidden) */
     .float-menu {
-      position: fixed;
-      top: 30px;
-      left: 25px;
-      z-index: 300;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -1724,6 +1729,7 @@
       /* Hero Layout adjustments */
       .hero-wrap { flex-direction: column; }
       /* Always show hamburger on mobile (sidebars-hidden not set automatically on mobile) */
+      .float-corner { display: flex !important; }
       .float-menu { opacity: 1 !important; pointer-events: all !important; transition-delay: 0s !important; }
       body.mobile-menu-open .float-menu { opacity: 0 !important; pointer-events: none !important; }
 
@@ -3265,18 +3271,18 @@
 
   <!-- ===== HERO 3-COLUMN LAYOUT ===== -->
   <div class="hero-wrap" id="heroWrap">
-    <!-- FLOATING MENU BUTTON -->
-    <div class="float-menu hov-t" id="openSidebarBtn">
-      <span></span><span></span><span></span>
-    </div>
-
-    <!-- FLOATING LOGO (below burger, visible when sidebar closed) -->
-    <div class="float-logo">
-      {% if config.logo_main %}
-      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{{ config.logo_main.url }}');mask-image:url('{{ config.logo_main.url }}');background-color:#fff;"></div>
-      {% else %}
-      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');background-color:#fff;"></div>
-      {% endif %}
+    <!-- FLOATING CORNER: burger + logo grouped and aligned -->
+    <div class="float-corner">
+      <div class="float-menu hov-t" id="openSidebarBtn">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="float-logo">
+        {% if config.logo_main %}
+        <div class="sb-narrow-logo" style="-webkit-mask-image:url('{{ config.logo_main.url }}');mask-image:url('{{ config.logo_main.url }}');background-color:#fff;"></div>
+        {% else %}
+        <div class="sb-narrow-logo" style="-webkit-mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');background-color:#fff;"></div>
+        {% endif %}
+      </div>
     </div>
 
     <!-- NARROW PERSISTENT SIDEBAR (hidden) -->
