@@ -5761,7 +5761,7 @@
       const _total = p.images.length;
       const _imgPanels = p.images.map((img, i) => {
         const num = String(i + 1).padStart(2, '0');
-        return `<div class="pd-panel-img"><img src="${img.url}" alt="${p.title}"><div class="pd-img-caption">${num} / ${_total}</div></div>`;
+        return `<div class="pd-panel-img"><img src="${img.url}" alt="${p.title}" onclick="openCvLightbox('img', this.src, '')" style="cursor:zoom-in"><div class="pd-img-caption">${num} / ${_total}</div></div>`;
       });
       const firstImgPanel = _imgPanels[0] || '';
       const restImgPanels = _imgPanels.slice(1).join('');
@@ -6891,7 +6891,7 @@
       ? `<a href="${d.url}" class="pd-panel-link hov-t" target="_blank" rel="noopener">${d.url_label} →</a>`
       : '';
     const refImgs = (d.images || []).map(src =>
-      `<div class="pd-panel-img"><img src="${src}" alt=""><div class="pd-img-caption">IMAGEN REFERENCIAL</div></div>`
+      `<div class="pd-panel-img"><img src="${src}" alt="" onclick="openCvLightbox('img', this.src, '')" style="cursor:zoom-in"><div class="pd-img-caption">IMAGEN REFERENCIAL</div></div>`
     ).join('');
     const videoPanel = d.videoUrl
       ? `<div class="pd-panel-video">${videoTag(d.videoUrl, d.title)}<div class="pd-img-caption">VIDEO</div></div>`
