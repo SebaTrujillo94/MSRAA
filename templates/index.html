@@ -4550,10 +4550,10 @@
             {% for item in items %}
             {% ifchanged item.subgroup %}
             {% if item.subgroup %}
-            <li class="curriculum-subgroup-label{% if forloop.counter > 6 %} curriculum-extra{% endif %}"{% if forloop.counter > 6 %} style="display:none;"{% endif %}>{{ item.subgroup }}</li>
+            <li class="curriculum-subgroup-label{% if forloop.counter > 4 %} curriculum-extra{% endif %}"{% if forloop.counter > 4 %} style="display:none;"{% endif %}>{{ item.subgroup }}</li>
             {% endif %}
             {% endifchanged %}
-            <li class="curriculum-item{% if forloop.counter > 6 %} curriculum-extra{% endif %}"{% if forloop.counter > 6 %} style="display:none;"{% endif %}>
+            <li class="curriculum-item{% if forloop.counter > 4 %} curriculum-extra{% endif %}"{% if forloop.counter > 4 %} style="display:none;"{% endif %}>
               <span class="curriculum-year">{{ item.year }}</span>
               <div class="curriculum-detail">
                 <strong>{% tf item "title" %}</strong>
@@ -4588,8 +4588,8 @@
             </li>
             {% endfor %}
           </ul>
-          {% if items|length > 6 %}
-          <button class="curriculum-more-btn hov-t" onclick="this.previousElementSibling.querySelectorAll('.curriculum-extra').forEach(function(el){el.style.display='flex';}); this.style.display='none';" data-i18n="curriculum_see_more">Ver más</button>
+          {% if items|length > 4 %}
+          <button class="curriculum-more-btn hov-t" data-state="collapsed" data-i18n="curriculum_see_more" onclick="toggleCurriculumMore(this)">Ver más</button>
           {% endif %}
         </div>
         {% endfor %}
@@ -6385,6 +6385,7 @@
           f_submit: 'ENVIAR MENSAJE →',
           footer_copy: '© 2026 MSRAA ESTUDIO DE ARQUITECTURA', footer_contact: 'Contacto',
           curriculum_see_more: 'Ver más',
+          curriculum_see_less: 'Ver menos',
         },
         en: {
           settings_dots_colors: 'LOADING SPHERES COLORS',
@@ -6428,6 +6429,7 @@
           f_submit: 'SEND MESSAGE →',
           footer_copy: '© 2026 MSRAA ARCHITECTURE STUDIO', footer_contact: 'Contact',
           curriculum_see_more: 'See more',
+          curriculum_see_less: 'See less',
         },
         
       };
@@ -7131,6 +7133,20 @@
       return false;
     }
     return true;
+  }
+
+  function toggleCurriculumMore(btn) {
+    const list = btn.previousElementSibling;
+    const extras = list.querySelectorAll('.curriculum-extra');
+    const expanded = btn.dataset.state === 'expanded';
+    extras.forEach(el => { el.style.display = expanded ? 'none' : 'flex'; });
+    btn.dataset.state = expanded ? 'collapsed' : 'expanded';
+    const key = expanded ? 'curriculum_see_more' : 'curriculum_see_less';
+    btn.dataset.i18n = key;
+    const lang = (document.querySelector('.lang-opt.active') || {}).dataset?.lang || 'es';
+    const t = (typeof translations !== 'undefined' && translations[lang]) || {};
+    btn.textContent = t[key] || (expanded ? 'Ver más' : 'Ver menos');
+    if (expanded) list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   let pdfjsLibPromise = null;
