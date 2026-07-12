@@ -131,7 +131,7 @@ def index(request):
         ],
     } for m in media_items], ensure_ascii=False)
 
-    CURRICULUM_CATEGORY_ORDER = ['formacion', 'experiencia', 'reconocimientos', 'publicaciones', 'otros']
+    CURRICULUM_CATEGORY_ORDER = ['formacion', 'experiencia', 'reconocimientos', 'publicaciones']
     cv_labels = _CV_LABELS[lang_key]
     curriculum_items = CurriculumItem.objects.filter(is_active=True).prefetch_related('images')
     _cv_groups = {}
@@ -142,6 +142,7 @@ def index(request):
         for cat in CURRICULUM_CATEGORY_ORDER
         if cat in _cv_groups
     ]
+    curriculum_cv_item = _cv_groups.get('otros', [None])[0]
 
     team_members = list(TeamMember.objects.filter(is_active=True))
 
@@ -207,6 +208,7 @@ def index(request):
         'hero_slide_duration': config.hero_slide_duration,
         'menu_items_by_section': _group_menu_items(menu_items),
         'curriculum_groups': curriculum_groups,
+        'curriculum_cv_item': curriculum_cv_item,
         'team_members': team_members,
         'media_items': media_items,
         'media_data_json': media_data_json,

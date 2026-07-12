@@ -4079,6 +4079,52 @@
 
     /* CURRICULUM SECTION */
     .curriculum-sec { border-top: 1px solid var(--border); }
+    .cv-banner {
+      margin-top: 40px;
+      padding: 40px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .cv-banner-label {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+    .cv-banner-title {
+      font-family: 'Calibri', sans-serif;
+      font-size: clamp(1.4rem, 2.4vw, 2rem);
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+    .cv-banner-desc {
+      font-family: 'Calibri', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--op-40);
+      font-weight: 300;
+      max-width: 70ch;
+      margin: 0 0 22px;
+    }
+    .cv-banner-link {
+      display: inline-block;
+      font-family: 'Calibri', sans-serif;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 12px 24px;
+      text-decoration: none;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    .cv-banner-link:hover { background: rgba(232, 184, 75, 0.1); }
+    @media (max-width: 992px) {
+      .cv-banner { padding: 28px 20px; margin-top: 28px; }
+    }
     .curriculum-inner {
       columns: 3;
       column-gap: 60px;
@@ -4509,6 +4555,20 @@
     <!-- CURRICULUM SECTION -->
     <section class="sc curriculum-sec" id="curriculum">
       <div class="sc-label rv"><span>CURRICULUM</span></div>
+
+      {% if curriculum_cv_item %}
+      <div class="cv-banner">
+        <div class="cv-banner-label" data-i18n="cv_banner_label">HISTORIA CURRICULAR</div>
+        <div class="cv-banner-title">{% tf curriculum_cv_item "title" %}</div>
+        {% if curriculum_cv_item.description %}<p class="cv-banner-desc">{% tf curriculum_cv_item "description" %}</p>{% endif %}
+        {% if curriculum_cv_item.url %}
+        {% tf curriculum_cv_item "title" as cv_item_title %}
+        <a href="{{ curriculum_cv_item.url }}" class="cv-banner-link hov-t" target="_blank" rel="noopener" onclick="return handleCurriculumLink(event, this, '{{ cv_item_title|escapejs }}')">
+          {% tf curriculum_cv_item "url_label" %}{% if not curriculum_cv_item.url_label %}{{ ui.see_doc }}{% endif %} →
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
 
       {% if team_members %}
       <div class="team-block">
@@ -6386,6 +6446,7 @@
           footer_copy: '© 2026 MSRAA ESTUDIO DE ARQUITECTURA', footer_contact: 'Contacto',
           curriculum_see_more: 'Ver más',
           curriculum_see_less: 'Ver menos',
+          cv_banner_label: 'Historia Curricular',
         },
         en: {
           settings_dots_colors: 'LOADING SPHERES COLORS',
@@ -6430,6 +6491,7 @@
           footer_copy: '© 2026 MSRAA ARCHITECTURE STUDIO', footer_contact: 'Contact',
           curriculum_see_more: 'See more',
           curriculum_see_less: 'See less',
+          cv_banner_label: 'Curriculum History',
         },
         
       };
