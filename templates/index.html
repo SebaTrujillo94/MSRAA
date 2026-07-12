@@ -4153,6 +4153,20 @@
       transition: opacity .2s;
     }
     .curriculum-link:hover { opacity: 0.7; }
+    .curriculum-more-btn {
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      margin-top: 16px;
+      cursor: pointer;
+      transition: opacity .2s, border-color .2s;
+    }
+    .curriculum-more-btn:hover { opacity: 0.7; border-color: var(--gold); }
     .cv-media-row {
       display: flex;
       flex-wrap: wrap;
@@ -4518,7 +4532,7 @@
           <div class="curriculum-cat">{{ cat_label }}</div>
           <ul class="curriculum-list">
             {% for item in items %}
-            <li class="curriculum-item">
+            <li class="curriculum-item{% if forloop.counter > 6 %} curriculum-extra{% endif %}"{% if forloop.counter > 6 %} style="display:none;"{% endif %}>
               <span class="curriculum-year">{{ item.year }}</span>
               <div class="curriculum-detail">
                 <strong>{% tf item "title" %}</strong>
@@ -4552,6 +4566,9 @@
             </li>
             {% endfor %}
           </ul>
+          {% if items|length > 6 %}
+          <button class="curriculum-more-btn hov-t" onclick="this.previousElementSibling.querySelectorAll('.curriculum-extra').forEach(function(el){el.style.display='flex';}); this.style.display='none';" data-i18n="curriculum_see_more">Ver más</button>
+          {% endif %}
         </div>
         {% endfor %}
         {% if not curriculum_groups %}
@@ -6344,6 +6361,7 @@
           f_msg: 'Mensaje', f_msg_ph: 'Cuéntanos sobre tu proyecto...',
           f_submit: 'ENVIAR MENSAJE →',
           footer_copy: '© 2026 MSRAA ESTUDIO DE ARQUITECTURA', footer_contact: 'Contacto',
+          curriculum_see_more: 'Ver más',
         },
         en: {
           settings_dots_colors: 'LOADING SPHERES COLORS',
@@ -6386,6 +6404,7 @@
           f_msg: 'Message', f_msg_ph: 'Tell us about your project...',
           f_submit: 'SEND MESSAGE →',
           footer_copy: '© 2026 MSRAA ARCHITECTURE STUDIO', footer_contact: 'Contact',
+          curriculum_see_more: 'See more',
         },
         
       };
