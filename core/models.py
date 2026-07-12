@@ -465,6 +465,7 @@ class CurriculumItem(models.Model):
     ]
 
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='experiencia', verbose_name='Categoría')
+    subgroup = models.CharField(max_length=100, blank=True, verbose_name='Subgrupo', help_text='Ej: "Concursos" — agrupa items bajo un subtítulo dentro de la categoría. Items con el mismo subgrupo deben quedar consecutivos (ordenar con "order"). Dejar vacío para no agrupar.')
     year = models.CharField(max_length=20, blank=True, help_text="Ej: 2020, 2015 — 2020, 2010 —")
     title = models.CharField(max_length=200, verbose_name='Título')
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')

@@ -4107,6 +4107,18 @@
       border-top: 1px solid var(--border);
       padding-top: 20px;
     }
+    .curriculum-subgroup-label {
+      display: block;
+      font-family: 'Calibri', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.75;
+      margin-top: 8px;
+    }
+    .curriculum-subgroup-label:first-child { margin-top: 0; }
     .curriculum-year {
       font-family: 'Calibri', sans-serif;
       font-size: 10px;
@@ -4532,6 +4544,11 @@
           <div class="curriculum-cat">{{ cat_label }}</div>
           <ul class="curriculum-list">
             {% for item in items %}
+            {% ifchanged item.subgroup %}
+            {% if item.subgroup %}
+            <li class="curriculum-subgroup-label{% if forloop.counter > 6 %} curriculum-extra{% endif %}"{% if forloop.counter > 6 %} style="display:none;"{% endif %}>{{ item.subgroup }}</li>
+            {% endif %}
+            {% endifchanged %}
             <li class="curriculum-item{% if forloop.counter > 6 %} curriculum-extra{% endif %}"{% if forloop.counter > 6 %} style="display:none;"{% endif %}>
               <span class="curriculum-year">{{ item.year }}</span>
               <div class="curriculum-detail">
