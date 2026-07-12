@@ -280,6 +280,7 @@ class MediaItem(models.Model):
         ('noticia', 'NOTICIA'),
         ('charla', 'CHARLA'),
         ('premio', 'PREMIO'),
+        ('concurso', 'CONCURSO'),
         ('publicacion', 'PUBLICACIÓN'),
         ('entrevista', 'ENTREVISTA'),
         ('otro', 'OTRO'),
