@@ -4435,19 +4435,27 @@
     
 
     <!-- NEXT PROJECT -->
-    <div class="nxt hov-t">
+    {% if projects %}
+    {% with nxt_project=projects|last nxt_index=projects|length|add:-1 %}
+    <div class="nxt hov-t" data-index="{{ nxt_index }}">
       <div class="nxt-bg">
-        <img src="https://res.cloudinary.com/dej6gv0ab/image/upload/medios/gallery/ref2" alt="Casa Monolito">
+        {% with nxt_project.get_hero_image_src as nxt_hero %}
+        {% if nxt_hero %}
+        <img src="{{ nxt_hero }}" alt="{{ nxt_project.title }}">
+        {% endif %}
+        {% endwith %}
       </div>
       <div class="nxt-inner">
         <div class="nxt-lbl" data-i18n="nxt_lbl">EXPLORAR PROYECTO</div>
-        <div class="nxt-title rv"><span>CASA<br>MONOLITO</span></div>
+        <div class="nxt-title rv"><span>{% tf nxt_project "title" %}</span></div>
         <div class="nxt-arr">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           <span data-i18n="nxt_btn">VER PROYECTO</span>
         </div>
       </div>
     </div>
+    {% endwith %}
+    {% endif %}
 
     <!-- MEDIOS SECTION -->
     <section class="sc medios-sec" id="medios">
@@ -6121,9 +6129,12 @@
       });
     });
 
-    // 'Siguiente Proyecto' opens CASA MONOLITO
+    // 'Siguiente Proyecto' opens the real last project
     const nxtBtn = document.querySelector('.nxt');
-    if(nxtBtn) nxtBtn.addEventListener('click', () => openProjectOverlay(6));
+    if(nxtBtn) nxtBtn.addEventListener('click', () => {
+      const idx = parseInt(nxtBtn.getAttribute('data-index'));
+      if (!isNaN(idx) && projectData[idx]) openProjectOverlay(idx);
+    });
 
     /* SCROLL REVEALS */
     gsap.utils.toArray('.rv').forEach(el => {
