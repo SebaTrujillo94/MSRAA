@@ -4080,11 +4080,15 @@
     /* CURRICULUM SECTION */
     .curriculum-sec { border-top: 1px solid var(--border); }
     .curriculum-inner {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 60px;
+      columns: 3;
+      column-gap: 60px;
       margin-top: 60px;
     }
+    .curriculum-block {
+      break-inside: avoid;
+      margin-bottom: 60px;
+    }
+    .curriculum-block:last-child { margin-bottom: 0; }
     .curriculum-cat {
       font-family: 'Calibri', sans-serif;
       font-size: 9px;
@@ -4217,10 +4221,10 @@
     }
     @media (max-width: 992px) {
       .curriculum-inner {
-        grid-template-columns: 1fr;
-        gap: 40px;
+        columns: 1;
         margin-top: 40px;
       }
+      .curriculum-block { margin-bottom: 40px; }
     }
 
     /* QUIÉNES SOMOS — team members inside curriculum */
