@@ -4539,7 +4539,8 @@
                 {% if item.subtitle %}<span>{% tf item "subtitle" %}</span>{% endif %}
                 {% if item.description %}<p class="curriculum-desc">{% tf item "description" %}</p>{% endif %}
                 {% if item.url %}
-                <a href="{{ item.url }}" class="curriculum-link hov-t" target="_blank" rel="noopener">
+                {% tf item "title" as item_title %}
+                <a href="{{ item.url }}" class="curriculum-link hov-t" target="_blank" rel="noopener" onclick="return handleCurriculumLink(event, this, '{{ item_title|escapejs }}')">
                   {% tf item "url_label" %}{% if not item.url_label %}{{ ui.see_doc }}{% endif %} →
                 </a>
                 {% endif %}
@@ -7100,12 +7101,25 @@
   const cvLightboxIframe = document.getElementById('cvLightboxIframe');
   const cvLightboxCaption = document.getElementById('cvLightboxCaption');
 
+  function handleCurriculumLink(e, link, caption) {
+    if (/\.pdf(\?|$)/i.test(link.href) || /\.pdf["'&]/i.test(link.href)) {
+      e.preventDefault();
+      openCvLightbox('pdf', link.href, caption);
+      return false;
+    }
+    return true;
+  }
+
   function openCvLightbox(type, src, caption) {
     cvLightboxImg.style.display = 'none';
     cvLightboxIframe.style.display = 'none';
+    cvLightboxIframe.style.cssText = 'width:min(860px,90vw);height:min(480px,50vw);display:none;border-radius:4px;';
     const existingVideo = document.getElementById('cvLightboxVideo');
     if (existingVideo) existingVideo.remove();
-    if (type === 'video') {
+    if (type === 'pdf') {
+      cvLightboxIframe.src = src;
+      cvLightboxIframe.style.cssText = 'width:min(760px,92vw);height:88vh;display:block;border-radius:4px;background:#fff;';
+    } else if (type === 'video') {
       if (isDirectVideo(src)) {
         const vid = document.createElement('video');
         vid.id = 'cvLightboxVideo';
