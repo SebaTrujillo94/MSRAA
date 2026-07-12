@@ -146,10 +146,17 @@ def index(request):
 
     team_members = list(TeamMember.objects.filter(is_active=True))
 
-    nxt_project = config.featured_next_project if config.featured_next_project_id and config.featured_next_project.is_active else None
-    if not nxt_project and projects:
-        nxt_project = projects[-1]
-    nxt_index = projects.index(nxt_project) if nxt_project in projects else -1
+    nxt_projects = list(config.featured_next_projects.filter(is_active=True).order_by('order'))
+    if not nxt_projects and projects:
+        nxt_projects = [projects[-1]]
+    project_index_by_id = {p.pk: i for i, p in enumerate(projects)}
+    nxt_projects_data = [{
+        'title': _tf(p, 'title', is_en),
+        'heroImg': p.get_hero_image_src(),
+        'videoUrl': p.get_video_embed_url(),
+        'index': project_index_by_id.get(p.pk, -1),
+    } for p in nxt_projects]
+    nxt_projects_json = json.dumps(nxt_projects_data, ensure_ascii=False)
 
     project_data = []
     for p in projects:
@@ -214,8 +221,7 @@ def index(request):
         'menu_items_by_section': _group_menu_items(menu_items),
         'curriculum_groups': curriculum_groups,
         'curriculum_cv_item': curriculum_cv_item,
-        'nxt_project': nxt_project,
-        'nxt_index': nxt_index,
+        'nxt_projects_json': nxt_projects_json,
         'team_members': team_members,
         'media_items': media_items,
         'media_data_json': media_data_json,

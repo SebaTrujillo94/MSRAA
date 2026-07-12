@@ -235,11 +235,12 @@ class SiteConfiguration(SingletonModel):
     footer_copy_en = models.CharField(max_length=200, blank=True, verbose_name="Texto pie de página (EN)")
 
     # 'Explorar proyecto' banner
-    featured_next_project = models.ForeignKey(
-        'PortfolioProject', null=True, blank=True, on_delete=models.SET_NULL,
-        verbose_name="Proyecto destacado (banner 'Explorar Proyecto')",
-        help_text="Proyecto cuya foto/video grande se muestra en el banner 'EXPLORAR PROYECTO'. "
-                   "Vacío = se usa automáticamente el último proyecto del portafolio.",
+    featured_next_projects = models.ManyToManyField(
+        'PortfolioProject', blank=True, related_name='+',
+        verbose_name="Proyectos destacados (banner 'Explorar Proyecto')",
+        help_text="Proyectos que rotan automáticamente en el banner 'EXPLORAR PROYECTO'. "
+                   "Usa la foto/video que cada proyecto ya tiene cargado en Portafolio. "
+                   "Vacío = se usa automáticamente el último proyecto activo.",
     )
 
     class Meta:

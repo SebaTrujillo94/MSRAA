@@ -1234,7 +1234,7 @@
       transition: opacity 1s cubic-bezier(.16,1,.3,1);
     }
 
-    .nxt-bg img {
+    .nxt-bg img, .nxt-bg video {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -4435,25 +4435,17 @@
     
 
     <!-- NEXT PROJECT -->
-    {% if nxt_project %}
-    <div class="nxt hov-t" data-index="{{ nxt_index }}">
-      <div class="nxt-bg">
-        {% with nxt_project.get_hero_image_src as nxt_hero %}
-        {% if nxt_hero %}
-        <img src="{{ nxt_hero }}" alt="{{ nxt_project.title }}">
-        {% endif %}
-        {% endwith %}
-      </div>
+    <div class="nxt hov-t" id="nxtBanner" style="display:none">
+      <div class="nxt-bg" id="nxtBg"></div>
       <div class="nxt-inner">
         <div class="nxt-lbl" data-i18n="nxt_lbl">EXPLORAR PROYECTO</div>
-        <div class="nxt-title rv"><span>{% tf nxt_project "title" %}</span></div>
+        <div class="nxt-title rv"><span id="nxtTitle"></span></div>
         <div class="nxt-arr">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           <span data-i18n="nxt_btn">VER PROYECTO</span>
         </div>
       </div>
     </div>
-    {% endif %}
 
     <!-- MEDIOS SECTION -->
     <section class="sc medios-sec" id="medios">
@@ -6127,12 +6119,39 @@
       });
     });
 
-    // 'Siguiente Proyecto' opens the real last project
-    const nxtBtn = document.querySelector('.nxt');
-    if(nxtBtn) nxtBtn.addEventListener('click', () => {
-      const idx = parseInt(nxtBtn.getAttribute('data-index'));
-      if (!isNaN(idx) && projectData[idx]) openProjectOverlay(idx);
-    });
+    // 'Siguiente Proyecto' banner — rotates through featured projects
+    (function() {
+      const nxtProjects = {{ nxt_projects_json|safe }};
+      const nxtBanner = document.getElementById('nxtBanner');
+      if (!nxtBanner || !nxtProjects.length) return;
+      const nxtBg = document.getElementById('nxtBg');
+      const nxtTitle = document.getElementById('nxtTitle');
+      let nxtCur = 0;
+      function renderNxt(i) {
+        const p = nxtProjects[i];
+        nxtBanner.setAttribute('data-index', p.index);
+        nxtTitle.textContent = p.title;
+        nxtBg.innerHTML = '';
+        if (p.videoUrl && isDirectVideo(p.videoUrl)) {
+          const v = document.createElement('video');
+          v.src = p.videoUrl; v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true;
+          nxtBg.appendChild(v);
+        } else if (p.heroImg) {
+          const img = document.createElement('img');
+          img.src = p.heroImg; img.alt = p.title;
+          nxtBg.appendChild(img);
+        }
+      }
+      renderNxt(0);
+      nxtBanner.style.display = '';
+      if (nxtProjects.length > 1) {
+        setInterval(() => { nxtCur = (nxtCur + 1) % nxtProjects.length; renderNxt(nxtCur); }, SLIDE_DURATION);
+      }
+      nxtBanner.addEventListener('click', () => {
+        const idx = parseInt(nxtBanner.getAttribute('data-index'));
+        if (!isNaN(idx) && idx >= 0 && projectData[idx]) openProjectOverlay(idx);
+      });
+    })();
 
     /* SCROLL REVEALS */
     gsap.utils.toArray('.rv').forEach(el => {
