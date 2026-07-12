@@ -4435,8 +4435,7 @@
     
 
     <!-- NEXT PROJECT -->
-    {% if projects %}
-    {% with nxt_project=projects|last nxt_index=projects|length|add:-1 %}
+    {% if nxt_project %}
     <div class="nxt hov-t" data-index="{{ nxt_index }}">
       <div class="nxt-bg">
         {% with nxt_project.get_hero_image_src as nxt_hero %}
@@ -4454,7 +4453,6 @@
         </div>
       </div>
     </div>
-    {% endwith %}
     {% endif %}
 
     <!-- MEDIOS SECTION -->

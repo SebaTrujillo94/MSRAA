@@ -234,6 +234,14 @@ class SiteConfiguration(SingletonModel):
     footer_copy = models.CharField(max_length=200, default="© 2026 MSRAA ESTUDIO DE ARQUITECTURA", verbose_name="Texto pie de página")
     footer_copy_en = models.CharField(max_length=200, blank=True, verbose_name="Texto pie de página (EN)")
 
+    # 'Explorar proyecto' banner
+    featured_next_project = models.ForeignKey(
+        'PortfolioProject', null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="Proyecto destacado (banner 'Explorar Proyecto')",
+        help_text="Proyecto cuya foto/video grande se muestra en el banner 'EXPLORAR PROYECTO'. "
+                   "Vacío = se usa automáticamente el último proyecto del portafolio.",
+    )
+
     class Meta:
         verbose_name = "Configuración del Sitio"
 

@@ -757,7 +757,8 @@ class PortfolioProjectImageInline(admin.TabularInline):
 
 @admin.register(SiteConfiguration)
 class SiteConfigurationAdmin(SingletonModelAdmin):
-    readonly_fields = ('cloudinary_status_link', 'mantenedor_link')
+    readonly_fields = ('cloudinary_status_link', 'mantenedor_link', 'featured_next_preview')
+    autocomplete_fields = ('featured_next_project',)
     fieldsets = (
         ('General', {
             'fields': ('site_title', 'tagline', 'logo_main'),
@@ -800,6 +801,10 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
         ('Footer', {
             'fields': ('footer_copy',),
         }),
+        ("🖼️ Banner 'Explorar Proyecto'", {
+            'fields': ('featured_next_project', 'featured_next_preview'),
+            'description': "Proyecto cuya foto grande se muestra en el banner 'EXPLORAR PROYECTO' al final del portafolio. Vacío = se usa automáticamente el último proyecto activo.",
+        }),
         ('Cloudinary — Almacenamiento', {
             'fields': ('cloudinary_status_link',),
             'description': 'Plan Free: 25 GB storage + 25 GB bandwidth/mes.',
@@ -816,6 +821,33 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
             '<a href="cloudinary/" class="button" style="padding:8px 16px;background:#0073aa;color:#fff;'
             'border-radius:4px;text-decoration:none;font-size:13px;">📊 Ver uso de Cloudinary</a>'
         )
+
+    @admin.display(description="Vista previa — banner 'Explorar Proyecto'")
+    def featured_next_preview(self, obj):
+        proj = obj.featured_next_project
+        if not proj:
+            from core.models import PortfolioProject
+            proj = PortfolioProject.objects.filter(is_active=True).order_by('order').last()
+            if not proj:
+                return mark_safe('<span style="color:#aaa;font-size:11px">Sin proyectos en el portafolio.</span>')
+            src = proj.get_hero_image_src()
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="max-height:160px;max-width:400px;object-fit:cover;border-radius:5px;border:1px solid #ddd;display:block">'
+                '<div style="margin-top:4px;font-size:11px;color:#888">Automático (último proyecto activo): <b>{}</b></div>'
+                '</div>',
+                src or '', proj.title,
+            ) if src else format_html('<div style="font-size:11px;color:#888">Automático (último proyecto activo): <b>{}</b> — sin imagen.</div>', proj.title)
+        src = proj.get_hero_image_src()
+        if src:
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="max-height:160px;max-width:400px;object-fit:cover;border-radius:5px;border:1px solid #ddd;display:block">'
+                '<div style="margin-top:4px;font-size:11px;color:#40a060">✅ Fijado manualmente: <b>{}</b></div>'
+                '</div>',
+                src, proj.title,
+            )
+        return format_html('<div style="font-size:11px;color:#e8a020">⚠️ "{}" no tiene imagen hero.</div>', proj.title)
 
     @admin.display(description='Panel de control')
     def mantenedor_link(self, obj):
@@ -1181,6 +1213,7 @@ class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
     list_display = ['title', 'category', 'year', 'location', 'order', 'is_active']
     list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
+    search_fields = ['title', 'title_en']
     inlines = [PortfolioProjectImageInline]
     readonly_fields = ['hero_preview', 'cloudinary_video_btn', 'cloudinary_image_btn', 'media_editor_btn', 'inline_cloudinary_btns']
     fieldsets = [

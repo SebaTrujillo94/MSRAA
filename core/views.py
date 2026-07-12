@@ -146,6 +146,11 @@ def index(request):
 
     team_members = list(TeamMember.objects.filter(is_active=True))
 
+    nxt_project = config.featured_next_project if config.featured_next_project_id and config.featured_next_project.is_active else None
+    if not nxt_project and projects:
+        nxt_project = projects[-1]
+    nxt_index = projects.index(nxt_project) if nxt_project in projects else -1
+
     project_data = []
     for p in projects:
         cat = p.category
@@ -209,6 +214,8 @@ def index(request):
         'menu_items_by_section': _group_menu_items(menu_items),
         'curriculum_groups': curriculum_groups,
         'curriculum_cv_item': curriculum_cv_item,
+        'nxt_project': nxt_project,
+        'nxt_index': nxt_index,
         'team_members': team_members,
         'media_items': media_items,
         'media_data_json': media_data_json,
