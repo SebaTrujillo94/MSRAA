@@ -470,6 +470,8 @@ class CurriculumItem(models.Model):
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     subtitle = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución')
     subtitle_en = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución (EN)')
+    description = models.TextField(blank=True, verbose_name='Resumen', help_text="Texto de resumen mostrado bajo el subtítulo (ej: resumen de un documento adjunto).")
+    description_en = models.TextField(blank=True, verbose_name='Resumen (EN)')
     url = models.URLField(blank=True, max_length=500, help_text="Enlace externo (Dropbox, Drive, web). Dejar vacío si no aplica.")
     url_label = models.CharField(max_length=60, blank=True, default='Ver documento', help_text="Texto del enlace")
     url_label_en = models.CharField(max_length=60, blank=True, help_text="Texto del enlace (EN)")

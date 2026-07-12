@@ -4133,6 +4133,15 @@
       color: var(--op-40);
       font-weight: 300;
     }
+    .curriculum-desc {
+      font-family: 'Calibri', sans-serif;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--op-40);
+      font-weight: 300;
+      margin: 4px 0 0;
+      max-width: 60ch;
+    }
     .curriculum-link {
       font-family: 'Calibri', sans-serif;
       font-size: 10px;
@@ -4514,6 +4523,7 @@
               <div class="curriculum-detail">
                 <strong>{% tf item "title" %}</strong>
                 {% if item.subtitle %}<span>{% tf item "subtitle" %}</span>{% endif %}
+                {% if item.description %}<p class="curriculum-desc">{% tf item "description" %}</p>{% endif %}
                 {% if item.url %}
                 <a href="{{ item.url }}" class="curriculum-link hov-t" target="_blank" rel="noopener">
                   {% tf item "url_label" %}{% if not item.url_label %}{{ ui.see_doc }}{% endif %} →
