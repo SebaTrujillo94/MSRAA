@@ -3344,7 +3344,7 @@
           <span class="nav-lbl" data-i18n="nav_publications">{{ nav_section_labels.publicaciones }}</span>
           <div class="nav-links">
             {% for item in menu_items_by_section.publicaciones %}
-            <a href="{{ item.url }}" class="nav-link hov-t" data-target="medios"{% if item.filter_value %} data-filter="{{ item.filter_value }}"{% endif %}>{% tf item "label" %}</a>
+            <a href="{{ item.url }}" class="nav-link hov-t"{% if item.filter_value %} data-target="portfolioMain" data-filter="{{ item.filter_value }}"{% endif %}>{% tf item "label" %}</a>
             {% endfor %}
           </div>
         </div>
@@ -4404,7 +4404,7 @@
       <div class="sc-label rv"><span>MEDIOS</span></div>
       <div class="medios-grid">
         {% for item in media_items %}
-        <article class="medio-item hov-t" data-cat="{{ item.get_tipo_display }}" onclick="openMedioOverlay({{ forloop.counter0 }})">
+        <article class="medio-item hov-t" onclick="openMedioOverlay({{ forloop.counter0 }})">
           <div class="medio-img-wrap">
             {% with src=item.get_image_src %}
             {% if src %}
@@ -6517,25 +6517,6 @@
         });
       }
 
-      function filterMedios(cat) {
-        const items = document.querySelectorAll('#medios .medio-item');
-        gsap.to(items, {
-          opacity: 0, y: 12, duration: 0.25, ease: 'power2.in',
-          onComplete: () => {
-            items.forEach(item => {
-              const match = !cat || item.dataset.cat === cat;
-              item.style.display = match ? '' : 'none';
-              if (match) { item.style.opacity = '0'; item.style.transform = 'translateY(16px)'; }
-            });
-            const visible = [...items].filter(i => i.style.display !== 'none');
-            gsap.to(visible, {
-              opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: 'power3.out',
-              clearProps: 'transform'
-            });
-          }
-        });
-      }
-
       const _porSearch = document.getElementById('porSearchInput');
       if (_porSearch) {
         let _searchTimer;
@@ -6656,9 +6637,6 @@
                 { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.07, ease: 'power3.out' }
               );
             }, tunnelLabel);
-          } else if (targetId === 'medios') {
-            if (filter !== undefined) filterMedios(filter);
-            setTimeout(() => smoothScrollTo(targetId), 80);
           } else {
             setTimeout(() => smoothScrollTo(targetId), 80);
           }
