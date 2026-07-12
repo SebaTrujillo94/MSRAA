@@ -771,15 +771,15 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s 0.6s;
-      mix-blend-mode: difference;
     }
     body.sidebars-hidden .float-logo {
       opacity: 1;
       pointer-events: all;
     }
-    .float-logo .sb-narrow-logo {
+    .float-logo-img {
       width: 32px;
       height: 32px;
+      object-fit: contain;
       display: block;
     }
     @media (max-width: 992px) {
@@ -3314,11 +3314,7 @@
 
     <!-- FLOATING LOGO (below burger, visible when sidebar closed) -->
     <div class="float-logo">
-      {% if config.logo_main %}
-      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{{ config.logo_main.url }}');mask-image:url('{{ config.logo_main.url }}');background-color:#fff;"></div>
-      {% else %}
-      <div class="sb-narrow-logo" style="-webkit-mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');mask-image:url('{% static 'LOGO MSRAA ALTA CALIDAD.png' %}');background-color:#fff;"></div>
-      {% endif %}
+      <img src="{% if config.logo_main %}{{ config.logo_main.url }}{% else %}{% static 'LOGO MSRAA ALTA CALIDAD.png' %}{% endif %}" class="float-logo-img" alt="MSRAA">
     </div>
 
     <!-- NARROW PERSISTENT SIDEBAR (hidden) -->
