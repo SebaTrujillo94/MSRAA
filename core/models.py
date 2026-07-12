@@ -860,6 +860,10 @@ class TeamMember(models.Model):
     img_crop_h  = models.PositiveIntegerField(default=0, blank=True, verbose_name='Recorte alto px')
     img_crop    = models.CharField(max_length=10, choices=_CROP_MODE_CHOICES, default='fill', blank=True, verbose_name='Modo de recorte')
     img_bg      = models.CharField(max_length=30, default='', blank=True, verbose_name='Color de fondo')
+    cv_url     = models.URLField(
+        blank=True, max_length=500, verbose_name='CV (URL Dropbox/Drive)',
+        help_text='Link de Dropbox o Drive al CV en PDF. Se previsualiza dentro del sitio, no se descarga.',
+    )
     order      = models.PositiveIntegerField(default=0, verbose_name='Orden')
     is_active  = models.BooleanField(default=True, verbose_name='Activo')
 

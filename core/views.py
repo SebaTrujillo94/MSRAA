@@ -145,6 +145,13 @@ def index(request):
     curriculum_cv_item = _cv_groups.get('otros', [None])[0]
 
     team_members = list(TeamMember.objects.filter(is_active=True))
+    team_data_json = json.dumps([{
+        'name': t.name,
+        'role': _tf(t, 'role', is_en),
+        'bio': _tf(t, 'bio', is_en),
+        'photo': t.get_image_src(),
+        'cvUrl': t.cv_url,
+    } for t in team_members], ensure_ascii=False)
 
     nxt_projects = list(config.featured_next_projects.filter(is_active=True).order_by('order'))
     if not nxt_projects and projects:
@@ -223,6 +230,7 @@ def index(request):
         'curriculum_cv_item': curriculum_cv_item,
         'nxt_projects_json': nxt_projects_json,
         'team_members': team_members,
+        'team_data_json': team_data_json,
         'media_items': media_items,
         'media_data_json': media_data_json,
         'nav_section_labels': _NAV_LABELS[lang_key],

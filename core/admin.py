@@ -1524,6 +1524,10 @@ class TeamMemberAdmin(MediaEditorMixin, admin.ModelAdmin):
             'photo_preview',
             'image_url', 'cloudinary_image_btn', 'media_editor_btn',
         ]}),
+        ('📄 CV / Presentación', {
+            'fields': ['cv_url'],
+            'description': 'Link de Dropbox o Drive al CV en PDF. Se previsualiza dentro del sitio al hacer clic en la ficha del colaborador (no se descarga).',
+        }),
         ('⚙️ Publicación', {'fields': ['order', 'is_active']}),
     ]
     actions = ['make_active', 'make_inactive']

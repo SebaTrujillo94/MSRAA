@@ -4275,8 +4275,9 @@
 
     /* QUIÉNES SOMOS — team members inside curriculum */
     .team-block {
-      margin-bottom: 56px;
-      padding-bottom: 48px;
+      margin-top: 8px;
+      margin-bottom: 64px;
+      padding-bottom: 56px;
       border-bottom: 1px solid var(--border);
     }
     .team-label {
@@ -4285,19 +4286,20 @@
       letter-spacing: 3px;
       color: var(--gold);
       text-transform: uppercase;
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
     .team-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 40px;
+      gap: 44px 48px;
     }
     .team-card {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
-      width: 130px;
+      gap: 18px;
+      width: 150px;
+      cursor: pointer;
     }
     .team-photo {
       width: 100px;
@@ -4307,7 +4309,10 @@
       border: 1px solid var(--border);
       background: var(--op-05);
       display: block;
+      transition: border-color .3s ease;
     }
+    .team-card:hover .team-photo,
+    .team-card:hover .team-photo-placeholder { border-color: var(--gold); }
     .team-photo-placeholder {
       width: 100px;
       height: 100px;
@@ -4319,6 +4324,7 @@
       justify-content: center;
       color: var(--op-40);
       font-size: 32px;
+      transition: border-color .3s ease;
     }
     .team-info { text-align: center; }
     .team-name {
@@ -4327,7 +4333,7 @@
       font-weight: 500;
       color: var(--white);
       letter-spacing: 0.3px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .team-role {
       font-family: 'Calibri', sans-serif;
@@ -4335,19 +4341,94 @@
       letter-spacing: 1px;
       color: var(--op-40);
       text-transform: uppercase;
+      margin-bottom: 10px;
     }
     .team-bio {
       font-family: 'Calibri', sans-serif;
       font-size: 11px;
       color: var(--op-40);
       text-align: center;
-      margin-top: 4px;
-      line-height: 1.5;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     @media (max-width: 600px) {
-      .team-grid { gap: 28px; }
-      .team-card { width: 100px; }
+      .team-grid { gap: 32px 28px; }
+      .team-card { width: 110px; }
       .team-photo, .team-photo-placeholder { width: 80px; height: 80px; }
+    }
+
+    /* TEAM MEMBER OVERLAY */
+    #teamOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 19000;
+      background: rgba(0,0,0,0.93);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .team-overlay-card {
+      max-width: 460px;
+      width: 100%;
+      max-height: 86vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+      padding: 8px;
+    }
+    .team-overlay-photo, .team-overlay-photo-placeholder {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 44px;
+    }
+    .team-overlay-name {
+      font-family: 'Calibri', sans-serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+    .team-overlay-role {
+      font-family: 'Calibri', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .team-overlay-bio {
+      font-family: 'Calibri', sans-serif;
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.65);
+      margin: 4px 0 0;
+      white-space: pre-line;
+    }
+    .team-overlay-cv {
+      margin-top: 8px;
+      font-family: 'Calibri', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-decoration: none;
+      border: 1px solid var(--gold);
+      border-radius: 2px;
+      padding: 10px 22px;
+      display: none;
     }
 
     /* TUNNEL OVERLAY */
@@ -4573,7 +4654,7 @@
         <div class="team-label">QUIÉNES SOMOS</div>
         <div class="team-grid">
           {% for member in team_members %}
-          <div class="team-card">
+          <div class="team-card" onclick="openTeamOverlay({{ forloop.counter0 }})">
             {% with member.get_image_src as photo %}
             {% if photo %}
             <img class="team-photo" src="{{ photo }}" alt="{{ member.name }}" loading="lazy">
@@ -5528,6 +5609,19 @@
         <iframe id="cvLightboxIframe" src="" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="width:min(860px,90vw);height:min(480px,50vw);display:none;border-radius:4px;"></iframe>
         <div id="cvLightboxPdf" style="display:none;width:min(760px,92vw);height:88vh;overflow-y:auto;overflow-x:hidden;background:#525659;border-radius:4px;-webkit-overflow-scrolling:touch;"></div>
         <p id="cvLightboxCaption" style="color:rgba(255,255,255,0.55);font-size:12px;letter-spacing:1px;text-align:center;margin:0;"></p>
+      </div>
+    </div>
+
+    <!-- TEAM MEMBER OVERLAY -->
+    <div id="teamOverlay">
+      <button id="teamOverlayClose" style="position:fixed;top:22px;right:22px;z-index:19001;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div class="team-overlay-card">
+        <img id="teamOverlayPhoto" class="team-overlay-photo" src="" alt="" style="display:none">
+        <div id="teamOverlayPhotoPlaceholder" class="team-overlay-photo-placeholder">👤</div>
+        <div class="team-overlay-name" id="teamOverlayName"></div>
+        <div class="team-overlay-role" id="teamOverlayRole"></div>
+        <p class="team-overlay-bio" id="teamOverlayBio"></p>
+        <a id="teamOverlayCv" class="team-overlay-cv hov-t" href="#" target="_blank" rel="noopener">{{ ui.see_doc }} →</a>
       </div>
     </div>
 
@@ -7326,6 +7420,40 @@
   if (cvLightboxClose) cvLightboxClose.addEventListener('click', closeCvLightbox);
   cvLightbox.addEventListener('click', e => { if (e.target === cvLightbox) closeCvLightbox(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && cvLightbox.style.display === 'flex') closeCvLightbox(); });
+
+  // ── TEAM MEMBER OVERLAY ─────────────────────────────────────────────────────
+  const teamData = {{ team_data_json|safe }};
+  const teamOverlay = document.getElementById('teamOverlay');
+  function openTeamOverlay(idx) {
+    const t = teamData[idx];
+    if (!t || !teamOverlay) return;
+    document.getElementById('teamOverlayName').textContent = t.name;
+    document.getElementById('teamOverlayRole').textContent = t.role;
+    document.getElementById('teamOverlayBio').textContent = t.bio;
+    const photo = document.getElementById('teamOverlayPhoto');
+    const ph = document.getElementById('teamOverlayPhotoPlaceholder');
+    if (t.photo) { photo.src = t.photo; photo.style.display = 'block'; ph.style.display = 'none'; }
+    else { photo.style.display = 'none'; ph.style.display = 'flex'; }
+    const cvBtn = document.getElementById('teamOverlayCv');
+    if (t.cvUrl) {
+      cvBtn.href = t.cvUrl;
+      cvBtn.style.display = 'inline-block';
+      cvBtn.onclick = e => handleCurriculumLink(e, cvBtn, t.name);
+    } else {
+      cvBtn.style.display = 'none';
+      cvBtn.onclick = null;
+    }
+    teamOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeTeamOverlay() {
+    teamOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  const teamOverlayClose = document.getElementById('teamOverlayClose');
+  if (teamOverlayClose) teamOverlayClose.addEventListener('click', closeTeamOverlay);
+  if (teamOverlay) teamOverlay.addEventListener('click', e => { if (e.target === teamOverlay) closeTeamOverlay(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && teamOverlay && teamOverlay.style.display === 'flex') closeTeamOverlay(); });
 
 </script>
 </body>
