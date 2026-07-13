@@ -756,8 +756,12 @@ class PortfolioProjectImageInline(admin.TabularInline):
 
 
 @admin.register(SiteConfiguration)
-class SiteConfigurationAdmin(SingletonModelAdmin):
-    readonly_fields = ('cloudinary_status_link', 'mantenedor_link', 'featured_next_preview')
+class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
+    cld_image_field = 'parallax_image_url'
+    cld_video_field = 'parallax_video_url'
+    cld_folder = 'msraa/parallax'
+    readonly_fields = ('cloudinary_status_link', 'mantenedor_link', 'featured_next_preview',
+                        'cloudinary_image_btn', 'cloudinary_video_btn')
     filter_horizontal = ('featured_next_projects',)
     fieldsets = (
         ('General', {
@@ -806,6 +810,10 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
             'description': "Proyectos que rotan automáticamente (foto o video, si tiene) en el banner 'EXPLORAR PROYECTO' al final del portafolio. "
                            "Usa la imagen/video que cada proyecto ya tiene cargado en Portafolio → sube ahí con el botón de Cloudinary. "
                            "Vacío = se usa automáticamente el último proyecto activo.",
+        }),
+        ("🎬 Sección 'Qué Hicimos' (imagen parallax)", {
+            'fields': ('parallax_image_url', 'cloudinary_image_btn', 'parallax_video_url', 'cloudinary_video_btn'),
+            'description': "Imagen o video grande sobre la sección 'QUÉ HICIMOS'. Si cargas video, tiene prioridad sobre la imagen.",
         }),
         ('Cloudinary — Almacenamiento', {
             'fields': ('cloudinary_status_link',),

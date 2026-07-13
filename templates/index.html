@@ -1168,7 +1168,7 @@
       border-radius: 3px
     }
 
-    .plx img {
+    .plx img, .plx video {
       width: 100%;
       height: 130%;
       object-fit: cover;
@@ -3582,8 +3582,17 @@
 
 
     <!-- PARALLAX -->
-    <div class="plx"><img src="https://res.cloudinary.com/dej6gv0ab/image/upload/medios/gallery/ref1" alt="Parallax"
-        id="plxImg"></div>
+    <div class="plx">
+      {% with config.get_parallax_video_src as plx_vid %}
+      {% if plx_vid %}
+      <video id="plxImg" src="{{ plx_vid }}" autoplay muted loop playsinline></video>
+      {% else %}
+      {% with config.get_parallax_image_src as plx_img %}
+      <img src="{{ plx_img|default:'https://res.cloudinary.com/dej6gv0ab/image/upload/medios/gallery/ref1' }}" alt="" id="plxImg">
+      {% endwith %}
+      {% endif %}
+      {% endwith %}
+    </div>
 
     <!-- SERVICES -->
     <section class="sc">

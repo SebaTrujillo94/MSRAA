@@ -243,11 +243,34 @@ class SiteConfiguration(SingletonModel):
                    "Vacío = se usa automáticamente el último proyecto activo.",
     )
 
+    # 'Qué hicimos' parallax banner
+    parallax_image_url = models.URLField(
+        blank=True, max_length=500, verbose_name="Imagen parallax ('Qué Hicimos')",
+        help_text="Imagen grande de fondo sobre la sección 'QUÉ HICIMOS'. Se usa si no hay video.",
+    )
+    parallax_video_url = models.URLField(
+        blank=True, max_length=500, verbose_name="Video parallax ('Qué Hicimos')",
+        help_text="Video de fondo sobre la sección 'QUÉ HICIMOS' (tiene prioridad sobre la imagen).",
+    )
+
     class Meta:
         verbose_name = "Configuración del Sitio"
 
     def __str__(self):
         return "Configuración del Sitio"
+
+    def get_parallax_image_src(self):
+        if not self.parallax_image_url:
+            return ''
+        return _cloudinary_img(_resolve_media_url(self.parallax_image_url), gravity='auto', ratio='', crop='fill')
+
+    def get_parallax_video_src(self):
+        if not self.parallax_video_url:
+            return ''
+        url = self.parallax_video_url
+        if 'res.cloudinary.com' in url:
+            return _cloudinary_h264(url)
+        return _resolve_media_url(url)
 
     def get_logo_url(self):
         if self.logo_main:
