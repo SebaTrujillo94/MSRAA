@@ -12,11 +12,7 @@ from core.models import (
 class Command(BaseCommand):
     help = 'Seed DB with example data'
 
-    def add_arguments(self, parser):
-        parser.add_argument('--force', action='store_true', help='Delete existing data and re-seed')
-
     def handle(self, *args, **options):
-        self.force = options['force']
         self._site_config()
         self._hero_videos()
         self._menu_items()
@@ -77,10 +73,8 @@ class Command(BaseCommand):
 
     def _menu_items(self):
         if MenuItem.objects.exists():
-            if not self.force:
-                self.stdout.write('  MenuItems already exist — skip')
-                return
-            MenuItem.objects.all().delete()
+            self.stdout.write('  MenuItems already exist — skip')
+            return
         items = [
             ('Casas', 'proyectos', '#proyectos', 'CASAS', 1),
             ('Edificios', 'proyectos', '#proyectos', 'EDIFICIOS', 2),
@@ -215,10 +209,8 @@ class Command(BaseCommand):
 
     def _media(self):
         if MediaItem.objects.exists():
-            if not self.force:
-                self.stdout.write('  MediaItems already exist — skip')
-                return
-            MediaItem.objects.all().delete()
+            self.stdout.write('  MediaItems already exist — skip')
+            return
         items = [
             {
                 'tipo': 'premio',
