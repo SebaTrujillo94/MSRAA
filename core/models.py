@@ -252,6 +252,11 @@ class SiteConfiguration(SingletonModel):
         blank=True, max_length=500, verbose_name="Video parallax ('Qué Hicimos')",
         help_text="Video de fondo sobre la sección 'QUÉ HICIMOS' (tiene prioridad sobre la imagen).",
     )
+    parallax_projects = models.ManyToManyField(
+        'PortfolioProject', blank=True, related_name='+',
+        verbose_name="Proyectos rotando (parallax 'Qué Hicimos')",
+        help_text="Si eliges proyectos, sus fotos/videos rotan automáticamente como fondo en lugar de la imagen/video fijos de arriba.",
+    )
 
     class Meta:
         verbose_name = "Configuración del Sitio"

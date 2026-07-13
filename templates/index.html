@@ -1168,7 +1168,8 @@
       border-radius: 3px
     }
 
-    .plx img, .plx video {
+    .plx-media { position: absolute; inset: 0; }
+    .plx-media img, .plx-media video {
       width: 100%;
       height: 130%;
       object-fit: cover;
@@ -3583,15 +3584,18 @@
 
     <!-- PARALLAX -->
     <div class="plx">
-      {% with config.get_parallax_video_src as plx_vid %}
-      {% if plx_vid %}
-      <video id="plxImg" src="{{ plx_vid }}" autoplay muted loop playsinline></video>
-      {% else %}
-      {% with config.get_parallax_image_src as plx_img %}
-      <img src="{{ plx_img|default:'https://res.cloudinary.com/dej6gv0ab/image/upload/medios/gallery/ref1' }}" alt="" id="plxImg">
-      {% endwith %}
-      {% endif %}
-      {% endwith %}
+      <div class="plx-media" id="plxMedia">
+        {% with config.get_parallax_video_src as plx_vid %}
+        {% with config.get_parallax_image_src as plx_img %}
+        <img id="plxImgEl" alt=""
+             src="{{ plx_img|default:'https://res.cloudinary.com/dej6gv0ab/image/upload/medios/gallery/ref1' }}"
+             style="display:{% if plx_vid %}none{% else %}block{% endif %}">
+        <video id="plxVidEl" autoplay muted loop playsinline
+               src="{{ plx_vid }}"
+               style="display:{% if plx_vid %}block{% else %}none{% endif %}"></video>
+        {% endwith %}
+        {% endwith %}
+      </div>
     </div>
 
     <!-- SERVICES -->
@@ -6256,6 +6260,30 @@
       });
     })();
 
+    // 'Qué Hicimos' parallax — optionally rotates through chosen projects
+    (function() {
+      const parallaxProjects = {{ parallax_projects_json|safe }};
+      if (!parallaxProjects.length) return;
+      const imgEl = document.getElementById('plxImgEl');
+      const vidEl = document.getElementById('plxVidEl');
+      if (!imgEl || !vidEl) return;
+      let plxCur = 0;
+      function renderParallax(i) {
+        const p = parallaxProjects[i];
+        if (p.videoUrl && isDirectVideo(p.videoUrl)) {
+          vidEl.src = p.videoUrl; vidEl.load(); vidEl.play().catch(() => {});
+          vidEl.style.display = 'block'; imgEl.style.display = 'none';
+        } else if (p.heroImg) {
+          imgEl.src = p.heroImg; imgEl.style.display = 'block';
+          vidEl.pause(); vidEl.style.display = 'none';
+        }
+      }
+      renderParallax(0);
+      if (parallaxProjects.length > 1) {
+        setInterval(() => { plxCur = (plxCur + 1) % parallaxProjects.length; renderParallax(plxCur); }, SLIDE_DURATION);
+      }
+    })();
+
     /* SCROLL REVEALS */
     gsap.utils.toArray('.rv').forEach(el => {
       const ch = el.querySelector('span') || el.firstElementChild;
@@ -6268,7 +6296,7 @@
 
     /* HORIZONTAL GALLERY — pin-scroll both galleries on desktop */
     /* PARALLAX */
-    gsap.to('#plxImg', { y: "-20%", ease: "none", scrollTrigger: { trigger: '.plx', start: "top bottom", end: "bottom top", scrub: true } });
+    gsap.to('#plxMedia', { y: "-20%", ease: "none", scrollTrigger: { trigger: '.plx', start: "top bottom", end: "bottom top", scrub: true } });
 
     /* SERVICES */
     gsap.utils.toArray('.svc-row').forEach((el, i) => {

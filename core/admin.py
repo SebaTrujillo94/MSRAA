@@ -761,8 +761,8 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
     cld_video_field = 'parallax_video_url'
     cld_folder = 'msraa/parallax'
     readonly_fields = ('cloudinary_status_link', 'mantenedor_link', 'featured_next_preview',
-                        'cloudinary_image_btn', 'cloudinary_video_btn')
-    filter_horizontal = ('featured_next_projects',)
+                        'cloudinary_image_btn', 'cloudinary_video_btn', 'parallax_preview')
+    filter_horizontal = ('featured_next_projects', 'parallax_projects')
     fieldsets = (
         ('General', {
             'fields': ('site_title', 'tagline', 'logo_main'),
@@ -812,8 +812,10 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
                            "Vacío = se usa automáticamente el último proyecto activo.",
         }),
         ("🎬 Sección 'Qué Hicimos' (imagen parallax)", {
-            'fields': ('parallax_image_url', 'cloudinary_image_btn', 'parallax_video_url', 'cloudinary_video_btn'),
-            'description': "Imagen o video grande sobre la sección 'QUÉ HICIMOS'. Si cargas video, tiene prioridad sobre la imagen.",
+            'fields': ('parallax_image_url', 'cloudinary_image_btn', 'parallax_video_url', 'cloudinary_video_btn',
+                       'parallax_projects', 'parallax_preview'),
+            'description': "Imagen o video fijo de fondo sobre 'QUÉ HICIMOS'. Si además eliges Proyectos rotando, "
+                           "sus fotos/videos (los mismos que Portafolio) rotan automáticamente en su lugar.",
         }),
         ('Cloudinary — Almacenamiento', {
             'fields': ('cloudinary_status_link',),
@@ -871,6 +873,40 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
             mark_safe(''.join(cards)),
             '#888' if auto else '#40a060',
             ('✅ ' if not auto else '') + note,
+        )
+
+    @admin.display(description="Vista previa — parallax 'Qué Hicimos'")
+    def parallax_preview(self, obj):
+        projs = list(obj.parallax_projects.filter(is_active=True).order_by('order')) if obj.pk else []
+        if not projs:
+            return mark_safe(
+                '<span style="color:#888;font-size:11px">Sin proyectos elegidos — se usa la imagen/video fijo de arriba.</span>'
+            )
+        cards = []
+        for p in projs:
+            src = p.get_hero_image_src()
+            has_vid = bool(p.video_url)
+            if src:
+                cards.append(format_html(
+                    '<div style="text-align:center">'
+                    '<img src="{}" style="height:120px;width:180px;object-fit:cover;border-radius:5px;border:1px solid #ddd;display:block">'
+                    '<div style="margin-top:3px;font-size:11px;color:#888">{}{}</div>'
+                    '</div>',
+                    src, p.title, ' 🎬' if has_vid else '',
+                ))
+            else:
+                cards.append(format_html(
+                    '<div style="text-align:center;width:180px">'
+                    '<div style="height:120px;background:#fff8e1;border:1px solid #f0d060;border-radius:5px;'
+                    'display:flex;align-items:center;justify-content:center;color:#a07020;font-size:11px">⚠️ Sin imagen</div>'
+                    '<div style="margin-top:3px;font-size:11px;color:#888">{}</div>'
+                    '</div>',
+                    p.title,
+                ))
+        return format_html(
+            '<div style="display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 4px">{}</div>'
+            '<div style="font-size:11px;color:#40a060">✅ {} proyecto(s) rotando</div>',
+            mark_safe(''.join(cards)), len(projs),
         )
 
     @admin.display(description='Panel de control')

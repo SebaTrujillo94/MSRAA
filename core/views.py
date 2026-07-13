@@ -165,6 +165,12 @@ def index(request):
     } for p in nxt_projects]
     nxt_projects_json = json.dumps(nxt_projects_data, ensure_ascii=False)
 
+    parallax_projects = list(config.parallax_projects.filter(is_active=True).order_by('order'))
+    parallax_projects_json = json.dumps([{
+        'heroImg': p.get_hero_image_src(),
+        'videoUrl': p.get_video_embed_url(),
+    } for p in parallax_projects], ensure_ascii=False)
+
     project_data = []
     for p in projects:
         cat = p.category
@@ -229,6 +235,7 @@ def index(request):
         'curriculum_groups': curriculum_groups,
         'curriculum_cv_item': curriculum_cv_item,
         'nxt_projects_json': nxt_projects_json,
+        'parallax_projects_json': parallax_projects_json,
         'team_members': team_members,
         'team_data_json': team_data_json,
         'media_items': media_items,
