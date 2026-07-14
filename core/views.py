@@ -1,6 +1,7 @@
 import json
-from django.shortcuts import render
-from django.http import JsonResponse
+import requests
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
@@ -10,6 +11,69 @@ from .models import (
     ClientLogo, PortfolioCategory, PortfolioProject, CurriculumItem, MediaItem,
     ContactSubmission, TeamMember, PortfolioDocument,
 )
+
+# Cap every proxied chunk well under Vercel's serverless response size limit (~4.5MB).
+_PDF_PROXY_CHUNK = 3 * 1024 * 1024
+
+
+def pdf_proxy(request, pk):
+    """Stream a PortfolioDocument's PDF from its source URL via Range requests.
+
+    Browsers can't fetch these Dropbox URLs directly (CORS fails on the
+    redirect chain), so this proxies byte ranges through our own origin.
+
+    A request with no Range header must get a real 200 with the true
+    Content-Length (pdf.js reads it to detect Accept-Ranges support, then
+    aborts the stream early) — responding 206 to an unranged request breaks
+    that negotiation and pdf.js falls back to a full linear scan. Only
+    actual Range requests are bounded to keep individual responses under
+    Vercel's per-response size limit.
+    """
+    doc = get_object_or_404(PortfolioDocument, pk=pk, is_active=True)
+    upstream_url = doc.get_pdf_src()
+
+    range_header = request.META.get('HTTP_RANGE', '')
+    upstream_headers = {}
+    if range_header.startswith('bytes='):
+        try:
+            spec = range_header.split('=', 1)[1]
+            raw_start, _, raw_end = spec.partition('-')
+            if raw_start == '':
+                # Suffix range "bytes=-N" — last N bytes. Clamp N, keep suffix form
+                # so upstream computes the correct offset from the real file size.
+                n = min(int(raw_end), _PDF_PROXY_CHUNK)
+                upstream_headers['Range'] = f'bytes=-{n}'
+            else:
+                start = int(raw_start)
+                end = int(raw_end) if raw_end else start + _PDF_PROXY_CHUNK - 1
+                end = min(end, start + _PDF_PROXY_CHUNK - 1)
+                upstream_headers['Range'] = f'bytes={start}-{end}'
+        except (ValueError, IndexError):
+            pass
+
+    try:
+        upstream = requests.get(upstream_url, headers=upstream_headers, stream=True, timeout=25)
+    except requests.RequestException:
+        return HttpResponse('No se pudo obtener el PDF.', status=502)
+
+    if upstream.status_code not in (200, 206):
+        return HttpResponse('No se pudo obtener el PDF.', status=502)
+
+    is_ranged = 'Range' in upstream_headers
+    response = StreamingHttpResponse(
+        upstream.iter_content(chunk_size=65536),
+        status=upstream.status_code,
+        content_type='application/pdf',
+    )
+    content_range = upstream.headers.get('Content-Range')
+    if content_range:
+        response['Content-Range'] = content_range
+    if 'Content-Length' in upstream.headers:
+        response['Content-Length'] = upstream.headers['Content-Length']
+    response['Accept-Ranges'] = 'bytes'
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Cache-Control'] = 'public, max-age=86400' if is_ranged else 'no-store'
+    return response
 
 
 def _tf(obj, field, is_en):
@@ -160,7 +224,8 @@ def index(request):
         'title': _tf(d, 'title', is_en),
         'description': _tf(d, 'description', is_en),
         'cover': d.get_cover_src(),
-        'pdfUrl': d.get_pdf_src(),
+        'pdfUrl': f'/pdf-proxy/{d.pk}/',
+        'pdfSize': d.pdf_size,
     } for d in portfolio_documents], ensure_ascii=False)
 
     nxt_projects = list(config.featured_next_projects.filter(is_active=True).order_by('order'))

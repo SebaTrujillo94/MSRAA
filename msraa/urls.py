@@ -15,6 +15,7 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('', views.index, name='index'),
     path('contact/submit/', views.contact_submit, name='contact_submit'),
+    path('pdf-proxy/<int:pk>/', views.pdf_proxy, name='pdf_proxy'),
 ]
 
 if settings.DEBUG:

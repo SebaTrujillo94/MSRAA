@@ -931,6 +931,11 @@ class PortfolioDocument(models.Model):
         blank=True, max_length=500, verbose_name='Imagen de portada (URL Cloudinary)',
         help_text='Imagen para la tarjeta. Opcional — si se deja vacío se muestra un ícono genérico.',
     )
+    pdf_size = models.BigIntegerField(
+        default=0, blank=True, editable=False,
+        verbose_name='Tamaño del PDF (bytes)',
+        help_text='Se calcula automáticamente al guardar.',
+    )
     order = models.PositiveIntegerField(default=0, verbose_name='Orden')
     is_active = models.BooleanField(default=True, verbose_name='Activo')
 
@@ -941,6 +946,19 @@ class PortfolioDocument(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self.pdf_url and not self.pdf_size:
+            try:
+                import requests
+                r = requests.get(self.get_pdf_src(), headers={'Range': 'bytes=0-0'}, timeout=15, stream=True)
+                content_range = r.headers.get('Content-Range', '')
+                if '/' in content_range:
+                    self.pdf_size = int(content_range.rsplit('/', 1)[-1])
+                r.close()
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
 
     def get_cover_src(self):
         if not self.cover_image_url:

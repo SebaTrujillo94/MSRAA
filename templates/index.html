@@ -7464,12 +7464,19 @@
   }
 
   let pdfRenderToken = 0;
-  async function renderPdfInline(container, url) {
+  async function renderPdfInline(container, url, knownLength) {
     const myToken = ++pdfRenderToken;
     container.innerHTML = '<div style="color:#fff;text-align:center;padding:60px 20px;font-family:Calibri,sans-serif;font-size: 15px;letter-spacing:1px;">Cargando PDF…</div>';
     try {
       const pdfjsLib = await loadPdfJs();
-      const pdf = await pdfjsLib.getDocument({ url }).promise;
+      const docParams = { url };
+      if (knownLength) {
+        docParams.length = knownLength;
+        docParams.disableAutoFetch = true;
+        docParams.disableStream = true;
+        docParams.rangeChunkSize = 1048576;
+      }
+      const pdf = await pdfjsLib.getDocument(docParams).promise;
       if (myToken !== pdfRenderToken) return;
       container.innerHTML = '';
       const containerWidth = container.clientWidth - 16;
@@ -7494,7 +7501,7 @@
     }
   }
 
-  function openCvLightbox(type, src, caption) {
+  function openCvLightbox(type, src, caption, knownLength) {
     cvLightboxImg.style.display = 'none';
     cvLightboxIframe.style.display = 'none';
     cvLightboxIframe.style.cssText = 'width:min(860px,90vw);height:min(480px,50vw);display:none;border-radius:4px;';
@@ -7503,7 +7510,7 @@
     if (existingVideo) existingVideo.remove();
     if (type === 'pdf') {
       cvLightboxPdf.style.display = 'block';
-      renderPdfInline(cvLightboxPdf, src);
+      renderPdfInline(cvLightboxPdf, src, knownLength);
     } else if (type === 'video') {
       if (isDirectVideo(src)) {
         const vid = document.createElement('video');
@@ -7541,7 +7548,7 @@
   function openPortfolioDocument(idx) {
     const d = portfolioDocumentsData[idx];
     if (!d) return;
-    openCvLightbox('pdf', d.pdfUrl, d.title);
+    openCvLightbox('pdf', d.pdfUrl, d.title, d.pdfSize);
   }
 
   // ── TEAM MEMBER OVERLAY ─────────────────────────────────────────────────────
