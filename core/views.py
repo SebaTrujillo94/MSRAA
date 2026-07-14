@@ -348,24 +348,26 @@ def contact_submit(request):
             project_type=project_type,
             message=message,
         )
-
-        config = SiteConfiguration.get_solo()
-        try:
-            send_mail(
-                subject=f"Contacto MSRAA: {name}",
-                message=(
-                    f"Nombre: {name}\n"
-                    f"Teléfono: {phone}\n"
-                    f"Email: {email}\n"
-                    f"Tipo de proyecto: {project_type}\n\n"
-                    f"{message}"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[config.contact_email],
-            )
-        except Exception:
-            pass
-
-        return JsonResponse({'status': 'ok', 'id': submission.pk})
     except Exception as e:
         return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
+
+    # Submission is already saved at this point — email delivery is best-effort
+    # and must never turn into a false "failed to send" for the visitor.
+    try:
+        config = SiteConfiguration.get_solo()
+        send_mail(
+            subject=f"Contacto MSRAA: {name}",
+            message=(
+                f"Nombre: {name}\n"
+                f"Teléfono: {phone}\n"
+                f"Email: {email}\n"
+                f"Tipo de proyecto: {project_type}\n\n"
+                f"{message}"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[config.contact_email],
+        )
+    except Exception:
+        pass
+
+    return JsonResponse({'status': 'ok', 'id': submission.pk})
