@@ -11,7 +11,7 @@ from .models import (
     ClientLogo, PortfolioCategory, PortfolioProject, PortfolioProjectImage,
     CurriculumItem, CurriculumItemImage, MediaItem, MediaItemImage,
     MediaItemSection, MediaItemVideo,
-    ContactSubmission, SiteVisit, MonitorAlert, TeamMember,
+    ContactSubmission, SiteVisit, MonitorAlert, TeamMember, PortfolioDocument,
 )
 
 
@@ -1619,3 +1619,65 @@ class TeamMemberAdmin(MediaEditorMixin, admin.ModelAdmin):
             '⚠️ Sin foto. Ingresa URL y sube a Cloudinary.'
             '</div>'
         )
+
+
+@admin.register(PortfolioDocument)
+class PortfolioDocumentAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
+    cld_image_field = 'cover_image_url'
+    cld_video_field = None
+    cld_folder = 'msraa/portafolio'
+    list_display = ['cover_thumb', 'title', 'order', 'is_active']
+    list_editable = ['order', 'is_active']
+    list_display_links = ['cover_thumb', 'title']
+    ordering = ['order']
+    readonly_fields = ['cover_preview', 'cloudinary_image_btn']
+    fieldsets = [
+        ('📝 Información', {'fields': [
+            'title', 'title_en',
+            'description', 'description_en',
+        ]}),
+        ('📄 PDF', {
+            'fields': ['pdf_url'],
+            'description': 'Link de Dropbox o Drive al PDF (archivo individual, no carpeta). Se previsualiza dentro del sitio en alta calidad, no se descarga.',
+        }),
+        ('🖼️ Portada (opcional)', {'fields': [
+            'cover_preview',
+            'cover_image_url', 'cloudinary_image_btn',
+        ]}),
+        ('⚙️ Publicación', {'fields': ['order', 'is_active']}),
+    ]
+    actions = ['make_active', 'make_inactive']
+
+    @admin.action(description='✅ Activar seleccionados')
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='🚫 Desactivar seleccionados')
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
+
+    @admin.display(description='📷')
+    def cover_thumb(self, obj):
+        src = obj.cover_image_url or ''
+        if src:
+            return format_html(
+                '<img src="{}" style="height:40px;width:60px;object-fit:cover;border-radius:3px">',
+                src,
+            )
+        return mark_safe('<span style="color:#bbb">📄</span>')
+
+    @admin.display(description='Vista actual — Portada')
+    def cover_preview(self, obj):
+        src = (obj.cover_image_url or '') if obj.pk else ''
+        if src:
+            is_cld = 'res.cloudinary.com' in src
+            return format_html(
+                '<div style="margin:6px 0">'
+                '<img src="{}" style="height:120px;width:180px;object-fit:cover;border-radius:5px;border:1px solid #ddd;display:block">'
+                '<div style="margin-top:4px;font-size:11px;color:{}">{}</div>'
+                '</div>',
+                src,
+                '#40a060' if is_cld else '#e8a020',
+                '✅ En Cloudinary' if is_cld else '⚠️ URL externa',
+            )
+        return mark_safe('<span style="color:#888;font-size:11px">Sin portada — se muestra ícono genérico.</span>')

@@ -3349,6 +3349,16 @@
             {% endfor %}
           </div>
         </div>
+        {% if menu_items_by_section.portafolio %}
+        <div class="nav-grp">
+          <span class="nav-lbl">{{ nav_section_labels.portafolio }}</span>
+          <div class="nav-links">
+            {% for item in menu_items_by_section.portafolio %}
+            <a href="{{ item.url }}" class="nav-link hov-t" data-target="portafolio">{% tf item "label" %}</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
         <div class="nav-grp">
           <span class="nav-lbl">{{ nav_section_labels.curriculum }}</span>
           <div class="nav-links">
@@ -4573,6 +4583,37 @@
       </div>
 
     </section>
+
+    <!-- PORTAFOLIO SECTION (PDFs) -->
+    {% if portfolio_documents %}
+    <section class="sc medios-sec" id="portafolio">
+      <div class="sc-label rv"><span>PORTAFOLIO</span></div>
+      <div class="medios-grid">
+        {% for doc in portfolio_documents %}
+        <article class="medio-item hov-t" onclick="openPortfolioDocument({{ forloop.counter0 }})">
+          <div class="medio-img-wrap">
+            {% with src=doc.get_cover_src %}
+            {% if src %}
+            <img src="{{ src }}" alt="{{ doc.title }}" class="medio-img">
+            {% else %}
+            <div class="medio-img-placeholder" style="display:flex;align-items:center;justify-content:center;font-size:44px;">📄</div>
+            {% endif %}
+            {% endwith %}
+            <div class="medio-img-overlay">
+              <span class="medio-ver">VER PDF +</span>
+            </div>
+          </div>
+          <div class="medio-body">
+            <div class="medio-meta">
+              <span class="medio-tipo">PDF</span>
+            </div>
+            <h3 class="medio-title">{% tf doc "title" %}</h3>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
     <!-- TRUST + MARQUEE -->
     <div class="trust-sec">
@@ -7494,6 +7535,14 @@
   if (cvLightboxClose) cvLightboxClose.addEventListener('click', closeCvLightbox);
   cvLightbox.addEventListener('click', e => { if (e.target === cvLightbox) closeCvLightbox(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && cvLightbox.style.display === 'flex') closeCvLightbox(); });
+
+  // ── PORTAFOLIO PDFs ─────────────────────────────────────────────────────────
+  const portfolioDocumentsData = {{ portfolio_documents_json|safe }};
+  function openPortfolioDocument(idx) {
+    const d = portfolioDocumentsData[idx];
+    if (!d) return;
+    openCvLightbox('pdf', d.pdfUrl, d.title);
+  }
 
   // ── TEAM MEMBER OVERLAY ─────────────────────────────────────────────────────
   const teamData = {{ team_data_json|safe }};

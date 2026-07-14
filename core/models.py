@@ -916,3 +916,36 @@ class TeamMember(models.Model):
             crop=self.img_crop or 'fill',
             bg=self.img_bg or '',
         )
+
+
+class PortfolioDocument(models.Model):
+    title = models.CharField(max_length=200, verbose_name='Título')
+    title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
+    description = models.TextField(blank=True, verbose_name='Descripción breve')
+    description_en = models.TextField(blank=True, verbose_name='Descripción breve (EN)')
+    pdf_url = models.URLField(
+        max_length=500, verbose_name='PDF (URL Dropbox/Drive)',
+        help_text='Link de Dropbox o Drive al PDF. Se previsualiza dentro del sitio en alta calidad, no se descarga.',
+    )
+    cover_image_url = models.URLField(
+        blank=True, max_length=500, verbose_name='Imagen de portada (URL Cloudinary)',
+        help_text='Imagen para la tarjeta. Opcional — si se deja vacío se muestra un ícono genérico.',
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name='Orden')
+    is_active = models.BooleanField(default=True, verbose_name='Activo')
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Documento de Portafolio'
+        verbose_name_plural = 'Portafolio (PDFs)'
+
+    def __str__(self):
+        return self.title
+
+    def get_cover_src(self):
+        if not self.cover_image_url:
+            return ''
+        return _cloudinary_img(_resolve_media_url(self.cover_image_url), gravity='auto', ratio='3:2', crop='fill')
+
+    def get_pdf_src(self):
+        return _resolve_media_url(self.pdf_url)

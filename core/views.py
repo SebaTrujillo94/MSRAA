@@ -8,7 +8,7 @@ from django.conf import settings
 from .models import (
     SiteConfiguration, MenuItem, HeroVideo,
     ClientLogo, PortfolioCategory, PortfolioProject, CurriculumItem, MediaItem,
-    ContactSubmission, TeamMember,
+    ContactSubmission, TeamMember, PortfolioDocument,
 )
 
 
@@ -25,6 +25,7 @@ _NAV_LABELS = {
     'es': {
         'proyectos': 'PROYECTOS —',
         'publicaciones': 'PUBLICACIONES —',
+        'portafolio': 'PORTAFOLIO —',
         'curriculum': 'CURRICULUM —',
         'herramientas': 'HERRAMIENTAS —',
         'contacto': 'CONTACTO —',
@@ -32,6 +33,7 @@ _NAV_LABELS = {
     'en': {
         'proyectos': 'PROJECTS —',
         'publicaciones': 'PUBLICATIONS —',
+        'portafolio': 'PORTFOLIO —',
         'curriculum': 'CURRICULUM —',
         'herramientas': 'TOOLS —',
         'contacto': 'CONTACT —',
@@ -153,6 +155,14 @@ def index(request):
         'cvUrl': t.cv_url,
     } for t in team_members], ensure_ascii=False)
 
+    portfolio_documents = list(PortfolioDocument.objects.filter(is_active=True))
+    portfolio_documents_json = json.dumps([{
+        'title': _tf(d, 'title', is_en),
+        'description': _tf(d, 'description', is_en),
+        'cover': d.get_cover_src(),
+        'pdfUrl': d.get_pdf_src(),
+    } for d in portfolio_documents], ensure_ascii=False)
+
     nxt_projects = list(config.featured_next_projects.filter(is_active=True).order_by('order'))
     if not nxt_projects and projects:
         nxt_projects = [projects[-1]]
@@ -238,6 +248,8 @@ def index(request):
         'parallax_projects_json': parallax_projects_json,
         'team_members': team_members,
         'team_data_json': team_data_json,
+        'portfolio_documents': portfolio_documents,
+        'portfolio_documents_json': portfolio_documents_json,
         'media_items': media_items,
         'media_data_json': media_data_json,
         'nav_section_labels': _NAV_LABELS[lang_key],
