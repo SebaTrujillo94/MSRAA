@@ -2445,31 +2445,20 @@
       letter-spacing: 2px;
       cursor: pointer;
       position: relative;
-      overflow: hidden;
       z-index: 1;
-      transition: color .4s cubic-bezier(0.76, 0, 0.24, 1), border-color .4s, transform .3s;
+      transition: filter .3s, transform .3s;
       align-self: stretch;
     }
-    .form-submit::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--black);
-      z-index: -1;
-      transform: scaleY(0);
-      transform-origin: bottom;
-      transition: transform .4s cubic-bezier(0.76, 0, 0.24, 1);
-    }
-    .form-submit:hover {
-      color: var(--gold);
-      border-color: var(--gold);
+    .form-submit:hover, .form-submit:active {
+      filter: brightness(1.08);
       transform: translateY(-2px);
     }
-    .form-submit:hover::before {
-      transform: scaleY(1);
+    .form-submit:disabled {
+      background: var(--gold);
+      color: var(--black);
+      filter: brightness(.9);
+      cursor: default;
+      transform: none;
     }
      @media (max-width: 992px) {
       .contact-sec { grid-template-columns: 1fr; }
@@ -4826,7 +4815,7 @@
       <!-- RIGHT -->
       <div class="contact-right">
         <h3 data-i18n-html="form_title">¿Listo para construir algo<br>extraordinario?</h3>
-        <form onsubmit="return false;">
+        <form id="contactForm">
           <div style="display:flex;flex-direction:column;gap:15px;">
             <div class="form-row">
               <div class="form-group">
@@ -4850,7 +4839,8 @@
               <label data-i18n="f_msg">Mensaje</label>
               <textarea data-i18n-ph="f_msg_ph" placeholder="Cuéntanos sobre tu proyecto..." id="contact-msg"></textarea>
             </div>
-            <button class="form-submit hov-t" data-i18n="f_submit">ENVIAR MENSAJE →</button>
+            <button type="submit" class="form-submit hov-t" data-i18n="f_submit">ENVIAR MENSAJE →</button>
+            <p id="contactFormStatus" style="font-family:'Calibri',sans-serif;font-size:13px;letter-spacing:.5px;margin:0;min-height:1em;"></p>
           </div>
         </form>
       </div>
@@ -7595,6 +7585,60 @@
     });
   }, { rootMargin: '200px' });
   document.querySelectorAll('.medio-pdf-thumb').forEach(el => pdfThumbObs.observe(el));
+
+  // ── CONTACT FORM ─────────────────────────────────────────────────────────────
+  (function() {
+    const form = document.getElementById('contactForm');
+    if (!form) return;
+    const isEn = '{{ lang }}' === 'en';
+    const btn = form.querySelector('.form-submit');
+    const statusEl = document.getElementById('contactFormStatus');
+    const nameF = document.getElementById('contact-name');
+    const phoneF = document.getElementById('contact-phone');
+    const emailF = document.getElementById('contact-email');
+    const typeF = document.getElementById('contact-type');
+    const msgF = document.getElementById('contact-msg');
+    const msgs = isEn
+      ? { fill: 'Please fill in name, email and message.', sending: 'SENDING…', success: 'Message sent! We will contact you soon.', error: 'Failed to send. Please try again.' }
+      : { fill: 'Completa nombre, correo y mensaje.', sending: 'ENVIANDO…', success: '¡Mensaje enviado! Te contactaremos pronto.', error: 'Error al enviar. Intenta de nuevo.' };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!nameF.value.trim() || !emailF.value.trim() || !msgF.value.trim()) {
+        statusEl.textContent = msgs.fill;
+        statusEl.style.color = '#e5484d';
+        return;
+      }
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = msgs.sending;
+      statusEl.textContent = '';
+      try {
+        const res = await fetch('/contact/submit/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: nameF.value.trim(),
+            phone: phoneF.value.trim(),
+            email: emailF.value.trim(),
+            project_type: typeF.value.trim(),
+            message: msgF.value.trim(),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== 'ok') throw new Error(data.detail || 'error');
+        statusEl.textContent = msgs.success;
+        statusEl.style.color = '#3ecf8e';
+        form.reset();
+      } catch (err) {
+        statusEl.textContent = msgs.error;
+        statusEl.style.color = '#e5484d';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  })();
 
   // ── TEAM MEMBER OVERLAY ─────────────────────────────────────────────────────
   const teamData = {{ team_data_json|safe }};
