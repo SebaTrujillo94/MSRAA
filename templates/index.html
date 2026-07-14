@@ -553,12 +553,12 @@
     .hero-img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
       object-position: center;
       position: absolute;
       top: 0;
       left: 0;
-      transform: scale(1.1);
+      transform: scale(1.04);
       background: #0a0a0a
     }
 
@@ -5937,7 +5937,7 @@
       // 4. Curtain + content exit upward together
       .to('#pageCurtain', { y: '-100%', duration: 1.0, ease: 'power4.inOut' }, '+=0.1')
       // 5. Hero Ken Burns starts as curtain lifts
-      .to('.hero-img', { scale: 1.05, duration: 3.2, ease: 'power3.out' }, '-=0.7')
+      .to('.hero-img', { scale: 1.0, duration: 3.2, ease: 'power3.out' }, '-=0.7')
       // 6. Sidebar logo blurs in (synced with curtain exit)
       .fromTo('.logo-img',
         { opacity: 0, scale: 0.82, filter: 'blur(14px)', y: 18 },
