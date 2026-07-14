@@ -5051,6 +5051,47 @@
       line-height: 1.4;
     }
 
+    /* Photo-backed option cards (steps 0-3) */
+    .calc-opt.calc-opt-photo {
+      background-size: cover;
+      background-position: center;
+      min-height: 152px;
+      justify-content: flex-end;
+    }
+    .calc-opt.calc-opt-photo::before { z-index: 2; }
+    .calc-opt.calc-opt-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(10,10,10,.12) 0%, rgba(10,10,10,.38) 48%, rgba(8,8,8,.88) 100%);
+      transition: background .3s;
+    }
+    .calc-opt.calc-opt-photo:hover::after {
+      background: linear-gradient(180deg, rgba(10,10,10,.05) 0%, rgba(10,10,10,.25) 48%, rgba(8,8,8,.8) 100%);
+    }
+    .calc-opt.calc-opt-photo.selected::after {
+      background: linear-gradient(180deg, rgba(70,52,10,.1) 0%, rgba(55,40,10,.42) 48%, rgba(18,14,4,.9) 100%);
+    }
+    .calc-opt.calc-opt-photo > * { position: relative; z-index: 1; }
+    .calc-opt.calc-opt-photo .calc-opt-icon {
+      width: 34px;
+      height: 34px;
+      margin: 0 0 auto 0;
+      padding: 7px;
+      box-sizing: border-box;
+      background: rgba(0,0,0,.4);
+      border-radius: 50%;
+      color: rgba(255,255,255,.9);
+    }
+    .calc-opt.calc-opt-photo.selected .calc-opt-icon {
+      color: var(--gold, #e8b84b);
+      background: rgba(0,0,0,.55);
+    }
+    .calc-opt.calc-opt-photo .calc-opt-title {
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,.6);
+    }
+
     /* Navigation */
     .calc-step-nav {
       display: flex;
@@ -5344,7 +5385,7 @@
           <div class="calc-step-question">¿Cuántas personas vivirán en la casa?</div>
           <div class="calc-step-hint">Define el número de dormitorios y baños necesarios.</div>
           <div class="calc-options grid2" data-step="0">
-            <button class="calc-opt" data-val="1" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="1" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/dyhaxuuhbc8kirdcb6v8.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.7 3.58-6.5 8-6.5s8 2.8 8 6.5"/>
@@ -5352,7 +5393,7 @@
               </div>
               <div class="calc-opt-title">Solo yo</div>
             </button>
-            <button class="calc-opt" data-val="2" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="2" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/easm2km50pgwhkuypivt.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
@@ -5360,7 +5401,7 @@
               </div>
               <div class="calc-opt-title">Pareja</div>
             </button>
-            <button class="calc-opt" data-val="3" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="3" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/ppr3omo9ikuh6efdexrf.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="18" r="2.5"/><path d="M1.5 21.5c0-2.5 2.5-4.5 5.5-4.5 1.2 0 2.4.4 3.4 1.1"/><path d="M14.1 21.5c1-.7 2.2-1.1 3.4-1.1 3 0 5.5 2 5.5 4.5"/><path d="M9.5 21.5c.5-1.6 1.4-2.5 2.5-2.5s2 .9 2.5 2.5"/>
@@ -5368,7 +5409,7 @@
               </div>
               <div class="calc-opt-title">Familia pequeña</div>
             </button>
-            <button class="calc-opt" data-val="4" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="4" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/jgmoexgjb4r6xcjmtwls.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="5" cy="8" r="2.5"/><circle cx="12" cy="7" r="3"/><circle cx="19" cy="8" r="2.5"/><path d="M1 21c0-2.2 1.8-4 4-4s4 1.8 4 4"/><path d="M8 21c0-2.7 1.8-5 4-5s4 2.3 4 5"/><path d="M15 21c0-2.2 1.8-4 4-4s4 1.8 4 4"/>
@@ -5390,7 +5431,7 @@
           <div class="calc-step-question">¿Qué estilo de vida prefieres?</div>
           <div class="calc-step-hint">Influye en el tamaño de áreas comunes (living, comedor, cocina).</div>
           <div class="calc-options grid3" data-step="1">
-            <button class="calc-opt" data-val="1" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="1" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/pg6i0yjz6ccczwqlubaf.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 11l9-8 9 8"/><path d="M9 21v-8h6v8"/>
@@ -5398,7 +5439,7 @@
               </div>
               <div class="calc-opt-title">Minimalista</div>
             </button>
-            <button class="calc-opt" data-val="2" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="2" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/ycg47sbtziefzermkarc.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V13h6v8"/><rect x="5.5" y="11" width="3" height="3.5" rx="0.5"/><rect x="15.5" y="11" width="3" height="3.5" rx="0.5"/>
@@ -5406,7 +5447,7 @@
               </div>
               <div class="calc-opt-title">Equilibrado</div>
             </button>
-            <button class="calc-opt" data-val="3" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="3" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/gmiemnezmacczqji0neq.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2 10l10-8 10 8"/><path d="M4 10v11h16V10"/><path d="M9 21v-7h6v7"/><rect x="5" y="12" width="2.5" height="4" rx="0.5"/><rect x="16.5" y="12" width="2.5" height="4" rx="0.5"/><path d="M2 21h20"/>
@@ -5432,7 +5473,7 @@
           <div class="calc-step-question">¿Necesitas espacios adicionales?</div>
           <div class="calc-step-hint">Puedes seleccionar más de uno.</div>
           <div class="calc-options grid2" data-step="2">
-            <button class="calc-opt" data-val="office" data-m2="12" onclick="calcPickMulti(this)">
+            <button class="calc-opt calc-opt-photo" data-val="office" data-m2="12" onclick="calcPickMulti(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/khvcuepodabocflcm9ul.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>
@@ -5440,7 +5481,7 @@
               </div>
               <div class="calc-opt-title">Oficina / estudio</div>
             </button>
-            <button class="calc-opt" data-val="laundry" data-m2="8" onclick="calcPickMulti(this)">
+            <button class="calc-opt calc-opt-photo" data-val="laundry" data-m2="8" onclick="calcPickMulti(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/nqd6qetylialupu088sk.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="12" cy="13" r="5"/><circle cx="12" cy="13" r="2.5"/><circle cx="7" cy="6.5" r="1"/><circle cx="10.5" cy="6.5" r="1"/>
@@ -5448,7 +5489,7 @@
               </div>
               <div class="calc-opt-title">Lavandería</div>
             </button>
-            <button class="calc-opt" data-val="gym" data-m2="15" onclick="calcPickMulti(this)">
+            <button class="calc-opt calc-opt-photo" data-val="gym" data-m2="15" onclick="calcPickMulti(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/mqcavpiq9pak38dwtjfx.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 5v14"/><path d="M18 5v14"/><path d="M3 8v8"/><path d="M21 8v8"/><path d="M6 12h12"/>
@@ -5456,7 +5497,7 @@
               </div>
               <div class="calc-opt-title">Gimnasio / sala de juegos</div>
             </button>
-            <button class="calc-opt" data-val="none" onclick="calcPickMultiExcl(this)">
+            <button class="calc-opt calc-opt-photo" data-val="none" onclick="calcPickMultiExcl(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/ytiy9fanbdmdfxchwa7u.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>
@@ -5482,7 +5523,7 @@
           <div class="calc-step-question">¿Qué tipo de exteriores imaginas?</div>
           <div class="calc-step-hint">Se suma un porcentaje aproximado para obras exteriores.</div>
           <div class="calc-options grid2" data-step="3">
-            <button class="calc-opt" data-val="0" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="0" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/kvhrwkmqdl7h0qqsjf1j.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 12l9-9 9 9"/><path d="M5 10v11h14V10"/><path d="M9 21v-7h6v7"/>
@@ -5490,7 +5531,7 @@
               </div>
               <div class="calc-opt-title">Sin exteriores</div>
             </button>
-            <button class="calc-opt" data-val="1" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="1" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/sj5rsnsy38s9psyqufkm.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 9l8-7 8 7"/><path d="M6 9v8h12V9"/><path d="M10 17v4h4v-4"/><path d="M2 21h20"/>
@@ -5498,7 +5539,7 @@
               </div>
               <div class="calc-opt-title">Terraza o jardín</div>
             </button>
-            <button class="calc-opt" data-val="2" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="2" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/tddrpszcqwxm6y1xpaay.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 10l7-6 7 6"/><path d="M5 10v7h10V10"/><path d="M9 17v4h4v-4"/><circle cx="20" cy="8" r="3"/><path d="M20 11v10"/><path d="M18 13h4"/><path d="M2 21h22"/>
@@ -5506,7 +5547,7 @@
               </div>
               <div class="calc-opt-title">Jardín + quincho</div>
             </button>
-            <button class="calc-opt" data-val="3" onclick="calcPick(this)">
+            <button class="calc-opt calc-opt-photo" data-val="3" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/s9udrovmmbskobtdlnrt.jpg')">
               <div class="calc-opt-icon">
                 <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14c1-1.5 2-1.5 3 0s2 1.5 3 0 2-1.5 3 0 2 1.5 3 0"/><path d="M7 9V6M17 9V6"/><path d="M5 6h14"/>
@@ -5533,33 +5574,21 @@
           <div class="calc-step-hint">Incluye materialidad, acabados y complejidad estructural.</div>
           <div class="calc-options" style="display:flex;flex-direction:column;gap:12px;" data-step="4">
             <button class="calc-opt" data-val="30" style="display:flex;align-items:center;text-align:left;gap:16px;padding:16px" onclick="calcPick(this)">
-              <div class="calc-opt-icon" style="width:56px;height:40px;flex-shrink:0;margin:0">
-                <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 12l9-9 9 9"/><path d="M9 21v-9h6v9"/><path d="M3 21h18"/>
-                </svg>
-              </div>
+              <div class="calc-opt-icon" style="width:64px;height:64px;flex-shrink:0;margin:0;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_200,c_fill,g_auto/msraa/portfolio/vgjgbgsejzkl7vgeydpf.jpg')"></div>
               <div style="flex:1">
                 <div class="calc-opt-title">Estándar · hasta 30 UF/m²</div>
                 <div class="calc-opt-sub">Construcción tradicional, terminaciones funcionales</div>
               </div>
             </button>
             <button class="calc-opt" data-val="35" style="display:flex;align-items:center;text-align:left;gap:16px;padding:16px" onclick="calcPick(this)">
-              <div class="calc-opt-icon" style="width:56px;height:40px;flex-shrink:0;margin:0">
-                <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/><rect x="5.5" y="12" width="2.5" height="3.5" rx="0.4"/><rect x="16" y="12" width="2.5" height="3.5" rx="0.4"/>
-                </svg>
-              </div>
+              <div class="calc-opt-icon" style="width:64px;height:64px;flex-shrink:0;margin:0;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_200,c_fill,g_auto/msraa/portfolio/k6hinhsnrym2ermlt37s.jpg')"></div>
               <div style="flex:1">
                 <div class="calc-opt-title">Cómodo · 30 – 40 UF/m²</div>
                 <div class="calc-opt-sub">Mejores aislaciones, ventanas termopanel, buen estándar</div>
               </div>
             </button>
             <button class="calc-opt" data-val="45" style="display:flex;align-items:center;text-align:left;gap:16px;padding:16px" onclick="calcPick(this)">
-              <div class="calc-opt-icon" style="width:56px;height:40px;flex-shrink:0;margin:0">
-                <svg class="calc-opt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="13" width="13" height="8" rx="1"/><rect x="9" y="5" width="13" height="9" rx="1"/><path d="M2 13h9V5"/><rect x="12" y="16" width="2.5" height="5" rx="0.5"/><rect x="15" y="8" width="4" height="3" rx="0.4"/><rect x="4" y="15" width="2.5" height="3" rx="0.4"/>
-                </svg>
-              </div>
+              <div class="calc-opt-icon" style="width:64px;height:64px;flex-shrink:0;margin:0;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_200,c_fill,g_auto/msraa/portfolio/ts416rtya2knvfh4y9fk.jpg')"></div>
               <div style="flex:1">
                 <div class="calc-opt-title">Premium · más de 40 UF/m²</div>
                 <div class="calc-opt-sub">Diseño arquitectónico complejo, lujo en detalles y materialidad</div>
