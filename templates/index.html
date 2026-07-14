@@ -7480,6 +7480,7 @@
       if (myToken !== pdfRenderToken) return;
       container.innerHTML = '';
       const containerWidth = container.clientWidth - 16;
+      const outputScale = Math.min(window.devicePixelRatio || 1, 2) * 1.5;
       for (let i = 1; i <= pdf.numPages; i++) {
         if (myToken !== pdfRenderToken) return;
         const page = await pdf.getPage(i);
@@ -7487,11 +7488,12 @@
         const scale = containerWidth / unscaled.width;
         const viewport = page.getViewport({ scale });
         const canvas = document.createElement('canvas');
-        canvas.style.cssText = 'display:block;margin:8px auto;box-shadow:0 2px 12px rgba(0,0,0,0.5);';
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
+        canvas.style.cssText = 'display:block;margin:8px auto;box-shadow:0 2px 12px rgba(0,0,0,0.5);width:' + Math.floor(viewport.width) + 'px;height:' + Math.floor(viewport.height) + 'px;';
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
         container.appendChild(canvas);
-        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport, transform }).promise;
       }
     } catch (err) {
       console.error('PDF render error:', err && err.message);
