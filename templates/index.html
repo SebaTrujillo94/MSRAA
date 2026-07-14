@@ -4034,6 +4034,14 @@
       width: 100%; height: 100%;
       background: var(--op-06);
     }
+    .medio-pdf-thumb { position: relative; overflow: hidden; }
+    .medio-pdf-thumb canvas {
+      position: absolute;
+      inset: -12%;
+      width: 124%; height: 124%;
+      object-fit: cover;
+      filter: blur(18px) brightness(.7);
+    }
     .medio-img-overlay {
       position: absolute;
       inset: 0;
@@ -4596,7 +4604,7 @@
             {% if src %}
             <img src="{{ src }}" alt="{{ doc.title }}" class="medio-img">
             {% else %}
-            <div class="medio-img-placeholder" style="display:flex;align-items:center;justify-content:center;font-size:44px;">📄</div>
+            <div class="medio-img-placeholder medio-pdf-thumb" data-pdf-idx="{{ forloop.counter0 }}"></div>
             {% endif %}
             {% endwith %}
             <div class="medio-img-overlay">
@@ -7552,6 +7560,41 @@
     if (!d) return;
     openCvLightbox('pdf', d.pdfUrl, d.title, d.pdfSize);
   }
+
+  async function renderPdfThumb(container, url, knownLength) {
+    try {
+      const pdfjsLib = await loadPdfJs();
+      const docParams = { url };
+      if (knownLength) {
+        docParams.length = knownLength;
+        docParams.disableAutoFetch = true;
+        docParams.disableStream = true;
+        docParams.rangeChunkSize = 1048576;
+      }
+      const pdf = await pdfjsLib.getDocument(docParams).promise;
+      const page = await pdf.getPage(1);
+      const unscaled = page.getViewport({ scale: 1 });
+      const scale = 220 / unscaled.width;
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      container.appendChild(canvas);
+    } catch (err) {
+      console.error('PDF thumb render error:', err && err.message);
+    }
+  }
+
+  const pdfThumbObs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      pdfThumbObs.unobserve(entry.target);
+      const d = portfolioDocumentsData[parseInt(entry.target.dataset.pdfIdx, 10)];
+      if (d) renderPdfThumb(entry.target, d.pdfUrl, d.pdfSize);
+    });
+  }, { rootMargin: '200px' });
+  document.querySelectorAll('.medio-pdf-thumb').forEach(el => pdfThumbObs.observe(el));
 
   // ── TEAM MEMBER OVERLAY ─────────────────────────────────────────────────────
   const teamData = {{ team_data_json|safe }};
