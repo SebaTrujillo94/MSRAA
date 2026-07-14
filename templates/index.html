@@ -564,7 +564,9 @@
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, rgba(10, 10, 10, .3) 0%, transparent 30%, transparent 70%, rgba(10, 10, 10, .3) 100%)
+      background:
+        linear-gradient(90deg, rgba(10, 10, 10, .3) 0%, transparent 30%, transparent 70%, rgba(10, 10, 10, .3) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, .7) 0%, rgba(0, 0, 0, .3) 25%, transparent 48%)
     }
 
     .hero-title-wrap {
@@ -1395,12 +1397,16 @@
     body[data-theme="yellow"] .noise { opacity: 0.04 }
     body[data-theme="yellow"] ::selection { background: #0a0a0a; color: #f5f500 }
     body[data-theme="yellow"] .hero-overlay {
-      background: linear-gradient(90deg, rgba(245,245,0,.12) 0%, transparent 30%, transparent 70%, rgba(245,245,0,.12) 100%)
+      background:
+        linear-gradient(90deg, rgba(245,245,0,.12) 0%, transparent 30%, transparent 70%, rgba(245,245,0,.12) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, .7) 0%, rgba(0, 0, 0, .3) 25%, transparent 48%)
     }
 
     /* ===== LIGHT THEME ===== */
     body[data-theme="light"] .hero-overlay {
-      background: linear-gradient(90deg, rgba(0,0,0,.3) 0%, transparent 35%, transparent 65%, rgba(0,0,0,.3) 100%);
+      background:
+        linear-gradient(90deg, rgba(0,0,0,.3) 0%, transparent 35%, transparent 65%, rgba(0,0,0,.3) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, .7) 0%, rgba(0, 0, 0, .3) 25%, transparent 48%);
     }
     /* Forms */
     body[data-theme="light"] .form-group input,
