@@ -165,6 +165,7 @@ class SiteConfiguration(SingletonModel):
     contact_phone = models.CharField(max_length=30, blank=True, verbose_name="Teléfono")
     instagram_url = models.URLField(blank=True, verbose_name="URL Instagram")
     linkedin_url = models.URLField(blank=True, verbose_name="URL LinkedIn")
+    youtube_url = models.URLField(blank=True, verbose_name="URL YouTube")
 
     # Logo — if blank, template falls back to static PNG
     logo_main = models.ImageField(

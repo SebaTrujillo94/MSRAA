@@ -780,7 +780,7 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
             'description': 'Colores de acento. logo_sidebar_color = color del logo pequeño izquierdo (por defecto rojo #CC0000).',
         }),
         ('Contacto y Redes', {
-            'fields': ('contact_email', 'contact_phone', 'instagram_url', 'linkedin_url'),
+            'fields': ('contact_email', 'contact_phone', 'instagram_url', 'linkedin_url', 'youtube_url'),
         }),
         ('Hero Slides', {
             'fields': ('hero_slide_duration',),
