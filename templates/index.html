@@ -4597,7 +4597,7 @@
     <!-- PORTAFOLIO SECTION (PDFs) -->
     {% if portfolio_documents %}
     <section class="sc medios-sec" id="portafolio">
-      <div class="sc-label rv"><span>PORTAFOLIO</span></div>
+      <div class="sc-label rv"><span>{{ ui.portfolio_heading }}</span></div>
       <div class="medios-grid">
         {% for doc in portfolio_documents %}
         <article class="medio-item hov-t" onclick="openPortfolioDocument({{ forloop.counter0 }})">
@@ -5389,9 +5389,9 @@
       <div class="calc-wrapper">
 
         <div class="calc-header">
-          <div class="calc-eyebrow">MSRAA — Calculadora de superficies</div>
-          <h2 class="calc-title">¿Cuántos m² necesita<br>tu <em>casa ideal?</em></h2>
-          <p class="calc-subtitle">5 preguntas. Resultado preciso y personalizado.</p>
+          <div class="calc-eyebrow">{{ ui.calc_eyebrow }}</div>
+          <h2 class="calc-title">{{ ui.calc_title_html|safe }}</h2>
+          <p class="calc-subtitle">{{ ui.calc_subtitle }}</p>
         </div>
 
         <div class="calc-progress-track" id="calcProgressTrack">
@@ -5405,8 +5405,8 @@
         <!-- STEP 0 -->
         <div class="calc-step active" id="cstep0">
           <div class="calc-step-counter">01 / 05</div>
-          <div class="calc-step-question">¿Cuántas personas vivirán en la casa?</div>
-          <div class="calc-step-hint">Define el número de dormitorios y baños necesarios.</div>
+          <div class="calc-step-question">{{ ui.calc_q0 }}</div>
+          <div class="calc-step-hint">{{ ui.calc_hint0 }}</div>
           <div class="calc-options grid2" data-step="0">
             <button class="calc-opt calc-opt-photo" data-val="1" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/dyhaxuuhbc8kirdcb6v8.jpg')">
               <div class="calc-opt-icon">
@@ -5414,7 +5414,7 @@
                   <circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.7 3.58-6.5 8-6.5s8 2.8 8 6.5"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Solo yo</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_solo }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="2" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/easm2km50pgwhkuypivt.jpg')">
               <div class="calc-opt-icon">
@@ -5422,7 +5422,7 @@
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Pareja</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_pareja }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="3" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/ppr3omo9ikuh6efdexrf.jpg')">
               <div class="calc-opt-icon">
@@ -5430,7 +5430,7 @@
                   <circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="18" r="2.5"/><path d="M1.5 21.5c0-2.5 2.5-4.5 5.5-4.5 1.2 0 2.4.4 3.4 1.1"/><path d="M14.1 21.5c1-.7 2.2-1.1 3.4-1.1 3 0 5.5 2 5.5 4.5"/><path d="M9.5 21.5c.5-1.6 1.4-2.5 2.5-2.5s2 .9 2.5 2.5"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Familia pequeña</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_fam_peq }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="4" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/jgmoexgjb4r6xcjmtwls.jpg')">
               <div class="calc-opt-icon">
@@ -5438,12 +5438,12 @@
                   <circle cx="5" cy="8" r="2.5"/><circle cx="12" cy="7" r="3"/><circle cx="19" cy="8" r="2.5"/><path d="M1 21c0-2.2 1.8-4 4-4s4 1.8 4 4"/><path d="M8 21c0-2.7 1.8-5 4-5s4 2.3 4 5"/><path d="M15 21c0-2.2 1.8-4 4-4s4 1.8 4 4"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Familia grande</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_fam_grande }}</div>
             </button>
           </div>
           <div class="calc-step-nav">
             <button class="calc-btn-next" id="cnext0" disabled onclick="calcNextStep(1)">
-              Siguiente paso
+              {{ ui.calc_next }}
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
             </button>
           </div>
@@ -5451,8 +5451,8 @@
 
         <div class="calc-step" id="cstep1">
           <div class="calc-step-counter">02 / 05</div>
-          <div class="calc-step-question">¿Qué estilo de vida prefieres?</div>
-          <div class="calc-step-hint">Influye en el tamaño de áreas comunes (living, comedor, cocina).</div>
+          <div class="calc-step-question">{{ ui.calc_q1 }}</div>
+          <div class="calc-step-hint">{{ ui.calc_hint1 }}</div>
           <div class="calc-options grid3" data-step="1">
             <button class="calc-opt calc-opt-photo" data-val="1" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/pg6i0yjz6ccczwqlubaf.jpg')">
               <div class="calc-opt-icon">
@@ -5460,7 +5460,7 @@
                   <path d="M3 11l9-8 9 8"/><path d="M9 21v-8h6v8"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Minimalista</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_minimalista }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="2" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/ycg47sbtziefzermkarc.jpg')">
               <div class="calc-opt-icon">
@@ -5468,7 +5468,7 @@
                   <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V13h6v8"/><rect x="5.5" y="11" width="3" height="3.5" rx="0.5"/><rect x="15.5" y="11" width="3" height="3.5" rx="0.5"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Equilibrado</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_equilibrado }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="3" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/gmiemnezmacczqji0neq.jpg')">
               <div class="calc-opt-icon">
@@ -5476,16 +5476,16 @@
                   <path d="M2 10l10-8 10 8"/><path d="M4 10v11h16V10"/><path d="M9 21v-7h6v7"/><rect x="5" y="12" width="2.5" height="4" rx="0.5"/><rect x="16.5" y="12" width="2.5" height="4" rx="0.5"/><path d="M2 21h20"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Espacioso</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_espacioso }}</div>
             </button>
           </div>
           <div class="calc-step-nav">
             <button class="calc-btn-back" onclick="calcPrevStep(0)">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8H3M7 12l-4-4 4-4"/></svg>
-              Volver
+              {{ ui.calc_back }}
             </button>
             <button class="calc-btn-next" id="cnext1" disabled onclick="calcNextStep(2)">
-              Siguiente paso
+              {{ ui.calc_next }}
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
             </button>
           </div>
@@ -5493,8 +5493,8 @@
 
         <div class="calc-step" id="cstep2">
           <div class="calc-step-counter">03 / 05</div>
-          <div class="calc-step-question">¿Necesitas espacios adicionales?</div>
-          <div class="calc-step-hint">Puedes seleccionar más de uno.</div>
+          <div class="calc-step-question">{{ ui.calc_q2 }}</div>
+          <div class="calc-step-hint">{{ ui.calc_hint2 }}</div>
           <div class="calc-options grid2" data-step="2">
             <button class="calc-opt calc-opt-photo" data-val="office" data-m2="12" onclick="calcPickMulti(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/khvcuepodabocflcm9ul.jpg')">
               <div class="calc-opt-icon">
@@ -5502,7 +5502,7 @@
                   <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Oficina / estudio</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_office }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="laundry" data-m2="8" onclick="calcPickMulti(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/nqd6qetylialupu088sk.jpg')">
               <div class="calc-opt-icon">
@@ -5510,7 +5510,7 @@
                   <rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="12" cy="13" r="5"/><circle cx="12" cy="13" r="2.5"/><circle cx="7" cy="6.5" r="1"/><circle cx="10.5" cy="6.5" r="1"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Lavandería</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_laundry }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="gym" data-m2="15" onclick="calcPickMulti(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/mqcavpiq9pak38dwtjfx.jpg')">
               <div class="calc-opt-icon">
@@ -5518,7 +5518,7 @@
                   <path d="M6 5v14"/><path d="M18 5v14"/><path d="M3 8v8"/><path d="M21 8v8"/><path d="M6 12h12"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Gimnasio / sala de juegos</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_gym }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="none" onclick="calcPickMultiExcl(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/ytiy9fanbdmdfxchwa7u.jpg')">
               <div class="calc-opt-icon">
@@ -5526,16 +5526,16 @@
                   <circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Solo los básicos</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_none }}</div>
             </button>
           </div>
           <div class="calc-step-nav">
             <button class="calc-btn-back" onclick="calcPrevStep(1)">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8H3M7 12l-4-4 4-4"/></svg>
-              Volver
+              {{ ui.calc_back }}
             </button>
             <button class="calc-btn-next" id="cnext2" disabled onclick="calcNextStep(3)">
-              Siguiente paso
+              {{ ui.calc_next }}
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
             </button>
           </div>
@@ -5543,8 +5543,8 @@
 
         <div class="calc-step" id="cstep3">
           <div class="calc-step-counter">04 / 05</div>
-          <div class="calc-step-question">¿Qué tipo de exteriores imaginas?</div>
-          <div class="calc-step-hint">Se suma un porcentaje aproximado para obras exteriores.</div>
+          <div class="calc-step-question">{{ ui.calc_q3 }}</div>
+          <div class="calc-step-hint">{{ ui.calc_hint3 }}</div>
           <div class="calc-options grid2" data-step="3">
             <button class="calc-opt calc-opt-photo" data-val="0" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/kvhrwkmqdl7h0qqsjf1j.jpg')">
               <div class="calc-opt-icon">
@@ -5552,7 +5552,7 @@
                   <path d="M3 12l9-9 9 9"/><path d="M5 10v11h14V10"/><path d="M9 21v-7h6v7"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Sin exteriores</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_ext0 }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="1" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/sj5rsnsy38s9psyqufkm.jpg')">
               <div class="calc-opt-icon">
@@ -5560,7 +5560,7 @@
                   <path d="M4 9l8-7 8 7"/><path d="M6 9v8h12V9"/><path d="M10 17v4h4v-4"/><path d="M2 21h20"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Terraza o jardín</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_ext1 }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="2" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/tddrpszcqwxm6y1xpaay.jpg')">
               <div class="calc-opt-icon">
@@ -5568,7 +5568,7 @@
                   <path d="M3 10l7-6 7 6"/><path d="M5 10v7h10V10"/><path d="M9 17v4h4v-4"/><circle cx="20" cy="8" r="3"/><path d="M20 11v10"/><path d="M18 13h4"/><path d="M2 21h22"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Jardín + quincho</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_ext2 }}</div>
             </button>
             <button class="calc-opt calc-opt-photo" data-val="3" onclick="calcPick(this)" style="background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_500,c_fill,g_auto/msraa/portfolio/s9udrovmmbskobtdlnrt.jpg')">
               <div class="calc-opt-icon">
@@ -5576,16 +5576,16 @@
                   <rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14c1-1.5 2-1.5 3 0s2 1.5 3 0 2-1.5 3 0 2 1.5 3 0"/><path d="M7 9V6M17 9V6"/><path d="M5 6h14"/>
                 </svg>
               </div>
-              <div class="calc-opt-title">Piscina + jardín</div>
+              <div class="calc-opt-title">{{ ui.calc_opt_ext3 }}</div>
             </button>
           </div>
           <div class="calc-step-nav">
             <button class="calc-btn-back" onclick="calcPrevStep(2)">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8H3M7 12l-4-4 4-4"/></svg>
-              Volver
+              {{ ui.calc_back }}
             </button>
             <button class="calc-btn-next" id="cnext3" disabled onclick="calcNextStep(4)">
-              Siguiente paso
+              {{ ui.calc_next }}
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
             </button>
           </div>
@@ -5593,38 +5593,38 @@
 
         <div class="calc-step" id="cstep4">
           <div class="calc-step-counter">05 / 05</div>
-          <div class="calc-step-question">¿Cuál es tu presupuesto estimado por m²?</div>
-          <div class="calc-step-hint">Incluye materialidad, acabados y complejidad estructural.</div>
+          <div class="calc-step-question">{{ ui.calc_q4 }}</div>
+          <div class="calc-step-hint">{{ ui.calc_hint4 }}</div>
           <div class="calc-options" style="display:flex;flex-direction:column;gap:12px;" data-step="4">
             <button class="calc-opt" data-val="30" style="display:flex;align-items:center;text-align:left;gap:16px;padding:16px" onclick="calcPick(this)">
               <div class="calc-opt-icon" style="width:64px;height:64px;flex-shrink:0;margin:0;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_200,c_fill,g_auto/msraa/portfolio/vgjgbgsejzkl7vgeydpf.jpg')"></div>
               <div style="flex:1">
-                <div class="calc-opt-title">Estándar · hasta 30 UF/m²</div>
-                <div class="calc-opt-sub">Construcción tradicional, terminaciones funcionales</div>
+                <div class="calc-opt-title">{{ ui.calc_budget1_title }}</div>
+                <div class="calc-opt-sub">{{ ui.calc_budget1_sub }}</div>
               </div>
             </button>
             <button class="calc-opt" data-val="35" style="display:flex;align-items:center;text-align:left;gap:16px;padding:16px" onclick="calcPick(this)">
               <div class="calc-opt-icon" style="width:64px;height:64px;flex-shrink:0;margin:0;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_200,c_fill,g_auto/msraa/portfolio/k6hinhsnrym2ermlt37s.jpg')"></div>
               <div style="flex:1">
-                <div class="calc-opt-title">Cómodo · 30 – 40 UF/m²</div>
-                <div class="calc-opt-sub">Mejores aislaciones, ventanas termopanel, buen estándar</div>
+                <div class="calc-opt-title">{{ ui.calc_budget2_title }}</div>
+                <div class="calc-opt-sub">{{ ui.calc_budget2_sub }}</div>
               </div>
             </button>
             <button class="calc-opt" data-val="45" style="display:flex;align-items:center;text-align:left;gap:16px;padding:16px" onclick="calcPick(this)">
               <div class="calc-opt-icon" style="width:64px;height:64px;flex-shrink:0;margin:0;border-radius:8px;overflow:hidden;background-size:cover;background-position:center;background-image:url('https://res.cloudinary.com/dej6gv0ab/image/upload/f_auto,q_auto:good,w_200,c_fill,g_auto/msraa/portfolio/ts416rtya2knvfh4y9fk.jpg')"></div>
               <div style="flex:1">
-                <div class="calc-opt-title">Premium · más de 40 UF/m²</div>
-                <div class="calc-opt-sub">Diseño arquitectónico complejo, lujo en detalles y materialidad</div>
+                <div class="calc-opt-title">{{ ui.calc_budget3_title }}</div>
+                <div class="calc-opt-sub">{{ ui.calc_budget3_sub }}</div>
               </div>
             </button>
           </div>
           <div class="calc-step-nav">
             <button class="calc-btn-back" onclick="calcPrevStep(3)">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 8H3M7 12l-4-4 4-4"/></svg>
-              Volver
+              {{ ui.calc_back }}
             </button>
             <button class="calc-btn-next" id="cnext4" disabled onclick="calcDoResult()">
-              Ver resultado
+              {{ ui.calc_see_result }}
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
             </button>
           </div>
@@ -5632,41 +5632,41 @@
 
         <div class="calc-result" id="calcResultPanel">
           <div class="calc-result-hero">
-            <div class="calc-result-label">Tu casa ideal</div>
+            <div class="calc-result-label">{{ ui.calc_result_label }}</div>
             <div class="calc-result-number" id="calcResNum">—</div>
-            <div class="calc-result-unit">metros cuadrados construidos</div>
+            <div class="calc-result-unit">{{ ui.calc_result_unit }}</div>
             <div class="calc-result-desc" id="calcResDesc"></div>
           </div>
 
           <div class="calc-result-range">
             <div class="calc-range-card">
-              <div class="calc-range-label">Mínimo</div>
+              <div class="calc-range-label">{{ ui.calc_min }}</div>
               <div class="calc-range-value" id="calcResMin">—</div>
-              <div class="calc-range-sub">m²</div>
+              <div class="calc-range-sub">{{ ui.calc_m2 }}</div>
             </div>
             <div class="calc-range-card highlight">
-              <div class="calc-range-label">Recomendado</div>
+              <div class="calc-range-label">{{ ui.calc_recommended }}</div>
               <div class="calc-range-value" id="calcResIdeal">—</div>
-              <div class="calc-range-sub">m² ← tu resultado</div>
+              <div class="calc-range-sub">{{ ui.calc_m2_result }}</div>
             </div>
             <div class="calc-range-card">
-              <div class="calc-range-label">Ampliado</div>
+              <div class="calc-range-label">{{ ui.calc_max }}</div>
               <div class="calc-range-value" id="calcResMax">—</div>
-              <div class="calc-range-sub">m²</div>
+              <div class="calc-range-sub">{{ ui.calc_m2 }}</div>
             </div>
           </div>
 
           <div class="calc-breakdown">
-            <div class="calc-breakdown-title">Desglose por espacio</div>
+            <div class="calc-breakdown-title">{{ ui.calc_breakdown_title }}</div>
             <div id="calcBreakdownRows"></div>
             <div id="calcExteriorNote"></div>
           </div>
 
           <button class="calc-btn-send-contact" onclick="calcSendToContact()">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-            <span>Enviar esta estimación al contacto</span>
+            <span>{{ ui.calc_send_contact }}</span>
           </button>
-          <button class="calc-btn-restart" onclick="calcRestart()">↺ &nbsp;Calcular de nuevo</button>
+          <button class="calc-btn-restart" onclick="calcRestart()">{{ ui.calc_restart }}</button>
         </div>
 
       </div>
@@ -5697,10 +5697,10 @@
       </div>
       <button class="pd-nav-label pd-nav-left" id="pdNavMenu">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        MENÚ
+        {{ ui.nav_menu_btn }}
       </button>
       <button class="pd-nav-label pd-nav-right" id="pdNavContact">
-        CONTACTO
+        {{ ui.nav_contact_btn }}
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
@@ -5734,7 +5734,7 @@
       <button class="pd-close" id="medioDetailClose" aria-label="Cerrar">✕</button>
       <button class="pd-nav-label pd-nav-left" id="medioNavMenu">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        MENÚ
+        {{ ui.nav_menu_btn }}
       </button>
       <div class="pd-scroll-container" id="medioDetailScroll">
         <div class="pd-sticky">
@@ -7129,7 +7129,7 @@
         if (btn) {
           const m = +btn.dataset.m2;
           extraM2 += m;
-          const names = { office: 'Oficina / estudio', laundry: 'Lavander\u00eda', gym: 'Gimnasio / sala de juegos' };
+          const names = { office: CALC_T.calc_opt_office, laundry: CALC_T.calc_opt_laundry, gym: CALC_T.calc_opt_gym };
           const icons = { office: '\u25ad', laundry: '\u25cc', gym: '\u25a2' };
           extraRows.push({ name: names[e], icon: icons[e], m2: m });
         }
@@ -7148,20 +7148,23 @@
     document.getElementById('calcResIdeal').textContent = total;
     document.getElementById('calcResMax').textContent   = max;
 
-    const pLabel = ['', 'ti', '2 personas', 'familia de 3\u20134', 'familia de 5+'][people];
-    const sLabel = ['', 'minimalista', 'equilibrado', 'amplio'][style];
-    const extLabel = ['', 'terraza o jard\u00edn', 'jard\u00edn con quincho', 'piscina y jard\u00edn'][ext];
+    const pLabel = CALC_T.calc_people_labels[people];
+    const sLabel = CALC_T.calc_style_labels[style];
+    const extLabel = CALC_T.calc_ext_labels[ext];
     document.getElementById('calcResDesc').textContent =
-      'Para ' + pLabel + ', estilo de vida ' + sLabel + (ext > 0 ? ', con ' + extLabel : '') + '. Calculado con est\u00e1ndares arquitect\u00f3nicos chilenos (15% circulaci\u00f3n y muros).';
+      CALC_T.calc_desc_template
+        .replace('{p}', pLabel)
+        .replace('{s}', sLabel)
+        .replace('{ext}', ext > 0 ? CALC_T.calc_desc_with_ext.replace('{ext}', extLabel) : '');
 
     const rows = [
-      { icon: '\u25ad', name: 'Dormitorios (' + dorms + ')',    m2: dormM2 },
-      { icon: '\u25cc', name: 'Ba\u00f1os (' + baths + ')',          m2: bathM2 },
-      { icon: '\u25a1', name: 'Living / sala de estar',    m2: livingM2 },
-      { icon: '\u25aa', name: 'Cocina',                    m2: kitM2 },
-      { icon: '\u25ab', name: 'Comedor',                   m2: dinM2 },
+      { icon: '\u25ad', name: CALC_T.calc_dorms + ' (' + dorms + ')',    m2: dormM2 },
+      { icon: '\u25cc', name: CALC_T.calc_baths + ' (' + baths + ')',          m2: bathM2 },
+      { icon: '\u25a1', name: CALC_T.calc_living,    m2: livingM2 },
+      { icon: '\u25aa', name: CALC_T.calc_kitchen,                    m2: kitM2 },
+      { icon: '\u25ab', name: CALC_T.calc_dining,                   m2: dinM2 },
       ...extraRows,
-      { icon: '\u25ce', name: 'Circulaci\u00f3n y muros (15%)', m2: circ },
+      { icon: '\u25ce', name: CALC_T.calc_circulation, m2: circ },
     ];
 
     const maxM2 = Math.max(...rows.map(r => r.m2));
@@ -7170,11 +7173,11 @@
         '<div class="calc-b-icon">' + r.icon + '</div>' +
         '<div class="calc-b-name">' + r.name + '</div>' +
         '<div class="calc-b-bar-wrap"><div class="calc-b-bar" style="width:' + Math.round(r.m2 / maxM2 * 100) + '%"></div></div>' +
-        '<div class="calc-b-m2">' + r.m2 + ' m\u00b2</div>' +
+        '<div class="calc-b-m2">' + r.m2 + ' ' + CALC_T.calc_m2 + '</div>' +
       '</div>').join('');
 
     document.getElementById('calcExteriorNote').innerHTML = extM2 > 0
-      ? '<div class="calc-exterior-note">\u25ef Exterior estimado (no computable): +' + extM2 + ' m\u00b2 de terreno adicional</div>'
+      ? '<div class="calc-exterior-note">\u25ef ' + CALC_T.calc_exterior_note.replace('{n}', extM2) + '</div>'
       : '';
 
     document.querySelectorAll('.calc-step').forEach(s => s.classList.remove('active'));
@@ -7187,7 +7190,7 @@
       loader.style.padding = '80px 0';
       loader.style.opacity = '0';
       loader.style.transition = 'opacity 0.3s ease';
-      loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(232,184,75,0.2);border-top:3px solid var(--gold);border-radius:50%;animation:calcSpin 1s linear infinite;margin:0 auto;"></div><div style="margin-top:24px; font-family:Calibri, sans-serif; font-size: 13px; letter-spacing:0.2em; color:var(--gold); text-align:center;">CALCULANDO ESTIMACIÓN...</div>';
+      loader.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(232,184,75,0.2);border-top:3px solid var(--gold);border-radius:50%;animation:calcSpin 1s linear infinite;margin:0 auto;"></div><div style="margin-top:24px; font-family:Calibri, sans-serif; font-size: 13px; letter-spacing:0.2em; color:var(--gold); text-align:center;">' + CALC_T.calc_calculating + '</div>';
       const resPanel = document.getElementById('calcResultPanel');
       resPanel.parentNode.insertBefore(loader, resPanel);
       
@@ -7246,36 +7249,36 @@
     const min   = document.getElementById('calcResMin').textContent;
     const max   = document.getElementById('calcResMax').textContent;
 
-    const pLabel = ['', '1 persona', '2 personas', 'familia de 3–4 personas', 'familia de 5+ personas'][people] || '';
-    const sLabel = ['', 'minimalista', 'equilibrado', 'amplio'][style] || '';
-    const extLabel = ['', 'terraza o jardín', 'jardín con quincho', 'piscina y jardín'][ext] || '';
-    const bLabel = ['', 'Estándar (hasta 30 UF/m²)', 'Cómodo (30–40 UF/m²)', 'Premium (más de 40 UF/m²)'][budget] || '';
+    const pLabel = CALC_T.calc_people_labels_contact[people] || '';
+    const sLabel = CALC_T.calc_style_labels[style] || '';
+    const extLabel = CALC_T.calc_ext_labels[ext] || '';
+    const bLabel = CALC_T.calc_budget_labels_contact[budget] || '';
 
-    const names = { office: 'Oficina / estudio', laundry: 'Lavandería', gym: 'Gimnasio / sala de juegos' };
+    const names = { office: CALC_T.calc_opt_office, laundry: CALC_T.calc_opt_laundry, gym: CALC_T.calc_opt_gym };
     const selectedExtras = [];
     if (extras && !extras.includes('none')) {
       extras.forEach(e => {
         if (names[e]) selectedExtras.push(names[e]);
       });
     }
-    const extrasStr = selectedExtras.length > 0 ? selectedExtras.join(', ') : 'Ninguno';
+    const extrasStr = selectedExtras.length > 0 ? selectedExtras.join(', ') : CALC_T.calc_none;
 
-    let msg = 'Hola MSRAA,\n\nHe utilizado la calculadora de m² de su sitio web y me gustaría recibir una cotización formal basada en los siguientes datos estimados:\n\n';
-    msg += '• Tamaño recomendado: ' + total + ' m² (rango: ' + min + ' m² - ' + max + ' m²)\n';
-    msg += '• Capacidad: Para ' + pLabel + '\n';
-    msg += '• Estilo de vida: ' + sLabel + '\n';
-    msg += '• Espacios adicionales: ' + extrasStr + '\n';
+    let msg = CALC_T.calc_wa_msg;
+    msg += CALC_T.calc_wa_size.replace('{total}', total).replace('{min}', min).replace('{max}', max);
+    msg += CALC_T.calc_wa_capacity.replace('{p}', pLabel);
+    msg += CALC_T.calc_wa_style.replace('{s}', sLabel);
+    msg += CALC_T.calc_wa_extras.replace('{extras}', extrasStr);
     if (ext > 0) {
-      msg += '• Áreas exteriores: ' + extLabel + '\n';
+      msg += CALC_T.calc_wa_ext.replace('{ext}', extLabel);
     }
     if (budget > 0) {
-      msg += '• Presupuesto estimado: ' + bLabel + '\n';
+      msg += CALC_T.calc_wa_budget.replace('{b}', bLabel);
     }
-    msg += '\nQuedo atento/a a sus comentarios para coordinar una reunión o recibir más información.';
+    msg += CALC_T.calc_wa_closing;
 
     const typeField = document.getElementById('contact-type');
     if (typeField) {
-      typeField.value = 'Residencial - Diseño de Casa (' + total + ' m²)';
+      typeField.value = CALC_T.calc_wa_type_field.replace('{total}', total);
     }
     
     const msgField = document.getElementById('contact-msg');
@@ -7596,6 +7599,7 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && cvLightbox.style.display === 'flex') closeCvLightbox(); });
 
   // ── PORTAFOLIO PDFs ─────────────────────────────────────────────────────────
+  const CALC_T = {{ ui_json|safe }};
   const portfolioDocumentsData = {{ portfolio_documents_json|safe }};
   function openPortfolioDocument(idx) {
     const d = portfolioDocumentsData[idx];
