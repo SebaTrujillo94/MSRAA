@@ -15,6 +15,7 @@ from django.core.management.base import BaseCommand
 from core.models import (
     SiteConfiguration, MenuItem, PortfolioCategory,
     PortfolioProject, MediaItem, CurriculumItem, HeroVideo,
+    TeamMember, PortfolioDocument,
 )
 
 
@@ -121,9 +122,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('=== PortfolioProjects ==='))
         for p in PortfolioProject.objects.all():
             f1 = maybe_set(p, 'title_en', p.title)
-            f2 = maybe_set(p, 'description_en', p.description)
-            f3 = maybe_set(p, 'location_en', p.location)
-            if (f1 or f2 or f3) and not dry:
+            f2 = maybe_set(p, 'summary_en', p.summary)
+            f3 = maybe_set(p, 'description_en', p.description)
+            f4 = maybe_set(p, 'location_en', p.location)
+            if (f1 or f2 or f3 or f4) and not dry:
                 p.save()
 
         # MediaItem
@@ -140,8 +142,9 @@ class Command(BaseCommand):
         for c in CurriculumItem.objects.all():
             f1 = maybe_set(c, 'title_en', c.title)
             f2 = maybe_set(c, 'subtitle_en', c.subtitle)
-            f3 = maybe_set(c, 'url_label_en', c.url_label)
-            if (f1 or f2 or f3) and not dry:
+            f3 = maybe_set(c, 'description_en', c.description)
+            f4 = maybe_set(c, 'url_label_en', c.url_label)
+            if (f1 or f2 or f3 or f4) and not dry:
                 c.save()
 
         # HeroVideo
@@ -151,6 +154,22 @@ class Command(BaseCommand):
             f2 = maybe_set(v, 'title_line2_en', v.title_line2)
             if (f1 or f2) and not dry:
                 v.save()
+
+        # TeamMember
+        self.stdout.write(self.style.SUCCESS('=== TeamMembers ==='))
+        for t in TeamMember.objects.all():
+            f1 = maybe_set(t, 'role_en', t.role)
+            f2 = maybe_set(t, 'bio_en', t.bio)
+            if (f1 or f2) and not dry:
+                t.save()
+
+        # PortfolioDocument
+        self.stdout.write(self.style.SUCCESS('=== PortfolioDocuments ==='))
+        for d in PortfolioDocument.objects.all():
+            f1 = maybe_set(d, 'title_en', d.title)
+            f2 = maybe_set(d, 'description_en', d.description)
+            if (f1 or f2) and not dry:
+                d.save()
 
         self.stdout.write(self.style.SUCCESS(
             f'\nDone. {total} translations applied{"" if not dry else " (dry-run, nothing saved)"}.'
