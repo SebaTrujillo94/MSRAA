@@ -760,7 +760,7 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
     cld_image_field = 'parallax_image_url'
     cld_video_field = 'parallax_video_url'
     cld_folder = 'msraa/parallax'
-    readonly_fields = ('cloudinary_status_link', 'mantenedor_link', 'featured_next_preview',
+    readonly_fields = ('cloudinary_status_link', 'mantenedor_link', 'translate_button', 'featured_next_preview',
                         'cloudinary_image_btn', 'cloudinary_video_btn', 'parallax_preview')
     filter_horizontal = ('featured_next_projects', 'parallax_projects')
     fieldsets = (
@@ -824,6 +824,10 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
         ('Mantenedor del Sitio', {
             'fields': ('mantenedor_link',),
             'description': 'Tráfico, almacenamiento, rendimiento y alertas.',
+        }),
+        ('🌐 Traducción', {
+            'fields': ('translate_button',),
+            'description': 'Traduce a inglés los campos vacíos (proyectos, equipo, documentos, currículum, etc.) usando IA.',
         }),
     )
 
@@ -916,10 +920,18 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
             'border-radius:4px;text-decoration:none;font-size:13px;">🛠️ Abrir Mantenedor</a>'
         )
 
+    @admin.display(description='Traducción automática')
+    def translate_button(self, obj):
+        return format_html(
+            '<a href="translate/" class="button" style="padding:8px 16px;background:#2e7d32;color:#fff;'
+            'border-radius:4px;text-decoration:none;font-size:13px;">🌐 Traducir a inglés</a>'
+        )
+
     def get_urls(self):
         urls = super().get_urls()
         custom = [
             path('cloudinary/', self.admin_site.admin_view(self._cloudinary_usage_view), name='cloudinary_usage'),
+            path('translate/', self.admin_site.admin_view(self._translate_view), name='translate_to_english'),
             path('mantenedor/', self.admin_site.admin_view(self._mantenedor_view), name='mantenedor'),
             path('mantenedor/stats/', self.admin_site.admin_view(self._mantenedor_stats_api), name='mantenedor_stats'),
             path('mantenedor/alerts/save/', self.admin_site.admin_view(self._mantenedor_alert_save), name='mantenedor_alert_save'),
@@ -955,6 +967,28 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
                         'bandwidth_gb': 0, 'bandwidth_pct': 0,
                         'transformations': 0, 'requests': 0, 'resources': 0, 'now': ''})
         return TemplateResponse(request, 'admin/cloudinary_usage.html', ctx)
+
+    def _translate_view(self, request):
+        import os
+        ctx = dict(self.admin_site.each_context(request), title='Traducir a inglés')
+        api_key = os.environ.get('GROQ_API_KEY', '')
+        ran = False
+        output = ''
+        error = None
+        if not api_key:
+            error = 'GROQ_API_KEY no está configurado en las variables de entorno.'
+        elif request.method == 'POST':
+            import io
+            from django.core.management import call_command
+            buf = io.StringIO()
+            try:
+                call_command('auto_translate', stdout=buf)
+                output = buf.getvalue()
+                ran = True
+            except Exception as e:
+                error = str(e)
+        ctx.update({'error': error, 'output': output, 'ran': ran, 'has_key': bool(api_key)})
+        return TemplateResponse(request, 'admin/translate.html', ctx)
 
     # ── Mantenedor ─────────────────────────────────────────────────────────
 

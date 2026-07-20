@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Traducir a inglés — Admin{% endblock %}
+
+{% block content %}
+<h1>Traducir a inglés</h1>
+
+<style>
+  .tr-card { background:#fff; border:1px solid #ddd; border-radius:6px; padding:24px 28px; margin-bottom:20px; max-width:680px; }
+  .tr-error { background:#fee2e2; border:1px solid #ef4444; border-radius:5px; padding:12px 16px; margin-bottom:20px; max-width:680px; font-size:13px; color:#7f1d1d; }
+  .tr-success { background:#dcfce7; border:1px solid #22c55e; border-radius:5px; padding:12px 16px; margin-bottom:20px; max-width:680px; font-size:13px; color:#14532d; }
+  .btn-run { background:#2e7d32; color:#fff; padding:10px 20px; border-radius:4px; border:none; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-run:hover { background:#1b5e20; }
+  pre.tr-log { background:#111; color:#ddd; padding:16px; border-radius:5px; max-width:680px; max-height:420px; overflow:auto; font-size:12px; line-height:1.5; white-space:pre-wrap; }
+</style>
+
+{% if error %}
+<div class="tr-error"><strong>Error:</strong> {{ error }}</div>
+{% endif %}
+
+{% if not ran %}
+<div class="tr-card">
+  <p>Traduce a inglés los campos <code>_en</code> vacíos del sitio (proyectos, equipo, documentos de portafolio, currículum, videos hero, etc.) usando IA.</p>
+  <p style="color:#888;font-size:12px;">No sobreescribe traducciones que ya existan. Puede tardar varios minutos si hay muchos campos pendientes.</p>
+  {% if has_key %}
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn-run">🌐 Ejecutar traducción</button>
+  </form>
+  {% endif %}
+</div>
+{% else %}
+<div class="tr-success">✅ Traducción completa.</div>
+<pre class="tr-log">{{ output }}</pre>
+<br>
+<a href="./" class="btn-run" style="text-decoration:none;display:inline-block;">↻ Ejecutar de nuevo</a>
+{% endif %}
+
+<br><br>
+<a href="../">← Volver a Configuración del Sitio</a>
+{% endblock %}
