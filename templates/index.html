@@ -4101,9 +4101,19 @@
       text-align: center;
     }
     .pdf-loading-gif {
-      width: 150px;
-      height: 150px;
-      object-fit: contain;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      /* The source gif is an 800x600 canvas with a plain light-grey backdrop
+         around a 372px white circle centered at (399,300) — that grey square
+         clashes with this dark viewer background, so crop tightly to just
+         the circle (scaled + positioned to fill this box exactly) instead
+         of showing the whole canvas. */
+      background-image: url('{% static "img/pdf-loading-building.gif" %}');
+      background-repeat: no-repeat;
+      background-size: 365.59px 274.19px;
+      background-position: -97.34px -52.10px;
+      flex-shrink: 0;
     }
     .pdf-loading-text {
       color: rgba(255,255,255,0.75);
@@ -7600,7 +7610,7 @@
     const myToken = ++pdfRenderToken;
     container.innerHTML = `
       <div class="pdf-loading">
-        <img class="pdf-loading-gif" src="{% static 'img/pdf-loading-building.gif' %}" alt="Cargando">
+        <div class="pdf-loading-gif" role="img" aria-label="Cargando"></div>
         <p class="pdf-loading-text">Espere un momento, en este momento estamos cargando información.</p>
       </div>`;
     try {
