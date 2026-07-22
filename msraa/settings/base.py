@@ -22,11 +22,11 @@ INSTALLED_APPS = [
 TINYMCE_DEFAULT_CONFIG = {
     'height': 300,
     'menubar': False,
-    'plugins': 'lists',
+    'plugins': 'lists code',
     'toolbar': 'undo redo | bold italic underline strikethrough | '
                'forecolor backcolor | fontfamily fontsize | '
                'alignleft aligncenter alignright | '
-               'bullist numlist indent outdent | removeformat',
+               'bullist numlist indent outdent | removeformat | code',
     'font_family_formats':
         'Calibri=Calibri,sans-serif;'
         'Georgia=Georgia,serif;'
