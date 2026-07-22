@@ -23,10 +23,11 @@ TINYMCE_DEFAULT_CONFIG = {
     'height': 300,
     'menubar': False,
     'plugins': 'lists code',
-    'toolbar': 'undo redo | bold italic underline strikethrough | '
+    'toolbar': 'undo redo | blocks | bold italic underline strikethrough | '
                'forecolor backcolor | fontfamily fontsize | '
                'alignleft aligncenter alignright | '
                'bullist numlist indent outdent | removeformat | code',
+    'block_formats': 'Párrafo=p; Título=h1; Título 2=h2; Subtítulo=h3',
     'font_family_formats':
         'Calibri=Calibri,sans-serif;'
         'Georgia=Georgia,serif;'
@@ -36,6 +37,17 @@ TINYMCE_DEFAULT_CONFIG = {
         'Arial=Arial,sans-serif;'
         'Verdana=Verdana,sans-serif',
     'font_size_formats': '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt 48pt 60pt 72pt 96pt',
+    'custom_colors': True,
+    'color_map': [
+        'E8B84B', 'Dorado MSRAA',
+        'B8841A', 'Dorado oscuro',
+        'CC0000', 'Rojo logo',
+        '000000', 'Negro',
+        'FFFFFF', 'Blanco',
+        'F0EDE8', 'Crema',
+        '333333', 'Gris oscuro',
+        '888888', 'Gris',
+    ],
     'branding': False,
     'promotion': False,
 }

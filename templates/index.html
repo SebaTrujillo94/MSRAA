@@ -613,6 +613,38 @@
       margin: 0;
     }
 
+    /* Same font-weight:300-vs-bolder issue as .hero-title above, affecting
+       every other rich-text container: about/trust text, curriculum,
+       team-independent CV banner, and the portfolio/media detail panel. */
+    .about-txt strong, .about-txt b,
+    .trust-sub strong, .trust-sub b,
+    .cv-banner-desc strong, .cv-banner-desc b,
+    .curriculum-desc strong, .curriculum-desc b,
+    .pd-panel-body strong, .pd-panel-body b {
+      font-weight: 700;
+    }
+    /* Heading styles (Título/Título 2/Subtítulo) from the rich-text editor's
+       block-format dropdown: reset default browser margins so they sit
+       naturally inside each container's existing paragraph rhythm. */
+    .about-txt h1, .about-txt h2, .about-txt h3,
+    .trust-sub h1, .trust-sub h2, .trust-sub h3,
+    .cv-banner-desc h1, .cv-banner-desc h2, .cv-banner-desc h3,
+    .curriculum-desc h1, .curriculum-desc h2, .curriculum-desc h3,
+    .pd-panel-body h1, .pd-panel-body h2, .pd-panel-body h3,
+    .team-bio h1, .team-bio h2, .team-bio h3 {
+      font-family: inherit;
+      line-height: 1.2;
+      margin: 0.6em 0 0.4em;
+    }
+    .about-txt h1:first-child, .trust-sub h1:first-child, .cv-banner-desc h1:first-child,
+    .curriculum-desc h1:first-child, .pd-panel-body h1:first-child, .team-bio h1:first-child,
+    .about-txt h2:first-child, .trust-sub h2:first-child, .cv-banner-desc h2:first-child,
+    .curriculum-desc h2:first-child, .pd-panel-body h2:first-child, .team-bio h2:first-child,
+    .about-txt h3:first-child, .trust-sub h3:first-child, .cv-banner-desc h3:first-child,
+    .curriculum-desc h3:first-child, .pd-panel-body h3:first-child, .team-bio h3:first-child {
+      margin-top: 0;
+    }
+
     /* RIGHT SIDEBAR */
     .sb-right {
       width: 70px;
