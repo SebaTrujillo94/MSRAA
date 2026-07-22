@@ -5871,7 +5871,7 @@
       const hasTitle = !!slides[i].t1;
       gsap.to(titles, { y: "100%", duration: .4, ease: "power3.in", onComplete: () => {
         if (hasTitle) {
-          titles[0].textContent = slides[i].t1; titles[1].textContent = slides[i].t2;
+          titles[0].innerHTML = slides[i].t1 || ''; titles[1].innerHTML = slides[i].t2 || '';
           heroTitleWrap.style.visibility = 'visible';
           gsap.to(titles, { y: "0%", duration: .8, stagger: .1, ease: "power4.out" });
         } else {

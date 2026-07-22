@@ -572,13 +572,13 @@ class CurriculumItemImage(models.Model):
 
 
 class HeroVideo(models.Model):
-    title_line1 = models.CharField(
-        max_length=200, blank=True,
+    title_line1 = RichTextField(
+        blank=True,
         help_text="Primera línea del título sobre el video (dejar en blanco para ocultar)"
     )
-    title_line1_en = models.CharField(max_length=200, blank=True, help_text="Primera línea del título (EN)")
-    title_line2 = models.CharField(max_length=200, blank=True, help_text="Segunda línea del título")
-    title_line2_en = models.CharField(max_length=200, blank=True, help_text="Segunda línea del título (EN)")
+    title_line1_en = RichTextField(blank=True, help_text="Primera línea del título (EN)")
+    title_line2 = RichTextField(blank=True, help_text="Segunda línea del título")
+    title_line2_en = RichTextField(blank=True, help_text="Segunda línea del título (EN)")
     video_file = models.FileField(
         upload_to='videos/', blank=True,
         help_text="Subir MP4 (Cloudinary en producción). Prioridad sobre URL. Recomendado: 1920×1080px, H.264, máx 100MB."
