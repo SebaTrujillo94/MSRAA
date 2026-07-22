@@ -4086,6 +4086,80 @@
       width: 100%; height: 100%;
       background: var(--op-06);
     }
+    /* PDF viewer loading state: animated building under construction,
+       shown while pdf.js fetches/renders — softens the wait on slow PDFs. */
+    .pdf-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 70px 20px;
+      gap: 24px;
+      font-family: 'Calibri', sans-serif;
+    }
+    .pdf-loading-building {
+      position: relative;
+      width: 120px;
+      height: 90px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 7px;
+    }
+    .pdf-loading-bar {
+      width: 16px;
+      height: 20%;
+      border-radius: 2px 2px 0 0;
+      background: linear-gradient(180deg, var(--gold, #e8b84b), var(--gold-light, #b8841a));
+      transform-origin: bottom;
+      animation: pdfBuildRise 1.8s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.18s);
+    }
+    @keyframes pdfBuildRise {
+      0%, 100% { height: 20%; opacity: .5; }
+      50% { height: 100%; opacity: 1; }
+    }
+    .pdf-loading-crane {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      width: 2px;
+      height: 28px;
+      background: rgba(255,255,255,0.5);
+      transform-origin: bottom center;
+      animation: pdfCraneSwing 3.2s ease-in-out infinite;
+    }
+    .pdf-loading-crane::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 48px;
+      height: 2px;
+      background: rgba(255,255,255,0.5);
+    }
+    .pdf-loading-crane::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 46px;
+      width: 2px;
+      height: 16px;
+      background: rgba(255,255,255,0.4);
+    }
+    @keyframes pdfCraneSwing {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(8deg); }
+    }
+    .pdf-loading-text {
+      color: rgba(255,255,255,0.75);
+      font-size: 14px;
+      letter-spacing: .3px;
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.5;
+      margin: 0;
+    }
     .medio-pdf-thumb { position: relative; overflow: hidden; }
     .medio-pdf-thumb canvas {
       position: absolute;
@@ -7570,7 +7644,18 @@
   let pdfRenderToken = 0;
   async function renderPdfInline(container, url, knownLength) {
     const myToken = ++pdfRenderToken;
-    container.innerHTML = '<div style="color:#fff;text-align:center;padding:60px 20px;font-family:Calibri,sans-serif;font-size: 15px;letter-spacing:1px;">Cargando PDF…</div>';
+    container.innerHTML = `
+      <div class="pdf-loading">
+        <div class="pdf-loading-building">
+          <span class="pdf-loading-crane"></span>
+          <span class="pdf-loading-bar" style="--i:3"></span>
+          <span class="pdf-loading-bar" style="--i:1"></span>
+          <span class="pdf-loading-bar" style="--i:4"></span>
+          <span class="pdf-loading-bar" style="--i:0"></span>
+          <span class="pdf-loading-bar" style="--i:2"></span>
+        </div>
+        <p class="pdf-loading-text">Espere un momento, en este momento estamos cargando información.</p>
+      </div>`;
     try {
       const pdfjsLib = await loadPdfJs();
       const docParams = { url };
