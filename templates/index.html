@@ -3505,10 +3505,12 @@
       {% endwith %}
       <video class="hero-img" id="heroVideoB" muted playsinline loop style="opacity:0"></video>
       <div class="hero-overlay"></div>
-      <div class="hero-title-wrap" id="heroTitleWrap">
-        <div class="hero-title"><span>MSRAA ARQUITECTOS</span></div>
-        <div class="hero-title"><span>EDIFICIO STARTUP REPUBLICA - UNAB REPUBLICA</span></div>
+      {% with hv0=hero_videos.0 %}
+      <div class="hero-title-wrap" id="heroTitleWrap"{% if not hv0.title_line1 %} style="visibility:hidden"{% endif %}>
+        <div class="hero-title"><span>{% tf hv0 "title_line1" %}</span></div>
+        <div class="hero-title"><span>{% tf hv0 "title_line2" %}</span></div>
       </div>
+      {% endwith %}
     </main>
 
   </div>
