@@ -501,7 +501,7 @@ class CloudinaryUploadMixin:
 
     def _cld_btn(self, obj, upload_path_suffix, field_id, icon, label, note):
         if not obj.pk:
-            return format_html('<span style="color:#999">Guarda el registro primero</span>')
+            return mark_safe('<span style="color:#999">Guarda el registro primero</span>')
         slug = field_id.replace('id_', '').replace('-', '_')
         upload_path = f'/admin/core/{self.model._meta.model_name}/{obj.pk}/{upload_path_suffix}'
         return format_html(
@@ -703,7 +703,7 @@ class MediaEditorMixin(CloudinaryUploadMixin):
     @admin.display(description='🎨 Editor de Medios')
     def media_editor_btn(self, obj):
         if not obj.pk:
-            return format_html('<span style="color:#999">Guarda el registro primero</span>')
+            return mark_safe('<span style="color:#999">Guarda el registro primero</span>')
         mn = self.model._meta.model_name
         url = f'/admin/core/{mn}/{obj.pk}/media-editor/'
         return format_html(
@@ -833,7 +833,7 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
 
     @admin.display(description='Estado de uso')
     def cloudinary_status_link(self, obj):
-        return format_html(
+        return mark_safe(
             '<a href="cloudinary/" class="button" style="padding:8px 16px;background:#0073aa;color:#fff;'
             'border-radius:4px;text-decoration:none;font-size:13px;">📊 Ver uso de Cloudinary</a>'
         )
@@ -915,14 +915,14 @@ class SiteConfigurationAdmin(CloudinaryUploadMixin, SingletonModelAdmin):
 
     @admin.display(description='Panel de control')
     def mantenedor_link(self, obj):
-        return format_html(
+        return mark_safe(
             '<a href="mantenedor/" class="button" style="padding:8px 16px;background:#1a5276;color:#fff;'
             'border-radius:4px;text-decoration:none;font-size:13px;">🛠️ Abrir Mantenedor</a>'
         )
 
     @admin.display(description='Traducción automática')
     def translate_button(self, obj):
-        return format_html(
+        return mark_safe(
             '<a href="translate/" class="button" style="padding:8px 16px;background:#2e7d32;color:#fff;'
             'border-radius:4px;text-decoration:none;font-size:13px;">🌐 Traducir a inglés</a>'
         )
@@ -1291,7 +1291,7 @@ class PortfolioProjectImageAdmin(MediaEditorMixin, admin.ModelAdmin):
                 '#40a060' if is_cld else '#e8a020',
                 '✅ En Cloudinary' if is_cld else '⚠️ URL externa',
             )
-        return format_html(
+        return mark_safe(
             '<div style="padding:10px;background:#fff8e1;border-radius:4px;border:1px solid #f0d060;'
             'font-size:12px;color:#a07020">⚠️ Sin imagen — ingresa URL y sube a Cloudinary</div>'
         )
@@ -1367,7 +1367,7 @@ class PortfolioProjectAdmin(MediaEditorMixin, admin.ModelAdmin):
             )
         if not obj.pk:
             return mark_safe('<span style="color:#aaa;font-size:11px">Guarda el registro primero</span>')
-        return format_html(
+        return mark_safe(
             '<div style="padding:12px;background:#fff8e1;border-radius:5px;border:1px solid #f0d060;font-size:12px;color:#a07020">'
             '⚠️ Sin imagen hero. Ingresa una URL arriba y usa "Subir imagen a Cloudinary".'
             '</div>'
@@ -1409,6 +1409,7 @@ class CurriculumItemAdmin(CloudinaryUploadMixin, admin.ModelAdmin):
     fieldsets = [
         ('📝 Información', {'fields': [
             'category', 'year', 'title', 'title_en', 'subtitle', 'subtitle_en',
+            'description', 'description_en',
             'url', 'url_label', 'url_label_en',
         ]}),
         ('🎬 Video', {'fields': [
@@ -1453,7 +1454,7 @@ class MediaItemImageInline(admin.TabularInline):
     img_thumb.short_description = '📷'
 
 
-class MediaItemSectionInline(admin.TabularInline):
+class MediaItemSectionInline(admin.StackedInline):
     model = MediaItemSection
     extra = 1
     fields = ['title', 'body', 'order']
@@ -1549,7 +1550,7 @@ class MediaItemAdmin(MediaEditorMixin, admin.ModelAdmin):
             )
         if not obj.pk:
             return mark_safe('<span style="color:#aaa;font-size:11px">Guarda el registro primero</span>')
-        return format_html(
+        return mark_safe(
             '<div style="padding:12px;background:#fff8e1;border-radius:5px;border:1px solid #f0d060;font-size:12px;color:#a07020">'
             '⚠️ Sin imagen. Ingresa una URL arriba y usa "Subir imagen a Cloudinary".'
             '</div>'
@@ -1648,7 +1649,7 @@ class TeamMemberAdmin(MediaEditorMixin, admin.ModelAdmin):
             )
         if not obj.pk:
             return mark_safe('<span style="color:#aaa;font-size:11px">Guarda el registro primero</span>')
-        return format_html(
+        return mark_safe(
             '<div style="padding:10px;background:#fff8e1;border-radius:4px;border:1px solid #f0d060;font-size:12px;color:#a07020">'
             '⚠️ Sin foto. Ingresa URL y sube a Cloudinary.'
             '</div>'

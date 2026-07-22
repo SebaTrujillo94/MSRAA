@@ -15,8 +15,22 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     'solo',
+    'tinymce',
     'core',
 ]
+
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 300,
+    'menubar': False,
+    'plugins': 'lists',
+    'toolbar': 'undo redo | bold italic underline strikethrough | '
+               'forecolor backcolor | fontsize | '
+               'alignleft aligncenter alignright | '
+               'bullist numlist indent outdent | removeformat',
+    'font_size_formats': '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
+    'branding': False,
+    'promotion': False,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

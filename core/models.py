@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.html import strip_tags
 from solo.models import SingletonModel
+
+from .fields import RichTextField
 
 
 def _resolve_media_url(url):
@@ -177,21 +180,21 @@ class SiteConfiguration(SingletonModel):
     # About section
     about_label = models.CharField(max_length=100, default="SOBRE EL PROYECTO", verbose_name="Etiqueta sección Sobre")
     about_label_en = models.CharField(max_length=100, blank=True, verbose_name="Etiqueta sección Sobre (EN)")
-    about_p1 = models.TextField(
+    about_p1 = RichTextField(
         verbose_name="Párrafo 1 (Sobre)",
         default="Cuatro volúmenes dibujan su órbita en torno a un vacío central "
                 "que actúa como corazón del proyecto. La luz natural penetra desde "
                 "múltiples ángulos, creando una danza de sombras que transforma el "
                 "espacio a lo largo del día."
     )
-    about_p1_en = models.TextField(blank=True, verbose_name="Párrafo 1 (Sobre) (EN)")
-    about_p2 = models.TextField(
+    about_p1_en = RichTextField(blank=True, verbose_name="Párrafo 1 (Sobre) (EN)")
+    about_p2 = RichTextField(
         verbose_name="Párrafo 2 (Sobre)",
         default="Las fachadas están marcadas por una rigurosa modulación que refleja "
                 "la precisión técnica del proceso constructivo. Cada detalle ha sido "
                 "pensado para que la obra dialogue con su entorno y perdure en el tiempo."
     )
-    about_p2_en = models.TextField(blank=True, verbose_name="Párrafo 2 (Sobre) (EN)")
+    about_p2_en = RichTextField(blank=True, verbose_name="Párrafo 2 (Sobre) (EN)")
 
     # Stats bar
     stat1_number = models.PositiveIntegerField(default=50, verbose_name="Estadística 1 — número")
@@ -215,13 +218,13 @@ class SiteConfiguration(SingletonModel):
     trust_lbl_en = models.CharField(max_length=200, blank=True, verbose_name="Colaboradores — etiqueta (EN)")
     trust_title = models.CharField(max_length=200, default="ORGULLOSOS DE CADA COLABORACIÓN", verbose_name="Colaboradores — título")
     trust_title_en = models.CharField(max_length=200, blank=True, verbose_name="Colaboradores — título (EN)")
-    trust_sub = models.TextField(
+    trust_sub = RichTextField(
         verbose_name="Colaboradores — subtítulo",
         default="Agradecemos profundamente la confianza de nuestros clientes, "
                 "cuya visión y colaboración han sido fundamentales para crear "
                 "proyectos que transforman espacios y comunidades."
     )
-    trust_sub_en = models.TextField(blank=True, verbose_name="Colaboradores — subtítulo (EN)")
+    trust_sub_en = RichTextField(blank=True, verbose_name="Colaboradores — subtítulo (EN)")
 
     # Hero slides
     hero_slide_duration = models.PositiveIntegerField(
@@ -328,8 +331,8 @@ class MediaItem(models.Model):
     year = models.CharField(max_length=10, blank=True, verbose_name='Año', help_text='Ej: 2024')
     title = models.CharField(max_length=200, verbose_name='Título')
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
-    description = models.TextField(blank=True, verbose_name='Descripción')
-    description_en = models.TextField(blank=True, verbose_name='Descripción (EN)')
+    description = RichTextField(blank=True, verbose_name='Descripción')
+    description_en = RichTextField(blank=True, verbose_name='Descripción (EN)')
     image = models.ImageField(upload_to='medios/', blank=True, null=True, max_length=500, verbose_name='Imagen', help_text='Foto portada. Resolución recomendada: 800×533px (3:2).')
     image_url = models.URLField(blank=True, max_length=500, verbose_name='URL de imagen', help_text='Dropbox o Drive (prioridad sobre imagen subida). Recomendado: 800×533px (3:2).')
     url = models.URLField(blank=True, max_length=500, verbose_name='Enlace', help_text='Dropbox, artículo, web, etc.')
@@ -447,7 +450,7 @@ class MediaItemImage(models.Model):
 class MediaItemSection(models.Model):
     media_item = models.ForeignKey(MediaItem, on_delete=models.CASCADE, related_name='sections')
     title = models.CharField(max_length=200, blank=True, verbose_name='Título de sección')
-    body = models.TextField(blank=True, verbose_name='Contenido')
+    body = RichTextField(blank=True, verbose_name='Contenido')
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -510,8 +513,8 @@ class CurriculumItem(models.Model):
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
     subtitle = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución')
     subtitle_en = models.CharField(max_length=300, blank=True, verbose_name='Subtítulo / Institución (EN)')
-    description = models.TextField(blank=True, verbose_name='Resumen', help_text="Texto de resumen mostrado bajo el subtítulo (ej: resumen de un documento adjunto).")
-    description_en = models.TextField(blank=True, verbose_name='Resumen (EN)')
+    description = RichTextField(blank=True, verbose_name='Resumen', help_text="Texto de resumen mostrado bajo el subtítulo (ej: resumen de un documento adjunto).")
+    description_en = RichTextField(blank=True, verbose_name='Resumen (EN)')
     url = models.URLField(blank=True, max_length=500, help_text="Enlace externo (Dropbox, Drive, web). Dejar vacío si no aplica.")
     url_label = models.CharField(max_length=60, blank=True, default='Ver documento', help_text="Texto del enlace")
     url_label_en = models.CharField(max_length=60, blank=True, help_text="Texto del enlace (EN)")
@@ -654,13 +657,13 @@ class PortfolioProject(models.Model):
         PortfolioCategory, on_delete=models.SET_NULL, null=True, related_name='projects',
         verbose_name='Categoría'
     )
-    summary = models.TextField(
+    summary = RichTextField(
         blank=True, verbose_name='Resumen (tarjeta)',
         help_text='Texto corto que aparece en la tarjeta del portafolio. Si se deja vacío se usan los primeros 280 caracteres de la descripción.',
     )
-    summary_en = models.TextField(blank=True, verbose_name='Resumen (tarjeta EN)')
-    description = models.TextField(verbose_name='Descripción completa')
-    description_en = models.TextField(blank=True, verbose_name='Descripción completa (EN)')
+    summary_en = RichTextField(blank=True, verbose_name='Resumen (tarjeta EN)')
+    description = RichTextField(verbose_name='Descripción completa')
+    description_en = RichTextField(blank=True, verbose_name='Descripción completa (EN)')
     year = models.CharField(max_length=10, verbose_name='Año')
     location = models.CharField(max_length=200, blank=True, verbose_name='Ubicación')
     location_en = models.CharField(max_length=200, blank=True, verbose_name='Ubicación (EN)')
@@ -732,7 +735,7 @@ class PortfolioProject(models.Model):
     def get_summary(self):
         if self.summary:
             return self.summary
-        desc = self.description or ''
+        desc = strip_tags(self.description or '')
         if len(desc) <= 280:
             return desc
         cut = desc[:280].rfind(' ')
@@ -879,8 +882,8 @@ class TeamMember(models.Model):
     name       = models.CharField(max_length=200, verbose_name='Nombre')
     role       = models.CharField(max_length=200, blank=True, verbose_name='Cargo')
     role_en    = models.CharField(max_length=200, blank=True, verbose_name='Cargo (EN)')
-    bio        = models.TextField(blank=True, verbose_name='Descripción breve')
-    bio_en     = models.TextField(blank=True, verbose_name='Descripción breve (EN)')
+    bio        = RichTextField(blank=True, verbose_name='Descripción breve')
+    bio_en     = RichTextField(blank=True, verbose_name='Descripción breve (EN)')
     image_url  = models.URLField(blank=True, max_length=500, verbose_name='Foto (URL Cloudinary)')
     img_gravity = models.CharField(max_length=20, choices=_GRAVITY_CHOICES, default='face', blank=True, verbose_name='Punto de enfoque')
     img_ratio   = models.CharField(max_length=10, choices=_RATIO_CHOICES, default='1:1', blank=True, verbose_name='Proporción')
@@ -922,8 +925,8 @@ class TeamMember(models.Model):
 class PortfolioDocument(models.Model):
     title = models.CharField(max_length=200, verbose_name='Título')
     title_en = models.CharField(max_length=200, blank=True, verbose_name='Título (EN)')
-    description = models.TextField(blank=True, verbose_name='Descripción breve')
-    description_en = models.TextField(blank=True, verbose_name='Descripción breve (EN)')
+    description = RichTextField(blank=True, verbose_name='Descripción breve')
+    description_en = RichTextField(blank=True, verbose_name='Descripción breve (EN)')
     pdf_url = models.URLField(
         max_length=500, verbose_name='PDF (URL Dropbox/Drive)',
         help_text='Link de Dropbox o Drive al PDF. Se previsualiza dentro del sitio en alta calidad, no se descarga.',

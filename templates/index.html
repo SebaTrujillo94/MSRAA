@@ -3540,9 +3540,9 @@
       <div class="about-grid">
         <div>
           <div class="sc-label rv"><span data-i18n="about_label">SOBRE EL PROYECTO</span></div>
-          <p class="about-txt rv"><span data-i18n="about_p1">Cuatro volúmenes dibujan su órbita frente al lago y dialogan entre sí en un equilibrio ligero, casi suspendido. Cada edificio gira levemente, buscando su punto de vista privilegiado sobre el agua.</span></p>
+          <p class="about-txt rv"><span data-i18n-html="about_p1">Cuatro volúmenes dibujan su órbita frente al lago y dialogan entre sí en un equilibrio ligero, casi suspendido. Cada edificio gira levemente, buscando su punto de vista privilegiado sobre el agua.</span></p>
           <br>
-          <p class="about-txt rv"><span data-i18n="about_p2">Las fachadas están marcadas por elementos verticales finos, rítmicos, que definen las sombras y construyen una arquitectura dinámica, capaz de cambiar con el movimiento del sol.</span></p>
+          <p class="about-txt rv"><span data-i18n-html="about_p2">Las fachadas están marcadas por elementos verticales finos, rítmicos, que definen las sombras y construyen una arquitectura dinámica, capaz de cambiar con el movimiento del sol.</span></p>
         </div>
         
         <!-- Middle Column: Elegant vertical hairline and stamp signature -->
@@ -4533,7 +4533,7 @@
             </div>
           </div>
           <div class="por-item-info-wrap">
-            <div class="por-desc">"{{ project.get_summary }}"</div>
+            <div class="por-desc">"{{ project.get_summary|safe }}"</div>
             <div class="por-author">MSRAA</div>
           </div>
         </div>
@@ -4630,7 +4630,7 @@
     <div class="trust-header" id="trustSection">
       <div class="trust-lbl" data-i18n="trust_lbl">QUIENES NOS HAN CONFIADO SU VISIÓN</div>
       <div class="trust-title" data-i18n="trust_title">ORGULLOSOS DE CADA COLABORACIÓN</div>
-      <p class="trust-sub" data-i18n="trust_sub">Agradecemos profundamente a las instituciones y organizaciones que eligieron a MSRAA para dar forma a sus espacios y dejar huella en el entorno construido.</p>
+      <p class="trust-sub" data-i18n-html="trust_sub">Agradecemos profundamente a las instituciones y organizaciones que eligieron a MSRAA para dar forma a sus espacios y dejar huella en el entorno construido.</p>
     </div>
     <div class="marquee-sec">
       <div class="marquee-track">
@@ -4734,9 +4734,9 @@
               <div class="team-role">{{ member.role }}</div>
               {% endif %}
               {% if is_en and member.bio_en %}
-              <div class="team-bio">{{ member.bio_en }}</div>
+              <div class="team-bio">{{ member.bio_en|safe }}</div>
               {% elif member.bio %}
-              <div class="team-bio">{{ member.bio }}</div>
+              <div class="team-bio">{{ member.bio|safe }}</div>
               {% endif %}
             </div>
           </div>
@@ -6082,8 +6082,9 @@
       const firstImgPanel = _imgPanels[0] || '';
       const restImgPanels = _imgPanels.slice(1).join('');
 
-      // Format description with smart parser (headings, lists, paragraphs)
-      const _descHtml = _formatDesc(p.desc || '');
+      // Rich-text editor output already carries HTML — only run the legacy
+      // plain-text parser (headings, lists, paragraphs) on old, unformatted entries.
+      const _descHtml = /<[a-z][\s\S]*>/i.test(p.desc || '') ? (p.desc || '') : _formatDesc(p.desc || '');
 
       const videoPanel = p.videoUrl ? `
         <div class="pd-panel-video">
@@ -7704,7 +7705,7 @@
     if (!t || !teamOverlay) return;
     document.getElementById('teamOverlayName').textContent = t.name;
     document.getElementById('teamOverlayRole').textContent = t.role;
-    document.getElementById('teamOverlayBio').textContent = t.bio;
+    document.getElementById('teamOverlayBio').innerHTML = t.bio || '';
     const photo = document.getElementById('teamOverlayPhoto');
     const ph = document.getElementById('teamOverlayPhotoPlaceholder');
     if (t.photo) { photo.src = t.photo; photo.style.display = 'block'; ph.style.display = 'none'; }

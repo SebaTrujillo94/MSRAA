@@ -1,4 +1,5 @@
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -10,5 +11,5 @@ def tf(context, obj, field):
     if is_en:
         en_val = getattr(obj, f'{field}_en', None)
         if en_val:
-            return en_val
-    return getattr(obj, field, '')
+            return mark_safe(en_val)
+    return mark_safe(getattr(obj, field, '') or '')
