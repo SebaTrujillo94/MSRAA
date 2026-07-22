@@ -597,6 +597,17 @@
       transform: translateY(100%)
     }
 
+    /* Rich-text editor output: .hero-title's own font-weight:300 makes the
+       browser resolve <strong>'s font-weight:bolder down to a barely-visible
+       400 instead of true bold — force it explicitly. Also strip the <p>
+       default margin the editor wraps lines in. */
+    .hero-title strong, .hero-title b {
+      font-weight: 700;
+    }
+    .hero-title p {
+      margin: 0;
+    }
+
     /* RIGHT SIDEBAR */
     .sb-right {
       width: 70px;
