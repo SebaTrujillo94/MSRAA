@@ -24,10 +24,18 @@ TINYMCE_DEFAULT_CONFIG = {
     'menubar': False,
     'plugins': 'lists',
     'toolbar': 'undo redo | bold italic underline strikethrough | '
-               'forecolor backcolor | fontsize | '
+               'forecolor backcolor | fontfamily fontsize | '
                'alignleft aligncenter alignright | '
                'bullist numlist indent outdent | removeformat',
-    'font_size_formats': '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
+    'font_family_formats':
+        'Calibri=Calibri,sans-serif;'
+        'Georgia=Georgia,serif;'
+        'Helvetica Neue=\'Helvetica Neue\',Helvetica,sans-serif;'
+        'Times New Roman=\'Times New Roman\',Times,serif;'
+        'Courier New=\'Courier New\',Courier,monospace;'
+        'Arial=Arial,sans-serif;'
+        'Verdana=Verdana,sans-serif',
+    'font_size_formats': '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt 48pt 60pt 72pt 96pt',
     'branding': False,
     'promotion': False,
 }

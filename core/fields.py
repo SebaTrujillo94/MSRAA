@@ -6,7 +6,7 @@ from tinymce.widgets import TinyMCE
 _ALLOWED_TAGS = ['p', 'br', 'strong', 'em', 'u', 's', 'span', 'ul', 'ol', 'li', 'div']
 _ALLOWED_ATTRIBUTES = {'span': ['style'], 'p': ['style'], 'div': ['style']}
 _CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
-    'color', 'background-color', 'font-size', 'text-align',
+    'color', 'background-color', 'font-size', 'font-family', 'text-align',
     'margin-left', 'margin-right', 'text-decoration',
 ])
 

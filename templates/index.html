@@ -603,6 +603,11 @@
        default margin the editor wraps lines in. */
     .hero-title strong, .hero-title b {
       font-weight: 700;
+      /* Bold glyphs are wider than the thin default the base -1.5px
+         letter-spacing/1px stroke were tuned for; loosen both slightly
+         here only, so untouched (non-bold) titles keep their original look. */
+      letter-spacing: -0.5px;
+      -webkit-text-stroke-width: 0.5px;
     }
     .hero-title p {
       margin: 0;
